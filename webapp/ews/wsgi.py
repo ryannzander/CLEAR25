@@ -40,18 +40,38 @@ def _ensure_migrated():
 
     from django.db import connection
 
-    # Step 1: clear stale 'sites' migration records so migrate will recreate the table.
-    if not _table_exists('django_site') and _table_exists('django_migrations'):
-        logger.warning("_ensure_migrated: django_site missing — clearing stale records")
-        try:
-            with connection.cursor() as cursor:
-                cursor.execute("DELETE FROM django_migrations WHERE app = 'sites'")
-        except Exception:
-            logger.error("_ensure_migrated: could not clear stale records", exc_info=True)
+    # Each entry maps a Django migration app-name to a representative table that
+    # must exist.  If the table is missing but the migration is recorded as applied,
+    # migrate --noinput silently skips it.  We delete those stale records first so
+    # migrate actually recreates the missing tables.
+    REQUIRED = {
+        'sites':         'django_site',
+        'sessions':      'django_session',
+        'auth':          'auth_user',
+        'contenttypes':  'django_content_type',
+        'account':       'account_emailaddress',
+        'socialaccount': 'socialaccount_socialapp',
+        'dashboard':     'dashboard_userprofile',
+    }
+
+    # Step 1: clear stale migration records for every app whose table is missing.
+    if _table_exists('django_migrations'):
+        stale = [app for app, tbl in REQUIRED.items() if not _table_exists(tbl)]
+        if stale:
+            placeholders = ', '.join(['%s'] * len(stale))
+            logger.warning("_ensure_migrated: missing tables — clearing stale records for: %s", stale)
             try:
-                connection.rollback()
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        f"DELETE FROM django_migrations WHERE app IN ({placeholders})",
+                        stale,
+                    )
             except Exception:
-                pass
+                logger.error("_ensure_migrated: could not clear stale records", exc_info=True)
+                try:
+                    connection.rollback()
+                except Exception:
+                    pass
 
     # Step 2: run all pending migrations.
     try:
@@ -61,10 +81,11 @@ def _ensure_migrated():
     except Exception:
         logger.error("_ensure_migrated: migrate command failed", exc_info=True)
 
-    # Step 3: if django_site STILL does not exist (migrate failed or skipped it),
-    # create it directly with raw SQL so the app can serve requests.
+    # Step 3: raw-SQL fallbacks for the two tables the app cannot start without.
+    # These run only if migrate still failed to create them.
+
     if not _table_exists('django_site'):
-        logger.warning("_ensure_migrated: creating django_site with raw SQL")
+        logger.warning("_ensure_migrated: creating django_site via raw SQL")
         try:
             with connection.cursor() as cursor:
                 cursor.execute("""
@@ -74,25 +95,51 @@ def _ensure_migrated():
                         "name"   VARCHAR(50)  NOT NULL
                     )
                 """)
-                # Mark both site migrations as applied so future migrate calls
-                # don't try to re-create the table.
                 if _table_exists('django_migrations'):
                     cursor.execute("""
                         INSERT INTO django_migrations (app, name, applied)
-                        VALUES
-                            ('sites', '0001_initial',              NOW()),
-                            ('sites', '0002_alter_domain_unique',  NOW())
+                        VALUES ('sites','0001_initial',NOW()),
+                               ('sites','0002_alter_domain_unique',NOW())
                         ON CONFLICT DO NOTHING
                     """)
-            logger.info("_ensure_migrated: django_site created via raw SQL")
+            logger.info("_ensure_migrated: django_site created")
         except Exception:
-            logger.error("_ensure_migrated: raw SQL creation failed", exc_info=True)
+            logger.error("_ensure_migrated: django_site raw SQL failed", exc_info=True)
             try:
                 connection.rollback()
             except Exception:
                 pass
 
-    # Step 4: ensure the Site row exists regardless of how the table was created.
+    if not _table_exists('django_session'):
+        logger.warning("_ensure_migrated: creating django_session via raw SQL")
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS "django_session" (
+                        "session_key"  VARCHAR(40) NOT NULL PRIMARY KEY,
+                        "session_data" TEXT        NOT NULL,
+                        "expire_date"  TIMESTAMP WITH TIME ZONE NOT NULL
+                    )
+                """)
+                cursor.execute("""
+                    CREATE INDEX IF NOT EXISTS "django_session_expire_date"
+                    ON "django_session" ("expire_date")
+                """)
+                if _table_exists('django_migrations'):
+                    cursor.execute("""
+                        INSERT INTO django_migrations (app, name, applied)
+                        VALUES ('sessions','0001_initial',NOW())
+                        ON CONFLICT DO NOTHING
+                    """)
+            logger.info("_ensure_migrated: django_session created")
+        except Exception:
+            logger.error("_ensure_migrated: django_session raw SQL failed", exc_info=True)
+            try:
+                connection.rollback()
+            except Exception:
+                pass
+
+    # Step 4: ensure the Site row exists.
     try:
         from django.contrib.sites.models import Site
         Site.objects.update_or_create(
