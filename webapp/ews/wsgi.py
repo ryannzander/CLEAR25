@@ -34,16 +34,29 @@ def _ensure_migrated():
     if _migrated:
         return
     _migrated = True
+
+    import logging
+    logger = logging.getLogger(__name__)
+
     try:
         from django.core.management import call_command
+        from django.db import connection
 
-        # If django_site is missing the table may still be recorded as applied
-        # in django_migrations. Fake it back to zero so migrate recreates it.
-        if not _table_exists('django_site'):
+        # If django_site is missing but its migrations are still recorded as
+        # applied, django migrate --noinput silently skips them and the table
+        # is never recreated.  Delete those stale records so migrate actually
+        # runs and creates the table.
+        if not _table_exists('django_site') and _table_exists('django_migrations'):
             try:
-                call_command("migrate", "sites", "zero", "--fake", verbosity=0)
-            except Exception:
-                pass
+                with connection.cursor() as cursor:
+                    cursor.execute("DELETE FROM django_migrations WHERE app = 'sites'")
+                logger.warning("_ensure_migrated: cleared stale sites migration records")
+            except Exception as e:
+                logger.error("_ensure_migrated: could not clear sites records: %s", e)
+                try:
+                    connection.rollback()
+                except Exception:
+                    pass
 
         # Run all pending migrations (no-op if already up to date).
         call_command("migrate", "--noinput", verbosity=0)
@@ -54,7 +67,6 @@ def _ensure_migrated():
             id=1, defaults={"domain": "clear25.xyz", "name": "C.L.E.A.R."}
         )
     except Exception:
-        import logging
-        logging.getLogger(__name__).error("_ensure_migrated failed", exc_info=True)
+        logger.error("_ensure_migrated failed", exc_info=True)
 
 _ensure_migrated()
