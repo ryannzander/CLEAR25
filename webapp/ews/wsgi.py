@@ -55,17 +55,26 @@ def _ensure_migrated():
     }
 
     # Step 1: clear stale migration records for every app whose table is missing.
+    # IMPORTANT: wrap in transaction.atomic() so the DELETE is committed before
+    # migrate runs.  Without this the implicit transaction is never committed and
+    # migrate still sees the stale records, silently skipping the missing tables.
     if _table_exists('django_migrations'):
         stale = [app for app, tbl in REQUIRED.items() if not _table_exists(tbl)]
         if stale:
             placeholders = ', '.join(['%s'] * len(stale))
             logger.warning("_ensure_migrated: missing tables — clearing stale records for: %s", stale)
             try:
-                with connection.cursor() as cursor:
-                    cursor.execute(
-                        f"DELETE FROM django_migrations WHERE app IN ({placeholders})",
-                        stale,
-                    )
+                from django.db import transaction as _tx
+                with _tx.atomic():
+                    with connection.cursor() as cursor:
+                        cursor.execute(
+                            f"DELETE FROM django_migrations WHERE app IN ({placeholders})",
+                            stale,
+                        )
+                # Close all connections after the commit so migrate opens a
+                # fresh connection that sees the updated django_migrations state.
+                import django.db
+                django.db.connections.close_all()
             except Exception:
                 logger.error("_ensure_migrated: could not clear stale records", exc_info=True)
                 try:
