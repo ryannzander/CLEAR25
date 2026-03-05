@@ -210,12 +210,15 @@ else:
 # SESSION SETTINGS
 # =============================================================================
 
-# Use cache-backed sessions if Redis available
+# Cookie-based sessions: signed server-side, stored client-side.
+# This requires no django_session table and works correctly on serverless
+# (Vercel) where Lambda instances don't share memory or a persistent DB pool.
+# With Redis available, upgrade to cache-backed sessions for larger payloads.
 if REDIS_URL:
     SESSION_ENGINE = "django.contrib.sessions.backends.cache"
     SESSION_CACHE_ALIAS = "default"
 else:
-    SESSION_ENGINE = "django.contrib.sessions.backends.db"
+    SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 7  # 1 week
 
