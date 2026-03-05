@@ -40,6 +40,15 @@ def _ensure_migrated():
                 _ = ak.requests_this_hour
         except Exception:
             needs_migrate = True
+        try:
+            from allauth.socialaccount.models import SocialApp, SocialAccount, SocialToken
+            SocialApp.objects.count()
+            SocialAccount.objects.count()
+            SocialToken.objects.count()
+            from allauth.account.models import EmailAddress
+            EmailAddress.objects.count()
+        except Exception:
+            needs_migrate = True
         if needs_migrate:
             from django.core.management import call_command
             call_command("migrate", "--noinput")
