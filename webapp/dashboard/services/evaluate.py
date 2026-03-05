@@ -125,6 +125,7 @@ def evaluate(stations, readings, previous_readings=None):
             "level_text_color": lvl["text_color"], "health": lvl["health"],
             "lead": lead_time_str(st["tier"], st["distance"]),
             "target_city": st.get("target_city", ""),
+            "lat": st.get("lat"), "lon": st.get("lon"),
         })
     results.sort(key=lambda x: x["predicted"], reverse=True)
 

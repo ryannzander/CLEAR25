@@ -19,28 +19,34 @@ def _ensure_migrated():
     if _migrated:
         return
     _migrated = True
-    needs_migrate = False
     try:
-        from django.contrib.sites.models import Site
-        Site.objects.get(id=1)
+        needs_migrate = False
+        try:
+            from django.contrib.sites.models import Site
+            Site.objects.get(id=1)
+        except Exception:
+            needs_migrate = True
+        try:
+            from dashboard.models import (
+                ReadingSnapshot, CachedResult, Suggestion, APIKey, DeviceToken, RefreshToken
+            )
+            ReadingSnapshot.objects.count()
+            CachedResult.objects.count()
+            Suggestion.objects.count()
+            DeviceToken.objects.count()
+            RefreshToken.objects.count()
+            ak = APIKey.objects.first()
+            if ak:
+                _ = ak.requests_this_hour
+        except Exception:
+            needs_migrate = True
+        if needs_migrate:
+            from django.core.management import call_command
+            call_command("migrate", "--noinput")
+            from django.contrib.sites.models import Site
+            Site.objects.update_or_create(id=1, defaults={"domain": "clear25.xyz", "name": "C.L.E.A.R."})
     except Exception:
-        needs_migrate = True
-    try:
-        from dashboard.models import ReadingSnapshot, CachedResult, Suggestion, APIKey, DeviceToken
-        ReadingSnapshot.objects.count()
-        CachedResult.objects.count()
-        Suggestion.objects.count()
-        DeviceToken.objects.count()  # Check push notification table
-        # Check APIKey exists and has rate limit fields
-        ak = APIKey.objects.first()
-        if ak:
-            _ = ak.requests_this_hour  # Check new field exists
-    except Exception:
-        needs_migrate = True
-    if needs_migrate:
-        from django.core.management import call_command
-        call_command("migrate", "--noinput")
-        from django.contrib.sites.models import Site
-        Site.objects.update_or_create(id=1, defaults={"domain": "clear25.xyz", "name": "C.L.E.A.R."})
+        import logging
+        logging.getLogger(__name__).error("_ensure_migrated failed", exc_info=True)
 
 _ensure_migrated()
