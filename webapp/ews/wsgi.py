@@ -14,46 +14,45 @@ app = application  # Alias for Vercel
 
 # Run migrations at runtime if tables are missing (Vercel serverless)
 _migrated = False
+
+def _table_exists(name):
+    """Return True if the named table exists in the database."""
+    from django.db import connection
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(f'SELECT 1 FROM "{name}" LIMIT 0')
+        return True
+    except Exception:
+        try:
+            connection.rollback()
+        except Exception:
+            pass
+        return False
+
 def _ensure_migrated():
     global _migrated
     if _migrated:
         return
     _migrated = True
     try:
-        needs_migrate = False
-        try:
-            from django.contrib.sites.models import Site
-            Site.objects.get(id=1)
-        except Exception:
-            needs_migrate = True
-        try:
-            from dashboard.models import (
-                ReadingSnapshot, CachedResult, Suggestion, APIKey, DeviceToken, RefreshToken
-            )
-            ReadingSnapshot.objects.count()
-            CachedResult.objects.count()
-            Suggestion.objects.count()
-            DeviceToken.objects.count()
-            RefreshToken.objects.count()
-            ak = APIKey.objects.first()
-            if ak:
-                _ = ak.requests_this_hour
-        except Exception:
-            needs_migrate = True
-        try:
-            from allauth.socialaccount.models import SocialApp, SocialAccount, SocialToken
-            SocialApp.objects.count()
-            SocialAccount.objects.count()
-            SocialToken.objects.count()
-            from allauth.account.models import EmailAddress
-            EmailAddress.objects.count()
-        except Exception:
-            needs_migrate = True
-        if needs_migrate:
-            from django.core.management import call_command
-            call_command("migrate", "--noinput")
-            from django.contrib.sites.models import Site
-            Site.objects.update_or_create(id=1, defaults={"domain": "clear25.xyz", "name": "C.L.E.A.R."})
+        from django.core.management import call_command
+
+        # If django_site is missing the table may still be recorded as applied
+        # in django_migrations. Fake it back to zero so migrate recreates it.
+        if not _table_exists('django_site'):
+            try:
+                call_command("migrate", "sites", "zero", "--fake", verbosity=0)
+            except Exception:
+                pass
+
+        # Run all pending migrations (no-op if already up to date).
+        call_command("migrate", "--noinput", verbosity=0)
+
+        # Ensure the Site record exists.
+        from django.contrib.sites.models import Site
+        Site.objects.update_or_create(
+            id=1, defaults={"domain": "clear25.xyz", "name": "C.L.E.A.R."}
+        )
     except Exception:
         import logging
         logging.getLogger(__name__).error("_ensure_migrated failed", exc_info=True)
