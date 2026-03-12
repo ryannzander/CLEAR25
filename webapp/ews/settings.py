@@ -121,6 +121,19 @@ WHITENOISE_USE_FINDERS = True
 
 # Path to the shared data/ folder
 DATA_DIR = os.path.join(BASE_DIR.parent, "data")
+# Research data: regression Excel files per city (CLEAR methodology)
+RESEARCH_DATA_BASE = os.path.join(
+    DATA_DIR,
+    "LAPTOP TSF 2026",
+    "07.  The 4 Cities - Regression formulas and alert network stations",
+)
+# NAPS station coordinates lookup
+NAPS_STATIONS_PATH = os.path.join(
+    DATA_DIR,
+    "LAPTOP TSF 2026",
+    "05. NAPS Stations",
+    "04.  Canada_NAPS_Stations_Active_Years.xlsx",
+)
 
 # Auth
 AUTHENTICATION_BACKENDS = [

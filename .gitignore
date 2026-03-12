@@ -10,6 +10,13 @@ venv/
 # Secrets (API key is read from env var on production)
 data/config.json
 
+#ai
+.cursorrules/
+
+# Data folder (research data stays local; config.example.json is tracked for onboarding)
+data/*
+!data/config.example.json
+
 # IDE
 .vscode/
 .idea/

@@ -1,0 +1,32 @@
+Analyze the methodology of the project (located in data/LAPTOP TSF 2026/01. Summary Documents/CLEAR_Methodology_ScienceFair Ver#1.pdf).
+
+Do not guess about ANYTHING. Always refer to the data folder if needing context about a feature. If no context is found, ask me. Do not guess at all.
+
+This is a RESEARCH project. It is very important that you make no mistakes while programming or leave any vulnerability.
+
+After each feature I want you to git commit it. Make sure to make separate branches and such for a smooth and optimized workflow. DO NOT INCLUDE CURSOR IN YOUR COMMIT NAMES. Analyze previous commits and make a census whether or not to commit to a specific branch.
+
+Any error that you make in the process should be dealt with as soon as possible. As well, I want you to update this specific file with any new discoveries/errors you have went through, and how to solve them.
+
+---
+
+## Explicit Data Paths (do not guess)
+
+- **Methodology:** `data/LAPTOP TSF 2026/01. Summary Documents/CLEAR_Methodology_ScienceFair Ver#1.pdf`
+- **Regression Excel:** `data/LAPTOP TSF 2026/07. The 4 Cities - Regression formulas and alert network stations/{City}/`
+- **Validation:** `data/LAPTOP TSF 2026/10. Validation/`
+- **Raw PM2.5 data:** `data/LAPTOP TSF 2026/03. RAW DATA PM25 CANADA+Provinces/`
+
+---
+
+## Git Workflow
+
+- Create feature branches per phase (e.g., `feature/cursorrules-update`, `feature/data-layer-research`)
+- Commit after each feature; avoid "Cursor" in commit messages
+- Update this file's "Discoveries & Errors" section when encountering issues
+
+---
+
+## Discoveries & Errors
+
+- **Research Excel structure:** Research files use a single sheet (e.g. Toronto_ALL_Regression_ON_QC), headers on row 4, columns: Station ID, City, Distance (km), Direction, Tier, R, Slope, Intercept. No separate "All Stations Data" sheet for lat/lon. Coordinates are loaded from Canada NAPS Stations file (05. NAPS Stations/04. Canada_NAPS_Stations_Active_Years.xlsx) for NAPS IDs; US EPA station IDs get coords from legacy Excel if available, else remain None (WAQI live fetch will skip them).

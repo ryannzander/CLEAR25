@@ -1,10 +1,15 @@
 """
 Three-rule detection and evaluation logic.
-Adapted from Toronto PM2.5 Methodology v3.0.
+
+Source: CLEAR_Methodology_ScienceFair Ver#1
+(data/LAPTOP TSF 2026/01. Summary Documents/CLEAR_Methodology_ScienceFair Ver#1.pdf)
+
+C.L.E.A.R. (Canadian Lead-Time Early Air Response) system uses three complementary
+detection rules for 360-degree coverage of incoming wildfire smoke.
 """
 
 # ---------------------------------------------------------------------------
-# Alert levels & colors
+# Alert levels & colors (per methodology Section 3)
 # ---------------------------------------------------------------------------
 ALERT_LEVELS = [
     {"name": "LOW",       "min": 0,   "max": 20,    "hex": "#22c55e", "text_color": "black",
@@ -20,14 +25,14 @@ ALERT_LEVELS = [
 ]
 
 # ---------------------------------------------------------------------------
-# Three-Rule Detection System
+# Three-Rule Detection System (methodology Sections 4–6)
 # ---------------------------------------------------------------------------
-# Rule 1: Regional Station Alert - Any station > 40 µg/m³ triggers alert
-# Rule 2: Distant Sequential Detection - Distant trigger + intermediate confirmation
-# Rule 3: Corridor Detection - Upwind corridor stations for specific smoke sources
+# Rule 1: Regional Station Alert - Ontario/Quebec 100–650 km, > 40 µg/m³
+# Rule 2: NW Ontario Sequential - Thunder Bay/distant > 35 µg/m³ + intermediate > 20 µg/m³
+# Rule 3: Quebec Upstream - Same as Rule 1 for Quebec fires 500–1400 km NE
 
 RULE1_TRIGGER = 40           # µg/m³ - Regional station exceeds this → evaluation begins
-RULE2_DISTANT_TRIGGER = 35   # µg/m³ - Distant station (1000+ km) trigger
+RULE2_DISTANT_TRIGGER = 35   # µg/m³ - Thunder Bay / distant station (600+ km) trigger
 RULE2_INTERMEDIATE = 20      # µg/m³ - Intermediate station confirmation threshold
 RULE3_CORRIDOR_TRIGGER = 40  # µg/m³ - Corridor station trigger
 
@@ -47,7 +52,7 @@ def get_alert_level(pm25):
 def lead_time_str(tier, dist):
     """Calculate estimated lead time based on station distance and tier.
 
-    Lead times based on Toronto PM2.5 Methodology v3.0:
+    Lead times per CLEAR_Methodology_ScienceFair Ver#1:
     - Distant stations (1000+ km): 15-92 hours (avg 15.3h)
     - Regional stations (100-600 km): 0-48 hours (varies by wind)
     - Corridor stations (300-500 km): 0-24 hours (often simultaneous)
@@ -93,13 +98,16 @@ def _weighted_prediction(city_rows):
 def evaluate(stations, readings, previous_readings=None):
     """Evaluate stations using 3-rule detection system.
 
-    Three-Rule Detection (adapted from Toronto PM2.5 Methodology v3.0):
-    - Rule 1: Regional Alert - Any station > 40 µg/m³ (immediate trigger)
-    - Rule 2: Distant Sequential - Distant station > 35 µg/m³ + intermediate > 20 µg/m³
-    - Rule 3: Corridor Detection - Upwind corridor station > 40 µg/m³
+    Source: CLEAR_Methodology_ScienceFair Ver#1
+
+    Three-Rule Detection:
+    - Rule 1: Regional Alert - Station 100–650 km > 40 µg/m³, regression predicts city ≥ 20 µg/m³
+    - Rule 2: NW Ontario Sequential - Distant (600+ km) > 35 µg/m³ + intermediate 200–600 km
+              > 20 µg/m³ (both current and previous hour). Methodology specifies Thunder Bay.
+    - Rule 3: Quebec Upstream - Same as Rule 1 for corridor stations < 400 km
 
     previous_readings: dict of {station_id: pm25} from the previous hour,
-                       used for Rule 2 (sequential confirmation).
+                       used for Rule 2 (sequential confirmation within 96 hrs).
 
     Predictions are weighted by R-value (correlation coefficient) so that
     more reliable stations have greater influence on city-level predictions.

@@ -1,6 +1,8 @@
-# C.L.E.A.R. — Canadian Lead-time Early Air Response
+# C.L.E.A.R. — Canadian Lead-Time Early Air Response
 
 A PM2.5 wildfire smoke early warning system that uses existing air quality monitoring stations located 100–600+ km away to provide **6–48 hours of advance warning** before dangerous smoke arrives in major Canadian cities.
+
+**Source of truth:** CLEAR_Methodology_ScienceFair Ver#1 (see data folder)
 
 **Authors:** Hugo Bui & Ryan Zander — University of Toronto Schools
 
@@ -37,18 +39,19 @@ When a remote station's PM2.5 reading exceeds a computed threshold, a colour-cod
 - Tier 1: >250 km (12–48 hr lead time)
 - Tier 2: 100–250 km (6–18 hr lead time)
 
-## Validation
+## Validation (per methodology)
 
-- **97.9% detection rate** (47/48 smoke events)
-- **0% false alarm rate** (35/35 non-events)
+- **90.9% accuracy** | **100% sensitivity** (zero missed events)
+- **15.7h mean lead time** | **87h maximum**
 - Study period: 2003–2023, wildfire season (May–September)
 - 36M+ hourly observations from NAPS and U.S. EPA networks
 
 ## Setup
 
 ```bash
-pip install django openpyxl requests
+pip install -r requirements.txt
 cd webapp
+python manage.py migrate
 python manage.py runserver
 ```
 
@@ -56,16 +59,37 @@ Open http://127.0.0.1:8000/
 
 ## Configuration
 
-Create `data/config.json` with your OpenAQ API key:
+### Environment Variables
+
+- **WAQI_API_TOKEN** — World Air Quality Index API key for live PM2.5 data (required for production refresh)
+- **CRON_SECRET** — Secret for cron-triggered data refresh
+- **SECRET_KEY** — Django secret (required in production)
+- **DATABASE_URL** — PostgreSQL connection string (optional; falls back to SQLite)
+
+### Config File (optional)
+
+Create `data/config.json` (copy from `data/config.example.json`):
 
 ```json
 {
-    "api_key": "YOUR_OPENAQ_API_KEY",
-    "location_mapping": {
-        "STATION_ID": OPENAQ_LOCATION_ID
-    }
+    "api_key": "YOUR_WAQI_API_KEY_HERE"
 }
 ```
+
+The app prefers `WAQI_API_TOKEN` env var over `config.json`.
+
+## Data Folder Layout
+
+Research data lives in `data/LAPTOP TSF 2026/`. Do not guess — refer to .cursorrules for paths.
+
+| Path | Description |
+|------|-------------|
+| `01. Summary Documents/` | CLEAR_Methodology_ScienceFair Ver#1.pdf |
+| `07. The 4 Cities - Regression formulas.../` | Per-city Excel regression files |
+| `10. Validation/` | SAQS validation data |
+| `05. NAPS Stations/` | NAPS station coordinates |
+
+Run `python manage.py validate_saqs` to report SAQS baseline stats.
 
 ## Features
 
@@ -80,4 +104,4 @@ Create `data/config.json` with your OpenAQ API key:
 
 - **NAPS** — National Air Pollution Surveillance Program (Environment Canada)
 - **U.S. EPA AQS / AirNow** — Border station data
-- **OpenAQ** — Live PM2.5 data API
+- **WAQI** — World Air Quality Index API for live PM2.5
