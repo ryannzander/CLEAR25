@@ -33,7 +33,10 @@ document.querySelectorAll(".sidebar-tab").forEach(t => {
         t.classList.add("tab-active");
         document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("tab-visible"));
         document.getElementById("tab-" + t.dataset.tab).classList.add("tab-visible");
-        if (t.dataset.tab === "map") initMap();
+        if (t.dataset.tab === "map") {
+            if (stations.length === 0) loadStations().then(() => initMap());
+            else initMap();
+        }
     });
 });
 

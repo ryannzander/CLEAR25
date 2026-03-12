@@ -3,14 +3,23 @@
    ============================================================ */
 
 function initMap() {
-    if (map) { map.invalidateSize(); return; }
-    map = L.map("map-container", { zoomControl: false, attributionControl: true }).setView([52, -96], 4);
-    L.control.zoom({ position: "bottomright" }).addTo(map);
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
-        maxZoom: 18,
-    }).addTo(map);
-    updateMapMarkers(lastResults);
+    if (map) {
+        map.invalidateSize();
+        updateMapMarkers(lastResults);
+        return;
+    }
+    // Defer so map-container has valid dimensions after tab becomes visible
+    requestAnimationFrame(() => {
+        if (map) return;
+        map = L.map("map-container", { zoomControl: false, attributionControl: true }).setView([52, -96], 4);
+        L.control.zoom({ position: "bottomright" }).addTo(map);
+        L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
+            maxZoom: 18,
+        }).addTo(map);
+        updateMapMarkers(lastResults);
+        map.invalidateSize();
+    });
 }
 
 function createCircleIcon(color, size, pulse) {
@@ -48,6 +57,7 @@ function getCityAlertInfo(results, cityName) {
 }
 
 function updateMapMarkers(results) {
+    if (!map) return;
     mapMarkers.forEach(m => map.removeLayer(m));
     mapMarkers = [];
 
