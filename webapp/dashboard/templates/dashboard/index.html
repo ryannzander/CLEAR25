@@ -356,29 +356,30 @@
                             <div class="method-grid">
                                 <div class="method-item">
                                     <h3>Rule 1: Regional Alert</h3>
-                                    <p><strong>Trigger:</strong> Any station &gt;40 µg/m³</p>
-                                    <p>Monitors NAPS stations 100–600 km from city. Primary detection for nearby fires.
-                                        Immediate alert when threshold exceeded.</p>
+                                    <p><strong>Trigger:</strong> Station &gt;40 µg/m³, predicted city ≥20 µg/m³</p>
+                                    <p>Ontario & Quebec stations 100–650 km. Primary detection for nearby fires.
+                                        Regression predicts city PM2.5; alert only if predicted ≥20 µg/m³.</p>
                                 </div>
                                 <div class="method-item">
-                                    <h3>Rule 2: Distant Sequential</h3>
-                                    <p><strong>Trigger:</strong> Distant &gt;35 µg/m³ + Intermediate &gt;20 µg/m³</p>
-                                    <p>Two-stage detection for distant fires (600+ km). Requires confirmation from
-                                        intermediate stations to eliminate false positives.</p>
+                                    <h3>Rule 2: NW Ontario Sequential</h3>
+                                    <p><strong>Trigger:</strong> Thunder Bay &gt;35 µg/m³ + Intermediate &gt;20 µg/m³</p>
+                                    <p>Two-stage detection for NW Ontario fires (1,000–1,800 km). Thunder Bay triggers;
+                                        intermediate stations (200–600 km) confirm smoke transport toward Toronto within 96 hrs.</p>
                                 </div>
                                 <div class="method-item">
-                                    <h3>Rule 3: Corridor Detection</h3>
-                                    <p><strong>Trigger:</strong> Corridor station &gt;40 µg/m³</p>
-                                    <p>Monitors upwind corridor stations for specific smoke sources (e.g., NE for
-                                        Quebec, NW for Alberta fires).</p>
+                                    <h3>Rule 3: Quebec Upstream</h3>
+                                    <p><strong>Trigger:</strong> Same as Rule 1 (station &gt;40 µg/m³)</p>
+                                    <p>Quebec fires 500–1,400 km NE. Montreal, Ottawa, Quebec City, Cornwall, etc.
+                                        Eastern monitoring network.</p>
                                 </div>
                             </div>
                         </div>
                         <div class="research-card">
                             <h2>Data Sources &amp; Analysis</h2>
                             <ul class="method-list">
-                                <li><strong>NAPS Network:</strong> 162 active Canadian stations providing hourly PM2.5
-                                    measurements (166 identified, 4 excluded for distance)</li>
+                                <li><strong>Station selection:</strong> R ≥ 0.30, p &lt; 0.001, N ≥ 100 (methodology Section 2.3)</li>
+                                <li><strong>Toronto reference:</strong> NAPS 60430 (primary), 60410 (secondary); highest-station approach</li>
+                                <li><strong>NAPS Network:</strong> 309 Canadian + 131 U.S. EPA stations; 36M+ hourly observations</li>
                                 <li><strong>U.S. EPA AQS:</strong> Border stations in NY, PA, VT, WA, OR for
                                     cross-border smoke</li>
                                 <li><strong>Study period:</strong> 2003–2023 (21 years of wildfire seasons)</li>
@@ -437,10 +438,10 @@
                                         <tr class="total-row">
                                             <td><strong>Combined System</strong></td>
                                             <td>All directions</td>
-                                            <td><strong>88+</strong></td>
-                                            <td><strong>2</strong></td>
-                                            <td class="highlight-green"><strong>97.8%</strong></td>
-                                            <td><strong>6–48 hrs</strong></td>
+                                            <td><strong>26 TP</strong></td>
+                                            <td><strong>3 FP</strong></td>
+                                            <td class="highlight-green"><strong>90.9%</strong></td>
+                                            <td><strong>15.7 hrs mean</strong></td>
                                         </tr>
                                     </tbody>
                                 </table>

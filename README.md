@@ -33,11 +33,11 @@ When a remote station's PM2.5 reading exceeds a computed threshold, a colour-cod
 | Very High | 81–120 | Avoid all outdoor activity |
 | Extreme | > 120 | Halt indoor pollution sources |
 
-### Station Selection Criteria
+### Station Selection Criteria (methodology Section 2.3)
 
 - R ≥ 0.30, P < 0.001, N ≥ 100 observations
-- Tier 1: >250 km (12–48 hr lead time)
-- Tier 2: 100–250 km (6–18 hr lead time)
+- Toronto reference: NAPS 60430 (primary), 60410 (secondary); highest-station approach
+- Rule 2 (NW Ontario): Thunder Bay NAPS 60807, 60809 for sequential detection
 
 ## Validation (per methodology)
 

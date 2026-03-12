@@ -20,6 +20,15 @@ NAPS_STATIONS_PATH = getattr(settings, "NAPS_STATIONS_PATH", None)
 # Station IDs to exclude (too far from target city to be useful)
 EXCLUDED_STATION_IDS = {"50308", "50310", "50314", "50313", "55702"}
 
+# Toronto reference stations (methodology Section 2.2): use highest of 60430, 60410 for validation
+TORONTO_NAPS_REFERENCE_IDS = {"60430", "60410"}
+
+# Thunder Bay NAPS stations for Rule 2 (methodology Section 5): 60807, 60809
+THUNDER_BAY_STATION_IDS = {"60807", "60809"}
+
+# Per methodology Section 2.3: include only stations with R >= 0.30
+MIN_CORRELATION_R = 0.30
+
 # Research Excel filename patterns (city -> possible filenames to try)
 RESEARCH_EXCEL_PATTERNS = {
     "Toronto": ["01. Toronto_Network_All_Regression_Formulas.xlsx"],
@@ -39,6 +48,7 @@ DEMO_DATA = {
     "Toronto": {
         "60106": 85.0, "66201": 78.0, "65701": 72.0, "61201": 90.0,
         "60302": 65.0, "65401": 55.0, "60609": 30.0, "360291007": 20.0, "61502": 18.0,
+        "60807": 40.0,  # Thunder Bay (Rule 2 demo)
     },
     "Montreal": {
         "54801": 80.0, "52001": 75.0, "50801": 68.0, "500070012": 55.0,
@@ -137,7 +147,18 @@ def _load_stations_from_research(city_key):
         sid = str(row[col_id]).strip()
         if not sid:
             continue
+        # Skip header/label rows (e.g. "Rule 3 Québec Stations", "Legend:")
+        sid_clean = sid.replace(" ", "").replace(".", "").replace("-", "")
+        if not sid_clean.isdigit() or len(sid) > 15:
+            continue
         if sid in EXCLUDED_STATION_IDS:
+            continue
+        # Per methodology Section 2.3: R >= 0.30
+        r_val = row[col_r] if col_r is not None and row[col_r] else 0
+        try:
+            if float(r_val) < MIN_CORRELATION_R:
+                continue
+        except (ValueError, TypeError):
             continue
         city_name = str(row[col_city] or "") if col_city is not None else ""
         try:
@@ -313,6 +334,32 @@ def _load_coords_legacy(city_key):
     return coords
 
 
+def _load_thunder_bay_rule2_stations():
+    """Thunder Bay stations for Rule 2 (methodology Section 5). Weak correlation with Toronto;
+    used only for trigger (>35 µg/m³), not for prediction. Coords from NAPS."""
+    naps = _load_naps_coords()
+    stations = []
+    for sid in THUNDER_BAY_STATION_IDS:
+        c = naps.get(sid)
+        if not c:
+            continue
+        # ~1200 km NW of Toronto; dummy regression (trigger-only, methodology says weak R)
+        stations.append({
+            "id": sid,
+            "city_name": "Thunder Bay",
+            "distance": 1200.0,
+            "direction": "NW",
+            "tier": 2,
+            "R": 0.0,
+            "slope": 0.3,
+            "intercept": 5.0,
+            "data_type": "Rule2",
+            "lat": c[0],
+            "lon": c[1],
+        })
+    return stations
+
+
 def _get_coord_map(city_key, from_research):
     """Get coordinate map for stations. Tries legacy sheet first, then NAPS lookup."""
     coord_map = _load_coords_legacy(city_key)
@@ -335,6 +382,11 @@ def load_stations(city_key):
     if stations is None:
         _station_cache[city_key] = []
         return []
+
+    # Per methodology Section 5: add Thunder Bay for Toronto Rule 2 (NW Ontario Sequential)
+    if city_key == "Toronto":
+        tb_stations = _load_thunder_bay_rule2_stations()
+        stations = stations + tb_stations
 
     coord_map = _get_coord_map(city_key, from_research)
     for st in stations:

@@ -30,3 +30,5 @@ Any error that you make in the process should be dealt with as soon as possible.
 ## Discoveries & Errors
 
 - **Research Excel structure:** Research files use a single sheet (e.g. Toronto_ALL_Regression_ON_QC), headers on row 4, columns: Station ID, City, Distance (km), Direction, Tier, R, Slope, Intercept. No separate "All Stations Data" sheet for lat/lon. Coordinates are loaded from Canada NAPS Stations file (05. NAPS Stations/04. Canada_NAPS_Stations_Active_Years.xlsx) for NAPS IDs; US EPA station IDs get coords from legacy Excel if available, else remain None (WAQI live fetch will skip them).
+- **Station filtering:** R ≥ 0.30 (methodology 2.3); skip non-numeric station IDs (header rows like "Rule 3 Québec Stations").
+- **Thunder Bay (Rule 2):** NAPS 60807, 60809 injected into Toronto network; coords from NAPS file. Used for trigger only (>35 µg/m³); weak correlation with Toronto per methodology.

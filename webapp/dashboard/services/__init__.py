@@ -11,6 +11,8 @@ from .data import (
     CITIES,
     DEMO_DATA,
     EXCLUDED_STATION_IDS,
+    TORONTO_NAPS_REFERENCE_IDS,
+    THUNDER_BAY_STATION_IDS,
     load_stations,
     load_all_stations,
     get_all_demo_data,

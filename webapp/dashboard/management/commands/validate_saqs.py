@@ -86,3 +86,5 @@ class Command(BaseCommand):
             self.stdout.write(f"  {col}: {total_by_year.get(col, 0)}")
         self.stdout.write("")
         self.stdout.write("Reference: CLEAR methodology validation uses 33 events (2003-2023).")
+        if region_filter:
+            self.stdout.write(f"Filtered to region: {region_filter}")

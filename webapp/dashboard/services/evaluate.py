@@ -11,10 +11,11 @@ detection rules for 360-degree coverage of incoming wildfire smoke.
 # ---------------------------------------------------------------------------
 # Alert levels & colors (per methodology Section 3)
 # ---------------------------------------------------------------------------
+# Per methodology Section 3: LOW 0–20, MODERATE 21–60, HIGH 61–80, VERY HIGH 81–120, EXTREME >120
 ALERT_LEVELS = [
     {"name": "LOW",       "min": 0,   "max": 20,    "hex": "#22c55e", "text_color": "black",
      "health": "No significant risk. No action required."},
-    {"name": "MODERATE",  "min": 20,  "max": 60,    "hex": "#eab308", "text_color": "black",
+    {"name": "MODERATE",  "min": 21,  "max": 60,    "hex": "#eab308", "text_color": "black",
      "health": "Sensitive groups (children, elderly, respiratory conditions) should reduce outdoor activity."},
     {"name": "HIGH",      "min": 60,  "max": 80,    "hex": "#f97316", "text_color": "black",
      "health": "General population affected. Reduce prolonged outdoor exertion. Use N95/KN95 mask outdoors."},
@@ -164,11 +165,13 @@ def evaluate(stations, readings, previous_readings=None):
                 trigger_stations.append(r["station"])
                 break
 
-        # Rule 2: Distant Sequential Detection (600+ km)
+        # Rule 2: NW Ontario Sequential (methodology Section 5)
+        # For Toronto: prefer Thunder Bay (60807, 60809) when in readings; else any distant 600+ km
         if not alert_triggered and previous_readings:
-            distant_triggers = [
-                r for r in distant_stations
-                if r["pm25"] >= RULE2_DISTANT_TRIGGER
+            from .data import THUNDER_BAY_STATION_IDS
+            tb_triggers = [r for r in city_rows if r["id"] in THUNDER_BAY_STATION_IDS and r["pm25"] >= RULE2_DISTANT_TRIGGER]
+            distant_triggers = tb_triggers if tb_triggers else [
+                r for r in distant_stations if r["pm25"] >= RULE2_DISTANT_TRIGGER
             ]
             intermediate_confirmed = [
                 r for r in city_rows
