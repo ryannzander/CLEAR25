@@ -114,11 +114,13 @@ function updateMapMarkers(results) {
         mapMarkers.push(m);
     }
 
-    // Station markers
-    stations.forEach(st => {
-        if (st.lat == null || st.lon == null) return;
+    // Station markers: use results when available (have lat/lon), else stations from /api/stations/
+    const stationsToShow = (results && results.length > 0)
+        ? results.filter(r => r.lat != null && r.lon != null)
+        : stations.filter(s => s.lat != null && s.lon != null);
+    stationsToShow.forEach(st => {
         const city = st.target_city || "";
-        const r = resultMap[st.id + city];
+        const r = resultMap[(st.id || st.station) + city] || resultMap[st.id + city];
         let color = "#52525b";
         let size = 8;
         let popupExtra = "";
@@ -138,10 +140,13 @@ function updateMapMarkers(results) {
         }
 
         const marker = L.marker([st.lat, st.lon], { icon: createCircleIcon(color, size, shouldPulse) }).addTo(map);
+        const name = st.city_name || st.station || "Station";
+        const dist = st.distance ?? st.dist ?? 0;
+        const dir = st.direction ?? st.dir ?? "";
         marker.bindPopup(`
-            <div class="popup-name">${st.city_name}</div>
-            <div class="popup-meta">${st.id}</div>
-            <div class="popup-meta">${city} · ${st.distance.toFixed(0)} km ${st.direction} · Tier ${st.tier}</div>
+            <div class="popup-name">${name}</div>
+            <div class="popup-meta">${st.id || st.station}</div>
+            <div class="popup-meta">${city} · ${dist.toFixed(0)} km ${dir} · Tier ${st.tier ?? ""}</div>
             ${popupExtra}
         `);
 
@@ -155,9 +160,10 @@ function updateMapMarkers(results) {
         mapMarkers.push(marker);
     });
 
-    if (stations.length > 0) {
-        const lats = stations.filter(s => s.lat).map(s => s.lat);
-        const lons = stations.filter(s => s.lon).map(s => s.lon);
+    const forBounds = stationsToShow.length > 0 ? stationsToShow : stations;
+    if (forBounds.length > 0) {
+        const lats = forBounds.filter(s => s.lat).map(s => s.lat);
+        const lons = forBounds.filter(s => s.lon).map(s => s.lon);
         if (lats.length) {
             map.fitBounds([
                 [Math.min(...lats) - 1, Math.min(...lons) - 1],
