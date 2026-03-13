@@ -13,7 +13,7 @@ data/config.json
 #ai
 .cursorrules/
 
-# Data folder (research data stays local; config.example.json is tracked for onboarding)
+# Data folder (research data stays local; config.example.json tracked for onboarding)
 data/*
 !data/config.example.json
 
@@ -40,6 +40,3 @@ android/
 
 # AI
 AGENTS.mds
-
-#Data
-data/*.xlsx
