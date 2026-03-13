@@ -1,0 +1,12 @@
+# Slim requirements for Vercel (under 500MB Lambda limit)
+# Excludes openpyxl - app uses bundled_stations.json fallback when data folder absent
+django>=4.2
+requests
+whitenoise
+dj-database-url
+psycopg2-binary
+django-allauth
+PyJWT
+cryptography
+httpx[http2]
+django-cors-headers

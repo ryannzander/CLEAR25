@@ -9,8 +9,12 @@ Data sources (per .cursorrules):
 import json
 import os
 
-import openpyxl
 from django.conf import settings
+
+# Lazy import: openpyxl only needed when loading from Excel; on Vercel we use bundled fallback
+def _openpyxl():
+    import openpyxl
+    return openpyxl
 
 DATA_DIR = settings.DATA_DIR
 CONFIG_PATH = os.path.join(DATA_DIR, "config.json")
@@ -67,6 +71,7 @@ DEMO_DATA = {
 # Cache loaded stations so we don't re-read Excel on every request
 _station_cache = {}
 _naps_coord_cache = None
+_BUNDLED_PATH = os.path.join(os.path.dirname(__file__), "bundled_stations.json")
 
 
 def _find_col(headers, *candidates):
@@ -111,6 +116,7 @@ def _load_stations_from_research(city_key):
         return None
 
     try:
+        openpyxl = _openpyxl()
         wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
         ws = wb.active
         rows = list(ws.iter_rows(values_only=True))
@@ -191,6 +197,7 @@ def _load_stations_from_legacy(city_key):
         return None
 
     try:
+        openpyxl = _openpyxl()
         wb = openpyxl.load_workbook(fn, read_only=True, data_only=True)
         ws = wb["Included Stations"]
         rows = list(ws.iter_rows(values_only=True))
@@ -259,6 +266,7 @@ def _load_naps_coords():
         return _naps_coord_cache
 
     try:
+        openpyxl = _openpyxl()
         wb = openpyxl.load_workbook(NAPS_STATIONS_PATH, read_only=True, data_only=True)
         ws = wb.active
         rows = list(ws.iter_rows(values_only=True))
@@ -302,6 +310,7 @@ def _load_coords_legacy(city_key):
     if not os.path.exists(fn):
         return {}
     try:
+        openpyxl = _openpyxl()
         wb = openpyxl.load_workbook(fn, read_only=True, data_only=True)
         ws = wb["All Stations Data"]
         rows = list(ws.iter_rows(values_only=True))
@@ -379,6 +388,39 @@ def load_stations(city_key):
     if stations is None:
         stations = _load_stations_from_legacy(city_key)
 
+    # Fallback: bundled JSON when data folder not deployed (Vercel)
+    if stations is None:
+        try:
+            with open(_BUNDLED_PATH, "r", encoding="utf-8") as f:
+                raw = json.load(f)
+            city_ids = set(DEMO_DATA.get(city_key, {}).keys())
+            if city_key == "Toronto":
+                city_ids.update(THUNDER_BAY_STATION_IDS)
+            stations = []
+            for st in raw if isinstance(raw, list) else []:
+                try:
+                    sid = str(st.get("id", "")).strip()
+                    if not sid or sid not in city_ids or sid in EXCLUDED_STATION_IDS:
+                        continue
+                    stations.append({
+                        "id": sid,
+                        "city_name": str(st.get("city_name", "")),
+                        "distance": float(st.get("distance", 0)),
+                        "direction": str(st.get("direction", "")),
+                        "tier": int(st.get("tier", 1)),
+                        "R": float(st.get("R", 0)),
+                        "slope": float(st.get("slope", 0.5)),
+                        "intercept": float(st.get("intercept", 10)),
+                        "data_type": "bundled",
+                        "lat": float(st["lat"]) if st.get("lat") is not None else None,
+                        "lon": float(st["lon"]) if st.get("lon") is not None else None,
+                    })
+                except (ValueError, TypeError, KeyError):
+                    continue
+            from_research = False
+        except (FileNotFoundError, json.JSONDecodeError):
+            pass
+
     if stations is None:
         _station_cache[city_key] = []
         return []
@@ -394,9 +436,9 @@ def load_stations(city_key):
         if c:
             st["lat"] = c[0]
             st["lon"] = c[1]
-        else:
-            st["lat"] = None
-            st["lon"] = None
+        elif "lat" not in st or "lon" not in st:
+            st.setdefault("lat", None)
+            st.setdefault("lon", None)
 
     stations.sort(key=lambda s: (s["tier"], -s["distance"]))
     _station_cache[city_key] = stations

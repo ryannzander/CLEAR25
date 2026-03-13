@@ -6,7 +6,8 @@
             "src": "webapp/ews/wsgi.py",
             "use": "@vercel/python",
             "config": {
-                "maxLambdaSize": "50mb"
+                "maxLambdaSize": "50mb",
+                "excludeFiles": "data/**,**/tests/**,**/__tests__/**,**/*.test.py,**/test_*.py"
             }
         }
     ],

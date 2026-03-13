@@ -1,0 +1,2 @@
+# Never deploy the full data folder (827 MB)
+data/
