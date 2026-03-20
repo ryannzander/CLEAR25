@@ -114,7 +114,9 @@ async function loadLiveData() {
             const age = data.age_seconds || 0;
             const mins = Math.floor(age / 60);
             let label;
-            if (mins < 1) label = "Live data · just updated";
+            if (data.data_source === "demo_preview") {
+                label = "Preview (demo readings — configure WAQI + refresh for live)";
+            } else if (mins < 1) label = "Live data · just updated";
             else if (mins < 60) label = `Live data · updated ${mins} min ago`;
             else label = `Live data · updated ${Math.floor(mins / 60)}h ${mins % 60}m ago`;
             handleResults(data.results, label, data.city_alerts);

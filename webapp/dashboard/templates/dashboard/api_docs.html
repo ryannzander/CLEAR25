@@ -436,7 +436,7 @@
                     <span class="endpoint-path">/api/v1/live/</span>
                 </div>
                 <div class="endpoint-body">
-                    <p class="endpoint-desc">Get current PM2.5 readings and 1-hour predictions for all monitoring stations.</p>
+                    <p class="endpoint-desc">Get current PM2.5 readings and predictions. Query: <code>limit</code> (default 50, max 200), <code>station</code> (filter by id). If the live cache is empty, responses use demo preview values (<code>data_source: demo_preview</code>).</p>
 
                     <div class="response-label">Response</div>
                     <div class="code-block"><span class="json-key">{</span>
@@ -455,8 +455,10 @@
     }
   ],
   <span class="json-key">"count"</span>: <span class="json-number">50</span>,
+  <span class="json-key">"total_available"</span>: <span class="json-number">88</span>,
   <span class="json-key">"timestamp"</span>: <span class="json-string">"2025-02-07T10:30:00Z"</span>,
-  <span class="json-key">"age_seconds"</span>: <span class="json-number">120</span>
+  <span class="json-key">"age_seconds"</span>: <span class="json-number">120</span>,
+  <span class="json-key">"data_source"</span>: <span class="json-string">"live"</span>
 <span class="json-key">}</span></div>
                 </div>
             </div>

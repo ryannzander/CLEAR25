@@ -15,6 +15,7 @@ from django.views.decorators.http import require_http_methods
 from .. import services
 from ..jwt_auth import decode_access_token
 from ..models import APIKey, CachedResult
+from .core import _live_demo_preview_payload
 
 logger = logging.getLogger(__name__)
 
@@ -110,16 +111,25 @@ def _format_station_for_api(station_result):
 @require_http_methods(["GET"])
 @require_api_key
 def api_v1_live(request):
-    """Get current PM2.5 readings and predictions for all stations."""
+    """Get current PM2.5 readings and predictions for stations."""
     try:
         cached = CachedResult.objects.get(key="latest")
         results = cached.results or []
         timestamp = cached.timestamp.isoformat()
         age_seconds = int((timezone.now() - cached.timestamp).total_seconds())
+        data_source = "live"
     except CachedResult.DoesNotExist:
-        results = []
-        timestamp = None
-        age_seconds = None
+        preview = _live_demo_preview_payload()
+        results = preview["results"]
+        timestamp = preview["timestamp"]
+        age_seconds = preview["age_seconds"]
+        data_source = preview["data_source"]
+    if not results:
+        preview = _live_demo_preview_payload()
+        results = preview["results"]
+        timestamp = preview["timestamp"]
+        age_seconds = preview["age_seconds"]
+        data_source = preview["data_source"]
 
     # Filter out excluded stations
     results = [r for r in results if r.get("id") not in services.EXCLUDED_STATION_IDS]
@@ -131,14 +141,21 @@ def api_v1_live(request):
         if not results:
             return JsonResponse({"error": f"Station '{station_id}' not found"}, status=404)
 
-    # Format stations for API (limit to 1 per request)
-    stations = [_format_station_for_api(r) for r in results[:1]]
+    try:
+        limit = int(request.GET.get("limit", "50"))
+    except ValueError:
+        limit = 50
+    limit = max(1, min(limit, 200))
+
+    stations_out = [_format_station_for_api(r) for r in results[:limit]]
 
     return JsonResponse({
-        "stations": stations,
-        "count": len(stations),
+        "stations": stations_out,
+        "count": len(stations_out),
+        "total_available": len(results),
         "timestamp": timestamp,
         "age_seconds": age_seconds,
+        "data_source": data_source,
     })
 
 

@@ -15,15 +15,28 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         stations = services.load_all_stations()
-        readings = services.get_all_demo_data()
-        result = services.evaluate(stations, readings, previous_readings=readings)
+        prev = services.build_demo_previous_readings(stations)
+        result = services.evaluate(
+            stations,
+            {},
+            previous_readings=prev,
+            per_city_readings=services.DEMO_DATA,
+            default_pm=services.DEMO_DEFAULT_PM25,
+        )
+
+        readings_store = {}
+        for st in stations:
+            tc = st.get("target_city", "")
+            sid = st["id"]
+            pm = services.DEMO_DATA.get(tc, {}).get(sid, services.DEMO_DEFAULT_PM25)
+            readings_store[f"{sid}|{tc}"] = pm
 
         CachedResult.objects.update_or_create(
             key="latest",
             defaults={
                 "results": result["stations"],
                 "city_alerts": result["city_alerts"],
-                "readings": readings,
+                "readings": readings_store,
             },
         )
         self.stdout.write(

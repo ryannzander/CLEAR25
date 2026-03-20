@@ -559,7 +559,7 @@ erDiagram
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| GET | `/api/v1/live/` | Current predictions; `?station=<id>` |
+| GET | `/api/v1/live/` | Current predictions; `?station=<id>`, `?limit=` (default 50, max 200); `data_source` is `live` or `demo_preview` if cache empty |
 | GET | `/api/v1/stations/` | Station metadata; `?city=` |
 | GET | `/api/v1/cities/` | City list |
 | POST | `/api/v1/keys/create/` | Create API key |
@@ -700,7 +700,7 @@ The app prefers `WAQI_API_TOKEN` env var over `config.json`.
 
 - **Station list** — The API tries research Excel under `data/`, then legacy `{City}_PM25_EWS_Regression.xlsx`, then [`webapp/dashboard/services/bundled_stations.json`](webapp/dashboard/services/bundled_stations.json) when the catalog would otherwise be empty (fresh clone, or Vercel where `data/**` is not bundled).
 - **Dashboard demo** — Uses the same station list as `/api/stations/`; it does not require WAQI or a populated database cache.
-- **Live view** — `/api/live/` reads `CachedResult` with `key=latest`, written only when `/api/refresh/` succeeds (WAQI token + `DATABASE_URL` + cron `CRON_SECRET`). Until then the UI shows “No live data yet”.
+- **Live view** — `/api/live/` prefers `CachedResult` (`key=latest`) from `/api/refresh/`. If that row is missing or has no results, the API returns **demo-style preview readings** (`data_source: demo_preview`) so the dashboard still shows PM2.5 columns until WAQI is configured.
 - **Seed live cache with demo data (optional)** — `cd webapp && python manage.py seed_live_demo`
 
 ---

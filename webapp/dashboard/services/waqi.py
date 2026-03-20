@@ -140,6 +140,7 @@ def fetch_latest_pm25(api_key, stations):
                     best_dist = d
                     best_pm = ws["pm25"]
             if best_pm is not None:
-                readings[st["id"]] = best_pm
+                # Composite key so the same NAPS id under two target cities does not overwrite.
+                readings[f"{st['id']}|{city}"] = best_pm
 
     return readings

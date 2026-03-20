@@ -65,6 +65,12 @@ DEMO_DATA = {
     },
 }
 
+# Background PM2.5 (µg/m³) for stations not listed in DEMO_DATA (demo / live preview)
+DEMO_DEFAULT_PM25 = 14.0
+
+# When using bundled JSON only, pad each city to about this many rows (synthetic upstream sites).
+BUNDLED_TARGET_STATION_COUNT = 22
+
 # Cache loaded stations so we don't re-read Excel on every request
 _station_cache = {}
 _naps_coord_cache = None
@@ -112,6 +118,40 @@ def _get_bundled_json():
     return _bundled_json_cache
 
 
+def _expand_bundled_stations(city_key, stations):
+    """Pad bundled catalog with synthetic corridor stations (coordinates only for WAQI matching)."""
+    if not stations or len(stations) >= BUNDLED_TARGET_STATION_COUNT:
+        return stations
+    prefix = {
+        "Toronto": "871",
+        "Montreal": "872",
+        "Edmonton": "873",
+        "Vancouver": "874",
+    }.get(city_key, "879")
+    expanded = list(stations)
+    i = 0
+    while len(expanded) < BUNDLED_TARGET_STATION_COUNT:
+        base = stations[i % len(stations)]
+        nid = f"{prefix}{len(expanded):03d}"
+        lat = float(base["lat"]) + 0.14 * (((i % 6) - 3) / 12.0)
+        lon = float(base["lon"]) + 0.16 * (((i % 8) - 4) / 12.0)
+        expanded.append({
+            "id": nid,
+            "city_name": base["city_name"],
+            "distance": min(620.0, float(base["distance"]) + (i % 6) * 24.0),
+            "direction": base["direction"],
+            "tier": 2,
+            "R": max(0.32, min(0.72, float(base["R"]) - 0.03 * (i % 5))),
+            "slope": float(base["slope"]),
+            "intercept": float(base["intercept"]),
+            "data_type": "synthetic",
+            "lat": lat,
+            "lon": lon,
+        })
+        i += 1
+    return expanded
+
+
 def _load_stations_from_bundled(city_key):
     """Load stations from bundled_stations.json for this target city. Returns None if unavailable."""
     data = _get_bundled_json()
@@ -149,7 +189,10 @@ def _load_stations_from_bundled(city_key):
         except (ValueError, TypeError):
             continue
 
-    return out if out else None
+    if not out:
+        return None
+    out = _expand_bundled_stations(city_key, out)
+    return out
 
 
 def _find_research_excel_path(city_key):
@@ -509,6 +552,17 @@ def get_all_demo_data():
     for city_data in DEMO_DATA.values():
         merged.update(city_data)
     return merged
+
+
+def build_demo_previous_readings(stations):
+    """Flat id -> pm for Rule 2 continuity in demo/preview (last city wins on duplicate ids)."""
+    prev = {}
+    for st in stations:
+        tc = st.get("target_city", "")
+        sid = st["id"]
+        city_demo = DEMO_DATA.get(tc, {})
+        prev[sid] = float(city_demo[sid]) if sid in city_demo else float(DEMO_DEFAULT_PM25)
+    return prev
 
 
 def _load_coords(city_key):

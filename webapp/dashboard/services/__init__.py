@@ -10,12 +10,14 @@ from .data import (
     CONFIG_PATH,
     CITIES,
     DEMO_DATA,
+    DEMO_DEFAULT_PM25,
     EXCLUDED_STATION_IDS,
     TORONTO_NAPS_REFERENCE_IDS,
     THUNDER_BAY_STATION_IDS,
     load_stations,
     load_all_stations,
     get_all_demo_data,
+    build_demo_previous_readings,
 )
 
 from .evaluate import (
@@ -30,6 +32,7 @@ from .evaluate import (
     CONFIRMATION_WINDOW_HOURS,
     get_alert_level,
     lead_time_str,
+    reading_for_station,
     evaluate,
 )
 

@@ -66,13 +66,26 @@ def api_demo(request, city=None):
         return JsonResponse({"error": "Invalid city"}, status=400)
 
     if city:
-        stations = services.load_stations(city)
-        readings = services.DEMO_DATA.get(city, {})
+        stations = [dict(s, target_city=city) for s in services.load_stations(city)]
+        prev = services.build_demo_previous_readings(stations)
+        result = services.evaluate(
+            stations,
+            {},
+            previous_readings=prev,
+            per_city_readings=services.DEMO_DATA,
+            default_pm=services.DEMO_DEFAULT_PM25,
+        )
     else:
         stations = services.load_all_stations()
-        readings = services.get_all_demo_data()
+        prev = services.build_demo_previous_readings(stations)
+        result = services.evaluate(
+            stations,
+            {},
+            previous_readings=prev,
+            per_city_readings=services.DEMO_DATA,
+            default_pm=services.DEMO_DEFAULT_PM25,
+        )
 
-    result = services.evaluate(stations, readings, previous_readings=readings)
     return JsonResponse({"results": result["stations"], "city_alerts": result["city_alerts"]})
 
 
@@ -85,7 +98,7 @@ def api_live(request):
     cache_key = "api_live_response"
     cached_response = cache.get(cache_key)
 
-    if cached_response:
+    if cached_response and cached_response.get("results"):
         return JsonResponse(cached_response)
 
     try:
@@ -95,14 +108,39 @@ def api_live(request):
         results = [r for r in (cached.results or []) if r.get("id") not in services.EXCLUDED_STATION_IDS]
         response_data = {
             "results": results,
-            "city_alerts": cached.city_alerts,
+            "city_alerts": cached.city_alerts or {},
             "timestamp": cached.timestamp.isoformat(),
             "age_seconds": int(age_seconds),
+            "data_source": "live",
         }
-        cache.set(cache_key, response_data, 30)
+        if not results:
+            response_data = _live_demo_preview_payload()
+        else:
+            cache.set(cache_key, response_data, 30)
         return JsonResponse(response_data)
     except CachedResult.DoesNotExist:
-        return JsonResponse({"results": None, "city_alerts": {}, "timestamp": None})
+        payload = _live_demo_preview_payload()
+        return JsonResponse(payload)
+
+
+def _live_demo_preview_payload():
+    """When DB cache is missing or empty, show evaluated demo readings so the dashboard is usable."""
+    stations = services.load_all_stations()
+    prev = services.build_demo_previous_readings(stations)
+    result = services.evaluate(
+        stations,
+        {},
+        previous_readings=prev,
+        per_city_readings=services.DEMO_DATA,
+        default_pm=services.DEMO_DEFAULT_PM25,
+    )
+    return {
+        "results": result["stations"],
+        "city_alerts": result["city_alerts"],
+        "timestamp": None,
+        "age_seconds": 0,
+        "data_source": "demo_preview",
+    }
 
 
 def api_refresh(request):
@@ -141,10 +179,10 @@ def api_refresh(request):
         # Save current readings as snapshots for next refresh
         city_readings = {}
         for st in stations:
-            sid = st["id"]
-            if sid in readings:
+            pm = services.reading_for_station(st, readings)
+            if pm is not None:
                 tc = st.get("target_city", "")
-                city_readings.setdefault(tc, {})[sid] = readings[sid]
+                city_readings.setdefault(tc, {})[st["id"]] = pm
         for city_key, cr in city_readings.items():
             ReadingSnapshot.objects.update_or_create(city=city_key, defaults={"readings": cr})
 

@@ -96,7 +96,57 @@ def _weighted_prediction(city_rows):
     return sum(r["predicted"] for r in city_rows) / len(city_rows) if city_rows else 0
 
 
-def evaluate(stations, readings, previous_readings=None):
+def reading_for_station(st, readings):
+    """Resolve PM2.5 from a readings map.
+
+    Supports WAQI-style composite keys ``\"{id}|{target_city}\"`` (avoids collisions when the
+    same station id appears under multiple target cities) and legacy flat ``{id}`` keys.
+    """
+    if not readings:
+        return None
+    sid = st["id"]
+    tc = st.get("target_city") or ""
+    composite = f"{sid}|{tc}"
+    if composite in readings:
+        return readings[composite]
+    if sid in readings:
+        return readings[sid]
+    return None
+
+
+def _previous_pm_for_row(r, previous_readings):
+    if not previous_readings:
+        return 0.0
+    sid = r["id"]
+    tc = r.get("target_city", "")
+    k = f"{sid}|{tc}"
+    if k in previous_readings:
+        return float(previous_readings[k])
+    return float(previous_readings.get(sid, 0))
+
+
+def _resolve_pm_for_station(st, readings, per_city_readings, default_pm):
+    pm = reading_for_station(st, readings)
+    if pm is not None:
+        return float(pm)
+    tc = st.get("target_city") or ""
+    sid = st["id"]
+    if per_city_readings:
+        city_demo = per_city_readings.get(tc)
+        if city_demo and sid in city_demo:
+            return float(city_demo[sid])
+    if default_pm is not None:
+        return float(default_pm)
+    return None
+
+
+def evaluate(
+    stations,
+    readings,
+    previous_readings=None,
+    per_city_readings=None,
+    default_pm=None,
+):
     """Evaluate stations using 3-rule detection system.
 
     Source: CLEAR_Methodology_ScienceFair Ver#1
@@ -109,9 +159,12 @@ def evaluate(stations, readings, previous_readings=None):
 
     previous_readings: dict of {station_id: pm25} from the previous hour,
                        used for Rule 2 (sequential confirmation within 96 hrs).
+                       Composite keys ``\"{id}|{target_city}\"`` are supported.
 
-    Predictions are weighted by R-value (correlation coefficient) so that
-    more reliable stations have greater influence on city-level predictions.
+    per_city_readings: optional dict ``target_city -> {station_id: pm25}`` for demo / preview
+                       when the same id appears under multiple cities.
+
+    default_pm: if set, used when a station has no entry in ``readings`` or per_city_readings.
     """
     if previous_readings is None:
         previous_readings = {}
@@ -119,14 +172,13 @@ def evaluate(stations, readings, previous_readings=None):
     # Build per-station results
     results = []
     for st in stations:
-        sid = st["id"]
-        if sid not in readings:
+        pm = _resolve_pm_for_station(st, readings, per_city_readings, default_pm)
+        if pm is None:
             continue
-        pm = readings[sid]
         pred = st["slope"] * pm + st["intercept"]
         lvl = get_alert_level(pred)
         results.append({
-            "station": st["city_name"], "id": sid,
+            "station": st["city_name"], "id": st["id"],
             "dist": st["distance"], "dir": st["direction"],
             "tier": st["tier"], "R": st["R"], "pm25": pm,
             "predicted": round(pred, 1),
@@ -177,7 +229,7 @@ def evaluate(stations, readings, previous_readings=None):
                 r for r in city_rows
                 if 200 <= r["dist"] <= 600
                 and r["pm25"] >= RULE2_INTERMEDIATE
-                and previous_readings.get(r["id"], 0) >= RULE2_INTERMEDIATE
+                and _previous_pm_for_row(r, previous_readings) >= RULE2_INTERMEDIATE
             ]
             if distant_triggers and intermediate_confirmed:
                 alert_triggered = True
