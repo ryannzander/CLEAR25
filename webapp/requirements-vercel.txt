@@ -1,5 +1,6 @@
 # Slim requirements for Vercel (under 500MB Lambda limit)
-# Excludes openpyxl - app uses bundled_stations.json fallback when data folder absent
+# openpyxl is optional: not listed here so the app can run on JSON-only bundled_stations.json.
+# Add openpyxl if you bundle Excel/NAPS files and need live coordinate merge from those files.
 django>=4.2
 requests
 whitenoise

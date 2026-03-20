@@ -612,8 +612,8 @@ flowchart LR
 ### Build Script (build_files.sh)
 
 ```bash
-# On Vercel: use slim requirements (no openpyxl; bundled_stations.json)
-# Locally: full requirements with openpyxl
+# On Vercel: slim requirements (openpyxl optional; bundled JSON works without it)
+# Locally: full requirements.txt includes openpyxl for Excel-backed data
 pip install -r webapp/requirements-vercel.txt  # or requirements.txt
 cd webapp && python manage.py migrate --noinput
 python manage.py shell -c "Site.objects.update_or_create(...)"
@@ -658,6 +658,12 @@ cd webapp && python manage.py shell -c "from django.contrib.sites.models import 
 cd webapp && python manage.py validate_saqs
 ```
 
+### Seed live cache (demo PM2.5 for `/api/live/`)
+
+```bash
+cd webapp && python manage.py seed_live_demo
+```
+
 ---
 
 ## Configuration
@@ -689,6 +695,13 @@ Create `data/config.json` (copy from `data/config.example.json`):
 ```
 
 The app prefers `WAQI_API_TOKEN` env var over `config.json`.
+
+### Station catalog and live measurements
+
+- **Station list** — The API tries research Excel under `data/`, then legacy `{City}_PM25_EWS_Regression.xlsx`, then [`webapp/dashboard/services/bundled_stations.json`](webapp/dashboard/services/bundled_stations.json) when the catalog would otherwise be empty (fresh clone, or Vercel where `data/**` is not bundled).
+- **Dashboard demo** — Uses the same station list as `/api/stations/`; it does not require WAQI or a populated database cache.
+- **Live view** — `/api/live/` reads `CachedResult` with `key=latest`, written only when `/api/refresh/` succeeds (WAQI token + `DATABASE_URL` + cron `CRON_SECRET`). Until then the UI shows “No live data yet”.
+- **Seed live cache with demo data (optional)** — `cd webapp && python manage.py seed_live_demo`
 
 ---
 

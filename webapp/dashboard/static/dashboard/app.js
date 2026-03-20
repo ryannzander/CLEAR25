@@ -73,9 +73,18 @@ if (accountToggle && accountMenu) {
 async function loadStations() {
     try {
         const resp = await fetch("/api/stations/");
+        if (!resp.ok) {
+            statusEl.textContent = `Error loading stations: HTTP ${resp.status}`;
+            stations = [];
+            citiesInfo = {};
+            stationCount.textContent = "0 stations";
+            document.getElementById("stat-total").textContent = "0";
+            renderTable(null);
+            return;
+        }
         const data = await resp.json();
-        stations = data.stations;
-        citiesInfo = data.cities || {};
+        stations = data.stations ?? [];
+        citiesInfo = data.cities ?? {};
         stationCount.textContent = `${stations.length} stations across ${Object.keys(citiesInfo).length} cities`;
         document.getElementById("stat-total").textContent = stations.length;
         renderTable(null);

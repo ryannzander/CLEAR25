@@ -4,12 +4,13 @@ Station data loading: reads Excel regression files and coordinate sheets.
 Data sources (per .cursorrules):
 - Research: data/LAPTOP TSF 2026/07. The 4 Cities - Regression formulas and alert network stations/{City}/
 - Legacy fallback: data/{City}_PM25_EWS_Regression.xlsx (sheets: Included Stations, All Stations Data)
+- Bundled JSON: dashboard/services/bundled_stations.json when Excel data is missing or yields no rows
 """
 
 import json
 import os
+from pathlib import Path
 
-import openpyxl
 from django.conf import settings
 
 DATA_DIR = settings.DATA_DIR
@@ -67,6 +68,7 @@ DEMO_DATA = {
 # Cache loaded stations so we don't re-read Excel on every request
 _station_cache = {}
 _naps_coord_cache = None
+_bundled_json_cache = None
 
 
 def _find_col(headers, *candidates):
@@ -78,6 +80,76 @@ def _find_col(headers, *candidates):
             if c.lower() in hl:
                 return i
     return None
+
+
+def _get_bundled_json():
+    """Parse bundled_stations.json once. Returns dict city_key -> list or None if missing/invalid."""
+    global _bundled_json_cache
+    if _bundled_json_cache is not None:
+        return _bundled_json_cache
+
+    path = Path(__file__).resolve().parent / "bundled_stations.json"
+    if not path.is_file():
+        _bundled_json_cache = {}
+        return _bundled_json_cache
+
+    try:
+        with open(path, encoding="utf-8") as f:
+            raw = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        _bundled_json_cache = {}
+        return _bundled_json_cache
+
+    if isinstance(raw, list):
+        _bundled_json_cache = {}
+        return _bundled_json_cache
+
+    if not isinstance(raw, dict):
+        _bundled_json_cache = {}
+        return _bundled_json_cache
+
+    _bundled_json_cache = raw
+    return _bundled_json_cache
+
+
+def _load_stations_from_bundled(city_key):
+    """Load stations from bundled_stations.json for this target city. Returns None if unavailable."""
+    data = _get_bundled_json()
+    rows = data.get(city_key) if data else None
+    if not rows or not isinstance(rows, list):
+        return None
+
+    out = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        sid = str(row.get("id", "")).strip()
+        if not sid or sid in EXCLUDED_STATION_IDS:
+            continue
+        try:
+            lat = row.get("lat")
+            lon = row.get("lon")
+            if lat is not None:
+                lat = float(lat)
+            if lon is not None:
+                lon = float(lon)
+            out.append({
+                "id": sid,
+                "city_name": str(row.get("city_name") or ""),
+                "distance": float(row.get("distance") or 0),
+                "direction": str(row.get("direction") or ""),
+                "tier": int(row.get("tier") or 1),
+                "R": float(row.get("R") or 0),
+                "slope": float(row.get("slope") or 0),
+                "intercept": float(row.get("intercept") or 0),
+                "data_type": str(row.get("data_type") or ""),
+                "lat": lat,
+                "lon": lon,
+            })
+        except (ValueError, TypeError):
+            continue
+
+    return out if out else None
 
 
 def _find_research_excel_path(city_key):
@@ -111,6 +183,7 @@ def _load_stations_from_research(city_key):
         return None
 
     try:
+        import openpyxl
         wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
         ws = wb.active
         rows = list(ws.iter_rows(values_only=True))
@@ -191,6 +264,7 @@ def _load_stations_from_legacy(city_key):
         return None
 
     try:
+        import openpyxl
         wb = openpyxl.load_workbook(fn, read_only=True, data_only=True)
         ws = wb["Included Stations"]
         rows = list(ws.iter_rows(values_only=True))
@@ -259,6 +333,7 @@ def _load_naps_coords():
         return _naps_coord_cache
 
     try:
+        import openpyxl
         wb = openpyxl.load_workbook(NAPS_STATIONS_PATH, read_only=True, data_only=True)
         ws = wb.active
         rows = list(ws.iter_rows(values_only=True))
@@ -302,6 +377,7 @@ def _load_coords_legacy(city_key):
     if not os.path.exists(fn):
         return {}
     try:
+        import openpyxl
         wb = openpyxl.load_workbook(fn, read_only=True, data_only=True)
         ws = wb["All Stations Data"]
         rows = list(ws.iter_rows(values_only=True))
@@ -373,28 +449,37 @@ def load_stations(city_key):
     if city_key in _station_cache:
         return _station_cache[city_key]
 
-    # Try research format first, then legacy
     stations = _load_stations_from_research(city_key)
     from_research = stations is not None
     if stations is None:
         stations = _load_stations_from_legacy(city_key)
+        if stations is not None:
+            from_research = False
 
     if stations is None:
+        stations = []
+
+    if len(stations) == 0:
+        bundled = _load_stations_from_bundled(city_key)
+        if bundled:
+            stations = bundled
+            from_research = False
+
+    if len(stations) == 0:
         _station_cache[city_key] = []
         return []
 
-    # Per methodology Section 5: add Thunder Bay for Toronto Rule 2 (NW Ontario Sequential)
     if city_key == "Toronto":
+        existing_ids = {st["id"] for st in stations}
         tb_stations = _load_thunder_bay_rule2_stations()
-        stations = stations + tb_stations
+        stations = stations + [st for st in tb_stations if st["id"] not in existing_ids]
 
     coord_map = _get_coord_map(city_key, from_research)
     for st in stations:
         c = coord_map.get(st["id"])
         if c:
-            st["lat"] = c[0]
-            st["lon"] = c[1]
-        else:
+            st["lat"], st["lon"] = c[0], c[1]
+        elif st.get("lat") is None or st.get("lon") is None:
             st["lat"] = None
             st["lon"] = None
 
