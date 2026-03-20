@@ -45,31 +45,37 @@ CITIES = {
     "Vancouver": {"label": "Vancouver", "lat": 49.3686, "lon": -123.2767},
 }
 
+# Ambient-style µg/m³ for demo / live preview when WAQI cache is empty (not a smoke-event scenario).
 DEMO_DATA = {
     "Toronto": {
-        "60106": 85.0, "66201": 78.0, "65701": 72.0, "61201": 90.0,
-        "60302": 65.0, "65401": 55.0, "60609": 30.0, "360291007": 20.0, "61502": 18.0,
-        "60807": 40.0,  # Thunder Bay (Rule 2 demo)
+        "60106": 11.0, "66201": 14.0, "65701": 10.0, "61201": 16.0,
+        "60302": 12.0, "65401": 9.0, "60609": 8.0, "360291007": 13.0, "61502": 7.0,
+        "60807": 18.0, "60809": 15.0,
     },
     "Montreal": {
-        "54801": 80.0, "52001": 75.0, "50801": 68.0, "500070012": 55.0,
-        "500070014": 50.0, "500070007": 45.0, "60106": 70.0, "60302": 40.0,
+        "54801": 12.0, "52001": 10.0, "50801": 9.0, "500070012": 11.0,
+        "500070014": 10.0, "500070007": 8.0, "60106": 13.0, "60302": 11.0,
     },
     "Edmonton": {
-        "92801": 90.0, "90302": 75.0, "94401": 65.0, "90304": 70.0,
-        "91901": 55.0, "92901": 80.0,
+        "92801": 10.0, "90302": 14.0, "94401": 12.0, "90304": 11.0,
+        "91901": 9.0, "92901": 10.0,
     },
     "Vancouver": {
-        "100316": 60.0, "100313": 55.0, "102301": 85.0, "102302": 80.0,
-        "100304": 50.0, "100308": 45.0,
+        "100316": 9.0, "100313": 10.0, "102301": 15.0, "102302": 14.0,
+        "100304": 11.0, "100308": 10.0,
     },
 }
 
-# Background PM2.5 (µg/m³) for stations not listed in DEMO_DATA (demo / live preview)
-DEMO_DEFAULT_PM25 = 14.0
+# Background PM2.5 (µg/m³) for synthetic / unlisted stations in demo preview
+DEMO_DEFAULT_PM25 = 8.5
 
-# When using bundled JSON only, pad each city to about this many rows (synthetic upstream sites).
-BUNDLED_TARGET_STATION_COUNT = 22
+# When Excel research data is absent, pad bundled JSON toward ~170 stations total across four cities.
+BUNDLED_TARGET_BY_CITY = {
+    "Toronto": 43,
+    "Montreal": 43,
+    "Edmonton": 42,
+    "Vancouver": 42,
+}
 
 # Cache loaded stations so we don't re-read Excel on every request
 _station_cache = {}
@@ -120,7 +126,8 @@ def _get_bundled_json():
 
 def _expand_bundled_stations(city_key, stations):
     """Pad bundled catalog with synthetic corridor stations (coordinates only for WAQI matching)."""
-    if not stations or len(stations) >= BUNDLED_TARGET_STATION_COUNT:
+    target = BUNDLED_TARGET_BY_CITY.get(city_key, 43)
+    if not stations or len(stations) >= target:
         return stations
     prefix = {
         "Toronto": "871",
@@ -130,7 +137,7 @@ def _expand_bundled_stations(city_key, stations):
     }.get(city_key, "879")
     expanded = list(stations)
     i = 0
-    while len(expanded) < BUNDLED_TARGET_STATION_COUNT:
+    while len(expanded) < target:
         base = stations[i % len(stations)]
         nid = f"{prefix}{len(expanded):03d}"
         lat = float(base["lat"]) + 0.14 * (((i % 6) - 3) / 12.0)

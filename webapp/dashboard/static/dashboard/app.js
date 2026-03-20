@@ -99,7 +99,7 @@ async function runDemo() {
     try {
         const resp = await fetch("/api/demo/");
         const data = await resp.json();
-        handleResults(data.results, "Demo: All cities wildfire scenario", data.city_alerts);
+        handleResults(data.results, "Demo: sample ambient readings", data.city_alerts);
     } catch (e) {
         statusEl.textContent = `Error: ${e}`;
     }

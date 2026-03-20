@@ -550,7 +550,7 @@ erDiagram
 | Method | Path | Purpose | Cache |
 |--------|------|---------|-------|
 | GET | `/api/stations/` | All stations grouped by city | 5 min |
-| GET | `/api/demo/` | Simulated wildfire scenario | 5 min |
+| GET | `/api/demo/` | Sample ambient-style readings (fallback catalog) | 5 min |
 | GET | `/api/live/` | Latest cached results | 30s |
 | POST | `/api/refresh/` | Cron refresh (Bearer CRON_SECRET) | — |
 | GET | `/api/auth-status/` | Auth status | — |
@@ -712,7 +712,7 @@ The app prefers `WAQI_API_TOKEN` env var over `config.json`.
 | **Dashboard** | Real-time alert banner, station table, stats cards |
 | **Live Map** | Interactive Leaflet map with station markers and alert colours |
 | **Research** | Full research content including methodology, validation |
-| **Demo Mode** | Simulated wildfire scenarios for each city |
+| **Demo Mode** | Sample ambient-style readings when live cache is empty |
 | **Auto-fetch** | Live data on load and every 15 minutes |
 | **Feedback** | Suggestion board with voting and comments |
 | **API** | Public API v1 with JWT and API key auth |

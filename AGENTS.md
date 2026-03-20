@@ -91,7 +91,7 @@ Required for production:
 Internal APIs (`/api/`):
 - `GET /api/stations/` — All stations grouped by city
 - `GET /api/live/` — Fetch live readings (rate-limited per user)
-- `GET /api/demo/` — Simulated wildfire scenario
+- `GET /api/demo/` — Sample ambient-style readings (bundled fallback catalog)
 - `POST /api/refresh/` — Server-side cache refresh (cron)
 
 Public API v1 (`/api/v1/`):
