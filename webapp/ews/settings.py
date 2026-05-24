@@ -121,18 +121,36 @@ WHITENOISE_USE_FINDERS = True
 
 # Path to the shared data/ folder
 DATA_DIR = os.path.join(BASE_DIR.parent, "data")
+
+# Research data lives locally only (gitignored). It has been kept under two layouts:
+#   projdata/...                  (current)
+#   data/LAPTOP TSF 2026/...      (older)
+# Probe both so local dev loads the real Excel; on production neither exists and the app
+# falls back to the bundled catalog (dashboard/services/bundled_stations.json).
+_RESEARCH_BASES = [
+    os.path.join(BASE_DIR.parent, "projdata"),
+    os.path.join(DATA_DIR, "LAPTOP TSF 2026"),
+]
+_RESEARCH_SUBDIR = "07.  The 4 Cities - Regression formulas and alert network stations"
+_NAPS_SUBPATH = os.path.join("05. NAPS Stations", "04.  Canada_NAPS_Stations_Active_Years.xlsx")
+
+
+def _first_existing(paths, default):
+    for p in paths:
+        if os.path.exists(p):
+            return p
+    return default
+
+
 # Research data: regression Excel files per city (CLEAR methodology)
-RESEARCH_DATA_BASE = os.path.join(
-    DATA_DIR,
-    "LAPTOP TSF 2026",
-    "07.  The 4 Cities - Regression formulas and alert network stations",
+RESEARCH_DATA_BASE = _first_existing(
+    [os.path.join(b, _RESEARCH_SUBDIR) for b in _RESEARCH_BASES],
+    os.path.join(_RESEARCH_BASES[0], _RESEARCH_SUBDIR),
 )
 # NAPS station coordinates lookup
-NAPS_STATIONS_PATH = os.path.join(
-    DATA_DIR,
-    "LAPTOP TSF 2026",
-    "05. NAPS Stations",
-    "04.  Canada_NAPS_Stations_Active_Years.xlsx",
+NAPS_STATIONS_PATH = _first_existing(
+    [os.path.join(b, _NAPS_SUBPATH) for b in _RESEARCH_BASES],
+    os.path.join(_RESEARCH_BASES[0], _NAPS_SUBPATH),
 )
 
 # Auth

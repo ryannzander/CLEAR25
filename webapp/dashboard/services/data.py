@@ -66,15 +66,15 @@ DEMO_DATA = {
     },
 }
 
-# Background PM2.5 (µg/m³) for synthetic / unlisted stations in demo preview
+# Background PM2.5 (µg/m³) for stations without an explicit reading in demo / preview
 DEMO_DEFAULT_PM25 = 8.5
 
-# When Excel research data is absent, pad bundled JSON toward ~170 stations total across four cities.
-BUNDLED_TARGET_BY_CITY = {
-    "Toronto": 43,
-    "Montreal": 43,
-    "Edmonton": 42,
-    "Vancouver": 42,
+# 16-point compass -> bearing degrees, for placing stations that lack exact coordinates
+# (US EPA stations) from their documented distance + direction, as in the polar maps.
+_COMPASS_BEARINGS = {
+    "N": 0, "NNE": 22.5, "NE": 45, "ENE": 67.5, "E": 90, "ESE": 112.5,
+    "SE": 135, "SSE": 157.5, "S": 180, "SSW": 202.5, "SW": 225, "WSW": 247.5,
+    "W": 270, "WNW": 292.5, "NW": 315, "NNW": 337.5,
 }
 
 # Cache loaded stations so we don't re-read Excel on every request
@@ -124,39 +124,25 @@ def _get_bundled_json():
     return _bundled_json_cache
 
 
-def _expand_bundled_stations(city_key, stations):
-    """Pad bundled catalog with synthetic corridor stations (coordinates only for WAQI matching)."""
-    target = BUNDLED_TARGET_BY_CITY.get(city_key, 43)
-    if not stations or len(stations) >= target:
-        return stations
-    prefix = {
-        "Toronto": "871",
-        "Montreal": "872",
-        "Edmonton": "873",
-        "Vancouver": "874",
-    }.get(city_key, "879")
-    expanded = list(stations)
-    i = 0
-    while len(expanded) < target:
-        base = stations[i % len(stations)]
-        nid = f"{prefix}{len(expanded):03d}"
-        lat = float(base["lat"]) + 0.14 * (((i % 6) - 3) / 12.0)
-        lon = float(base["lon"]) + 0.16 * (((i % 8) - 4) / 12.0)
-        expanded.append({
-            "id": nid,
-            "city_name": base["city_name"],
-            "distance": min(620.0, float(base["distance"]) + (i % 6) * 24.0),
-            "direction": base["direction"],
-            "tier": 2,
-            "R": max(0.32, min(0.72, float(base["R"]) - 0.03 * (i % 5))),
-            "slope": float(base["slope"]),
-            "intercept": float(base["intercept"]),
-            "data_type": "synthetic",
-            "lat": lat,
-            "lon": lon,
-        })
-        i += 1
-    return expanded
+def _derive_coord(center_lat, center_lon, direction, distance_km):
+    """Approximate a station position from a city center + compass direction + great-circle
+    distance. Mirrors how the methodology's polar maps are drawn. Returns (lat, lon) or None
+    when the direction is unknown or the distance is missing."""
+    import math
+    bearing = _COMPASS_BEARINGS.get(str(direction or "").strip().upper())
+    if bearing is None or not distance_km:
+        return None
+    R = 6371.0
+    ang = float(distance_km) / R
+    brg = math.radians(bearing)
+    lat1 = math.radians(center_lat)
+    lon1 = math.radians(center_lon)
+    lat2 = math.asin(math.sin(lat1) * math.cos(ang) + math.cos(lat1) * math.sin(ang) * math.cos(brg))
+    lon2 = lon1 + math.atan2(
+        math.sin(brg) * math.sin(ang) * math.cos(lat1),
+        math.cos(ang) - math.sin(lat1) * math.sin(lat2),
+    )
+    return round(math.degrees(lat2), 5), round(math.degrees(lon2), 5)
 
 
 def _load_stations_from_bundled(city_key):
@@ -180,7 +166,7 @@ def _load_stations_from_bundled(city_key):
                 lat = float(lat)
             if lon is not None:
                 lon = float(lon)
-            out.append({
+            entry = {
                 "id": sid,
                 "city_name": str(row.get("city_name") or ""),
                 "distance": float(row.get("distance") or 0),
@@ -192,13 +178,16 @@ def _load_stations_from_bundled(city_key):
                 "data_type": str(row.get("data_type") or ""),
                 "lat": lat,
                 "lon": lon,
-            })
+            }
+            cs = row.get("coord_source")
+            if cs:
+                entry["coord_source"] = str(cs)
+            out.append(entry)
         except (ValueError, TypeError):
             continue
 
     if not out:
         return None
-    out = _expand_bundled_stations(city_key, out)
     return out
 
 
@@ -525,11 +514,27 @@ def load_stations(city_key):
         stations = stations + [st for st in tb_stations if st["id"] not in existing_ids]
 
     coord_map = _get_coord_map(city_key, from_research)
+    center = CITIES.get(city_key)
     for st in stations:
         c = coord_map.get(st["id"])
         if c:
+            # Exact coordinate from NAPS / legacy lookup.
             st["lat"], st["lon"] = c[0], c[1]
-        elif st.get("lat") is None or st.get("lon") is None:
+            st["coord_source"] = "naps"
+        elif st.get("lat") is not None and st.get("lon") is not None:
+            # Exact coordinate already baked into the bundled catalog.
+            st.setdefault("coord_source", "naps")
+        elif center:
+            # No exact coordinate (US EPA stations): approximate from distance + direction so
+            # the station still appears on the map. Flagged so live WAQI matching can skip it.
+            derived = _derive_coord(center["lat"], center["lon"], st.get("direction"), st.get("distance"))
+            if derived:
+                st["lat"], st["lon"] = derived
+                st["coord_source"] = "derived"
+            else:
+                st["lat"] = None
+                st["lon"] = None
+        else:
             st["lat"] = None
             st["lon"] = None
 

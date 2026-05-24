@@ -103,8 +103,14 @@ def fetch_latest_pm25(api_key, stations):
     Groups stations by target_city and makes one bounding-box request
     per city. WAQI returns AQI values which are converted to µg/m³.
     """
-    # Only stations with coordinates
-    with_coords = [s for s in stations if s.get("lat") and s.get("lon")]
+    # Only stations with exact coordinates. Stations whose position was approximated from
+    # distance + direction (coord_source == "derived", i.e. US EPA stations with no coord
+    # file) are skipped here so we never attribute a nearby monitor's reading to an
+    # approximate location; they still render on the map without a live value.
+    with_coords = [
+        s for s in stations
+        if s.get("lat") and s.get("lon") and s.get("coord_source") != "derived"
+    ]
     if not with_coords:
         return {}
 
