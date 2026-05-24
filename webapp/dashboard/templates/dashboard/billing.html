@@ -5,15 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Billing — CLEAR25</title>
-    <link rel="icon" type="image/svg+xml" href="{% static 'dashboard/favicon.svg' %}">
+    <link rel="icon" type="image/svg+xml" href="{% static 'dashboard/favicon.svg' %}?v=3">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'dashboard/style.css' %}?v=32">
+    <link rel="stylesheet" href="{% static 'dashboard/style.css' %}?v=43">
     <style>
         .billing-page {
             min-height: 100vh;
-            background: #000;
+            background: var(--bg, #0a0a0a);
             padding: 40px 24px;
         }
 
@@ -57,9 +57,9 @@
 
         /* Current plan banner */
         .current-plan-banner {
-            background: rgba(255,255,255,0.03);
+            background: var(--surface, #0f0f10);
             border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 14px;
+            border-radius: 16px;
             padding: 20px 24px;
             margin-bottom: 32px;
             display: flex;
@@ -122,9 +122,9 @@
         }
 
         .pricing-card {
-            background: rgba(255,255,255,0.03);
+            background: var(--surface, #0f0f10);
             border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 14px;
+            border-radius: 16px;
             padding: 28px 24px;
             display: flex;
             flex-direction: column;
@@ -136,7 +136,7 @@
         }
 
         .pricing-card.active {
-            border-color: rgba(59, 130, 246, 0.4);
+            border-color: rgba(246, 130, 31, 0.4);
         }
 
         .pricing-card.popular {
@@ -234,12 +234,12 @@
         }
 
         .pricing-btn-upgrade {
-            background: #fff;
-            color: #000;
+            background: var(--brand, #f6821f);
+            color: var(--brand-text, #fff);
         }
 
         .pricing-btn-upgrade:hover {
-            background: #e4e4e7;
+            background: var(--brand-hover, #ff8c2e);
         }
 
         .pricing-btn-upgrade:disabled {
@@ -263,9 +263,9 @@
 
         /* Payment info */
         .payment-info {
-            background: rgba(255,255,255,0.03);
+            background: var(--surface, #0f0f10);
             border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 14px;
+            border-radius: 16px;
             padding: 24px;
             margin-bottom: 20px;
         }
