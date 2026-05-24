@@ -821,11 +821,11 @@
         }
 
         .city-stat {
-            font-size: 40px;
+            font-size: 30px;
             font-weight: 700;
             letter-spacing: -0.03em;
             color: #fff;
-            line-height: 1;
+            line-height: 1.05;
             margin-bottom: 6px;
         }
 
@@ -968,6 +968,273 @@
             color: rgba(255, 255, 255, 0.25);
         }
 
+        /* ========== By the numbers (scale strip) ========== */
+        .scale {
+            padding: 0;
+        }
+
+        .scale-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .scale-item {
+            text-align: center;
+            padding: 34px 20px;
+            border: 1px solid var(--border-soft);
+            border-radius: 18px;
+            background: var(--bg-soft);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .scale-item:hover {
+            transform: translateY(-4px);
+            border-color: var(--border);
+        }
+
+        .scale-value {
+            font-size: clamp(32px, 4vw, 46px);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            color: var(--orange);
+            margin-bottom: 8px;
+        }
+
+        .scale-label {
+            font-size: 13.5px;
+            color: var(--text-dim);
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        /* ========== 360° detection (three rules) ========== */
+        .detection {
+            padding: 110px 0 0;
+        }
+
+        .rules-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .rule-card {
+            position: relative;
+            border: 1px solid var(--border-soft);
+            border-radius: 18px;
+            padding: 30px;
+            background: var(--bg-soft);
+            overflow: hidden;
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .rule-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--orange), transparent);
+        }
+
+        .rule-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--border);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+        }
+
+        .rule-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            background: rgba(246, 130, 31, 0.12);
+            border: 1px solid rgba(246, 130, 31, 0.3);
+            color: var(--orange);
+            font-weight: 700;
+            font-size: 15px;
+            margin-bottom: 18px;
+        }
+
+        .rule-name {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-bottom: 6px;
+        }
+
+        .rule-coverage {
+            font-size: 13px;
+            color: var(--orange);
+            font-weight: 600;
+            margin-bottom: 14px;
+        }
+
+        .rule-trigger {
+            font-size: 13px;
+            color: var(--text-dim);
+            line-height: 1.5;
+            padding: 10px 12px;
+            border: 1px solid var(--border-soft);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.02);
+            margin-bottom: 14px;
+        }
+
+        .rule-trigger strong {
+            color: #fff;
+        }
+
+        .rule-desc {
+            font-size: 14px;
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+
+        /* ========== Real-world example (timeline) ========== */
+        .example {
+            padding: 110px 0 0;
+        }
+
+        .timeline {
+            max-width: 760px;
+            margin: 0 auto;
+            border: 1px solid var(--border-soft);
+            border-radius: 18px;
+            background: var(--bg-soft);
+            overflow: hidden;
+        }
+
+        .tl-row {
+            display: grid;
+            grid-template-columns: 100px 1fr auto;
+            gap: 16px;
+            align-items: center;
+            padding: 22px 26px;
+            border-bottom: 1px solid var(--border-soft);
+        }
+
+        .tl-row:last-child {
+            border-bottom: none;
+        }
+
+        .tl-row.peak {
+            background: rgba(127, 29, 29, 0.18);
+        }
+
+        .tl-date {
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .tl-rule {
+            font-size: 13px;
+            color: var(--orange);
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .tl-station {
+            font-size: 14px;
+            color: var(--text-dim);
+        }
+
+        .tl-right {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 7px;
+        }
+
+        .tl-pm {
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -0.02em;
+        }
+
+        .tl-badge {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            padding: 4px 11px;
+            border-radius: 999px;
+            background: #7f1d1d;
+            color: #fff;
+        }
+
+        .example-note {
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-faint);
+            margin: 22px auto 0;
+            max-width: 620px;
+            line-height: 1.6;
+        }
+
+        /* ========== Alert levels (tiers) ========== */
+        .tiers-section {
+            padding: 110px 0 110px;
+        }
+
+        .tiers {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+        }
+
+        .tier {
+            border: 1px solid var(--border-soft);
+            border-radius: 16px;
+            overflow: hidden;
+            background: var(--bg-soft);
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .tier:hover {
+            transform: translateY(-4px);
+            border-color: var(--border);
+        }
+
+        .tier-bar {
+            height: 6px;
+        }
+
+        .tier-body {
+            padding: 22px 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .tier-name {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            letter-spacing: 0.01em;
+        }
+
+        .tier-range {
+            font-size: 13px;
+            color: var(--text-dim);
+            font-weight: 600;
+            margin-bottom: 14px;
+        }
+
+        .tier-action {
+            font-size: 13px;
+            color: var(--text-faint);
+            line-height: 1.55;
+        }
+
         /* ========== Responsive ========== */
         @media (max-width: 960px) {
             .nav-center {
@@ -1004,6 +1271,18 @@
                 grid-row: span 1;
                 min-height: 280px;
             }
+
+            .scale-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .rules-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tiers {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
 
         @media (max-width: 680px) {
@@ -1032,6 +1311,24 @@
 
             .bento-feature {
                 grid-column: span 1;
+            }
+
+            .scale-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .tiers {
+                grid-template-columns: 1fr;
+            }
+
+            .tl-row {
+                grid-template-columns: 1fr auto;
+                gap: 6px 12px;
+            }
+
+            .tl-date {
+                grid-column: 1 / -1;
+                color: var(--orange);
             }
 
             .hero-actions {
@@ -1068,6 +1365,7 @@
             </a>
             <div class="nav-center">
                 <a href="#coverage" class="nav-link">Coverage</a>
+                <a href="#detection" class="nav-link">Detection</a>
                 <a href="#cities" class="nav-link">Cities</a>
                 <a href="/dashboard/#tab-research" class="nav-link">Research</a>
             </div>
@@ -1089,6 +1387,7 @@
     </nav>
     <div class="mobile-menu" id="mobile-menu">
         <a href="#coverage">Coverage</a>
+        <a href="#detection">Detection</a>
         <a href="#cities">Cities</a>
         <a href="/dashboard/#tab-research">Research</a>
         <a href="/dashboard/#tab-feedback">Feedback</a>
@@ -1102,7 +1401,7 @@
                 <h1 class="hero-title">Clear air starts<br>with early warning.</h1>
                 <p class="hero-subtitle">
                     Providing 6–48 hours of advance warning before dangerous wildfire smoke arrives in your city.
-                    Powered by 218 monitoring stations.
+                    Powered by a network of 440 monitoring stations across Canada and the U.S.
                 </p>
                 <div class="hero-actions">
                     <a href="/dashboard/" class="btn-light">
@@ -1123,20 +1422,20 @@
     <div class="stats-row">
         <div class="stats-grid">
             <div class="stat-item">
-                <div class="stat-value"><span class="accent">97.9%</span></div>
-                <div class="stat-label">Detection Rate</div>
+                <div class="stat-value"><span class="accent">90.9%</span></div>
+                <div class="stat-label">Detection Accuracy (2003–2023)</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value">0%</div>
-                <div class="stat-label">False Alarms</div>
+                <div class="stat-value">100%</div>
+                <div class="stat-label">Events Detected · 0 missed</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value">6–48hr</div>
-                <div class="stat-label">Lead Time</div>
+                <div class="stat-value">15.7h</div>
+                <div class="stat-label">Average Lead Time</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value">20 years</div>
-                <div class="stat-label">Data Analysis</div>
+                <div class="stat-value">87h</div>
+                <div class="stat-label">Maximum Lead Time</div>
             </div>
         </div>
     </div>
@@ -1205,7 +1504,7 @@
                         </svg>
                     </div>
                     <h3>Detect upstream</h3>
-                    <p>Monitoring stations 100–600 km away detect smoke plumes hours before they reach major cities.</p>
+                    <p>Monitoring stations 100–600+ km away detect smoke plumes hours before they reach major cities.</p>
                 </div>
                 <div class="cov-col">
                     <div class="cov-icon">
@@ -1213,8 +1512,9 @@
                             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
                         </svg>
                     </div>
-                    <h3>Model with 20 years</h3>
-                    <p>20 years of NAPS data builds correlation models between remote stations and city PM2.5 levels.</p>
+                    <h3>Model with 21 years</h3>
+                    <p>21 wildfire seasons of NAPS data (2003–2023) build correlation models between remote stations and
+                        city PM2.5 levels.</p>
                 </div>
                 <div class="cov-col">
                     <div class="cov-icon">
@@ -1230,44 +1530,206 @@
         </div>
     </section>
 
-    <!-- Protected cities (bento) -->
+    <!-- By the numbers -->
+    <section class="section scale">
+        <div class="scale-grid">
+            <div class="scale-item reveal">
+                <div class="scale-value">36M+</div>
+                <div class="scale-label">Hourly PM2.5 measurements</div>
+            </div>
+            <div class="scale-item reveal reveal-delay-1">
+                <div class="scale-value">440</div>
+                <div class="scale-label">Monitoring stations<br>309 NAPS + 131 U.S. EPA</div>
+            </div>
+            <div class="scale-item reveal reveal-delay-2">
+                <div class="scale-value">21</div>
+                <div class="scale-label">Wildfire seasons<br>2003–2023</div>
+            </div>
+            <div class="scale-item reveal reveal-delay-3">
+                <div class="scale-value">33</div>
+                <div class="scale-label">Wildfire events validated</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 360° detection (three rules) -->
+    <section id="detection" class="section detection">
+        <div class="section-header reveal">
+            <h2 class="section-title">360° smoke detection</h2>
+            <p class="section-subtitle">
+                Three complementary rules catch incoming wildfire smoke from any direction — each validated
+                independently against 21 years of historical data.
+            </p>
+        </div>
+        <div class="rules-grid">
+            <div class="rule-card reveal reveal-delay-1">
+                <div class="rule-num">1</div>
+                <div class="rule-name">Regional Station Alert</div>
+                <div class="rule-coverage">Ontario &amp; Québec · 100–650 km</div>
+                <div class="rule-trigger"><strong>Trigger:</strong> station &gt; 40 µg/m³ and predicted city ≥ 20
+                    µg/m³</div>
+                <p class="rule-desc">Primary detection for nearby fires. Regression predicts city PM2.5 from each
+                    upstream station and alerts only when the prediction clears the health threshold.</p>
+            </div>
+            <div class="rule-card reveal reveal-delay-2">
+                <div class="rule-num">2</div>
+                <div class="rule-name">NW Ontario Sequential</div>
+                <div class="rule-coverage">Northwestern Ontario · 1,000–1,800 km</div>
+                <div class="rule-trigger"><strong>Trigger:</strong> Thunder Bay &gt; 35 µg/m³ + intermediate &gt; 20
+                    µg/m³</div>
+                <p class="rule-desc">Two-stage detection for distant NW fires. The Thunder Bay sentinel fires first;
+                    intermediate corridor stations then confirm smoke transport toward the city.</p>
+            </div>
+            <div class="rule-card reveal reveal-delay-3">
+                <div class="rule-num">3</div>
+                <div class="rule-name">NE Corridor (Québec)</div>
+                <div class="rule-coverage">Québec upstream · 500–1,400 km NE</div>
+                <div class="rule-trigger"><strong>Trigger:</strong> station &gt; 40 µg/m³ (as in Rule 1)</div>
+                <p class="rule-desc">Eastern monitoring network — Montréal, Ottawa, Québec City, Cornwall and more —
+                    covering the corridor that carries Québec wildfire smoke toward Ontario.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Real-world example (June 2023) -->
+    <section class="section example">
+        <div class="section-header reveal">
+            <h2 class="section-title">Proof: Toronto, June 2023</h2>
+            <p class="section-subtitle">
+                Seven major Québec fires burned at once. Toronto reached a record 241 µg/m³ — and upstream stations
+                flagged EXTREME conditions days ahead.
+            </p>
+        </div>
+        <div class="timeline reveal reveal-delay-1">
+            <div class="tl-row">
+                <div class="tl-date">June 3</div>
+                <div class="tl-main">
+                    <div class="tl-rule">Rule 3 · NE Corridor</div>
+                    <div class="tl-station">Ottawa — 341 km NE</div>
+                </div>
+                <div class="tl-right">
+                    <div class="tl-pm">156 µg/m³</div>
+                    <span class="tl-badge">EXTREME</span>
+                </div>
+            </div>
+            <div class="tl-row">
+                <div class="tl-date">June 6</div>
+                <div class="tl-main">
+                    <div class="tl-rule">Rule 1 · Regional</div>
+                    <div class="tl-station">Cornwall — 387 km ENE</div>
+                </div>
+                <div class="tl-right">
+                    <div class="tl-pm">160 µg/m³</div>
+                    <span class="tl-badge">EXTREME</span>
+                </div>
+            </div>
+            <div class="tl-row peak">
+                <div class="tl-date">June 28</div>
+                <div class="tl-main">
+                    <div class="tl-rule">Toronto — peak</div>
+                    <div class="tl-station">Toronto's highest PM2.5 on record</div>
+                </div>
+                <div class="tl-right">
+                    <div class="tl-pm">241 µg/m³</div>
+                    <span class="tl-badge">EXTREME</span>
+                </div>
+            </div>
+        </div>
+        <p class="example-note">Source: CLEAR_Methodology_ScienceFair Ver#1 — Toronto, June 2023 Québec wildfire event.</p>
+    </section>
+
+    <!-- Alert levels (tiers) -->
+    <section class="section tiers-section">
+        <div class="section-header reveal">
+            <h2 class="section-title">Five alert levels</h2>
+            <p class="section-subtitle">
+                Predicted PM2.5 maps to a colour-coded health alert, each with a clear public-health action.
+            </p>
+        </div>
+        <div class="tiers">
+            <div class="tier reveal">
+                <div class="tier-bar" style="background:#22c55e"></div>
+                <div class="tier-body">
+                    <div class="tier-name" style="color:#22c55e">LOW</div>
+                    <div class="tier-range">0–20 µg/m³</div>
+                    <div class="tier-action">No significant risk. No action required.</div>
+                </div>
+            </div>
+            <div class="tier reveal reveal-delay-1">
+                <div class="tier-bar" style="background:#eab308"></div>
+                <div class="tier-body">
+                    <div class="tier-name" style="color:#eab308">MODERATE</div>
+                    <div class="tier-range">20–60 µg/m³</div>
+                    <div class="tier-action">Sensitive groups should reduce outdoor activity.</div>
+                </div>
+            </div>
+            <div class="tier reveal reveal-delay-2">
+                <div class="tier-bar" style="background:#f97316"></div>
+                <div class="tier-body">
+                    <div class="tier-name" style="color:#f97316">HIGH</div>
+                    <div class="tier-range">60–80 µg/m³</div>
+                    <div class="tier-action">General population affected. Use an N95/KN95 mask outdoors.</div>
+                </div>
+            </div>
+            <div class="tier reveal reveal-delay-3">
+                <div class="tier-bar" style="background:#ef4444"></div>
+                <div class="tier-body">
+                    <div class="tier-name" style="color:#ef4444">VERY HIGH</div>
+                    <div class="tier-range">80–120 µg/m³</div>
+                    <div class="tier-action">Significant risk for all. Avoid outdoor exertion; keep windows closed.</div>
+                </div>
+            </div>
+            <div class="tier reveal reveal-delay-3">
+                <div class="tier-bar" style="background:#7f1d1d"></div>
+                <div class="tier-body">
+                    <div class="tier-name" style="color:#fca5a5">EXTREME</div>
+                    <div class="tier-range">&gt; 120 µg/m³</div>
+                    <div class="tier-action">Emergency conditions. Stay indoors; run a HEPA filter.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cities (bento) -->
     <section id="cities" class="section bento">
         <div class="section-header reveal">
-            <h2 class="section-title">Protected cities</h2>
+            <h2 class="section-title">Four target cities</h2>
             <p class="section-subtitle">
-                Historical validation across 83 smoke events from 2003–2023.
+                The C.L.E.A.R. methodology covers four major Canadian cities. Toronto is fully validated against 21
+                years of historical wildfire-smoke events.
             </p>
         </div>
 
         <div class="bento-grid">
             <div class="bento-card bento-feature reveal">
                 <div class="bf-top">
-                    <span class="bf-tag">2003 – 2023 validation</span>
+                    <span class="bf-tag">Toronto · 2003–2023</span>
                 </div>
                 <div class="bf-bottom">
-                    <div class="bf-stat">97.9%</div>
-                    <p class="bf-desc">Overall detection rate across 83 historical smoke events — with 0% false alarms.</p>
+                    <div class="bf-stat">90.9%</div>
+                    <p class="bf-desc">Detection accuracy across 33 validated wildfire events — with zero missed events
+                        (100% sensitivity).</p>
                 </div>
             </div>
             <div class="bento-card reveal reveal-delay-1">
-                <div class="city-name">Toronto</div>
-                <div class="city-stat">100%</div>
-                <div class="city-label">Detection</div>
+                <div class="city-name">In scope</div>
+                <div class="city-stat">Toronto</div>
+                <div class="city-label">Ontario</div>
             </div>
             <div class="bento-card reveal reveal-delay-1">
-                <div class="city-name">Vancouver</div>
-                <div class="city-stat">100%</div>
-                <div class="city-label">Detection</div>
+                <div class="city-name">In scope</div>
+                <div class="city-stat">Vancouver</div>
+                <div class="city-label">British Columbia</div>
             </div>
             <div class="bento-card reveal reveal-delay-2">
-                <div class="city-name">Montréal</div>
-                <div class="city-stat">100%</div>
-                <div class="city-label">Detection</div>
+                <div class="city-name">In scope</div>
+                <div class="city-stat">Montréal</div>
+                <div class="city-label">Québec</div>
             </div>
             <div class="bento-card reveal reveal-delay-2">
-                <div class="city-name">Edmonton</div>
-                <div class="city-stat">90%</div>
-                <div class="city-label">Detection</div>
+                <div class="city-name">In scope</div>
+                <div class="city-stat">Edmonton</div>
+                <div class="city-label">Alberta</div>
             </div>
         </div>
     </section>
