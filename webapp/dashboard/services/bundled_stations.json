@@ -10,8 +10,9 @@
       "slope": 0.8341,
       "intercept": 1.0349,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 42.921107,
+      "lon": -78.765825,
+      "coord_source": "epa"
     },
     {
       "id": "360290005",
@@ -23,8 +24,9 @@
       "slope": 0.7498,
       "intercept": 0.8887,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 42.876907,
+      "lon": -78.809526,
+      "coord_source": "epa"
     },
     {
       "id": "61502",
@@ -64,9 +66,9 @@
       "slope": 0.8443,
       "intercept": -1.3997,
       "data_type": "Daily",
-      "lat": 40.71,
-      "lon": -74.01,
-      "coord_source": "naps"
+      "lat": 42.8273,
+      "lon": -78.84984,
+      "coord_source": "epa"
     },
     {
       "id": "62601",
@@ -92,8 +94,9 @@
       "slope": 0.8434,
       "intercept": 1.707,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 43.145013,
+      "lon": -77.55728,
+      "coord_source": "epa"
     },
     {
       "id": "360551007",
@@ -105,8 +108,9 @@
       "slope": 0.8671,
       "intercept": 1.489,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 43.14618,
+      "lon": -77.54817,
+      "coord_source": "epa"
     },
     {
       "id": "65401",
@@ -188,8 +192,9 @@
       "slope": 0.6789,
       "intercept": 0.74,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 42.14175,
+      "lon": -80.038611,
+      "coord_source": "epa"
     },
     {
       "id": "62501",
@@ -327,8 +332,9 @@
       "slope": 0.5911,
       "intercept": 3.8294,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 43.05235,
+      "lon": -76.05921,
+      "coord_source": "epa"
     },
     {
       "id": "65801",
@@ -1098,9 +1104,9 @@
       "slope": 0.8965,
       "intercept": 3.1171,
       "data_type": "Daily",
-      "lat": 45.92,
-      "lon": -72.48,
-      "coord_source": "naps"
+      "lat": 44.480278,
+      "lon": -73.214444,
+      "coord_source": "epa"
     },
     {
       "id": "500070014",
@@ -1112,9 +1118,9 @@
       "slope": 0.9777,
       "intercept": 2.6065,
       "data_type": "Daily",
-      "lat": 45.85,
-      "lon": -72.65,
-      "coord_source": "naps"
+      "lat": 44.4762,
+      "lon": -73.2106,
+      "coord_source": "epa"
     },
     {
       "id": "500070007",
@@ -1126,9 +1132,9 @@
       "slope": 1.075,
       "intercept": 3.8997,
       "data_type": "Daily",
-      "lat": 45.72,
-      "lon": -73.22,
-      "coord_source": "naps"
+      "lat": 44.52839,
+      "lon": -72.86884,
+      "coord_source": "epa"
     },
     {
       "id": "60104",
@@ -2026,8 +2032,9 @@
       "slope": 1.3428,
       "intercept": 1.874,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 48.065339,
+      "lon": -122.285194,
+      "coord_source": "epa"
     },
     {
       "id": "530610011",
@@ -2039,8 +2046,9 @@
       "slope": 0.309,
       "intercept": 3.816,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 48.069,
+      "lon": -122.275,
+      "coord_source": "epa"
     },
     {
       "id": "530611007",
@@ -2052,8 +2060,9 @@
       "slope": 0.7418,
       "intercept": 0.1468,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 48.054315,
+      "lon": -122.171529,
+      "coord_source": "epa"
     },
     {
       "id": "530610020",
@@ -2065,8 +2074,9 @@
       "slope": 0.7482,
       "intercept": 1.7623,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 48.2469,
+      "lon": -121.6031,
+      "coord_source": "epa"
     },
     {
       "id": "530610005",
@@ -2078,8 +2088,9 @@
       "slope": 0.866,
       "intercept": 0.6814,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 47.8064,
+      "lon": -122.3167,
+      "coord_source": "epa"
     },
     {
       "id": "530330024",
@@ -2091,8 +2102,9 @@
       "slope": 0.7162,
       "intercept": 0.5221,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 47.755,
+      "lon": -122.2806,
+      "coord_source": "epa"
     },
     {
       "id": "530330027",
@@ -2104,8 +2116,9 @@
       "slope": 0.5593,
       "intercept": 2.3108,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 47.794821,
+      "lon": -122.130681,
+      "coord_source": "epa"
     },
     {
       "id": "530330028",
@@ -2117,8 +2130,9 @@
       "slope": 0.7067,
       "intercept": 1.3873,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 47.754,
+      "lon": -122.161,
+      "coord_source": "epa"
     },
     {
       "id": "530330048",
@@ -2130,8 +2144,9 @@
       "slope": 0.5931,
       "intercept": 1.2354,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 47.6153,
+      "lon": -122.33,
+      "coord_source": "epa"
     },
     {
       "id": "530330030",
@@ -2143,8 +2158,9 @@
       "slope": 0.7241,
       "intercept": -0.5156,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 47.597222,
+      "lon": -122.319722,
+      "coord_source": "epa"
     },
     {
       "id": "530330037",
@@ -2156,8 +2172,9 @@
       "slope": 0.7694,
       "intercept": 1.12,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 47.61311,
+      "lon": -122.20161,
+      "coord_source": "epa"
     },
     {
       "id": "530330080",
@@ -2169,8 +2186,9 @@
       "slope": 0.7387,
       "intercept": 0.388,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 47.568236,
+      "lon": -122.308628,
+      "coord_source": "epa"
     },
     {
       "id": "530330057",
@@ -2182,8 +2200,9 @@
       "slope": 0.7017,
       "intercept": -0.5053,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 47.55975,
+      "lon": -122.338265,
+      "coord_source": "epa"
     },
     {
       "id": "530330031",
@@ -2195,8 +2214,9 @@
       "slope": 0.7956,
       "intercept": 1.6016,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 47.600863,
+      "lon": -122.148397,
+      "coord_source": "epa"
     },
     {
       "id": "530331011",
@@ -2208,8 +2228,9 @@
       "slope": 0.7152,
       "intercept": -0.4894,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 47.53091,
+      "lon": -122.3208,
+      "coord_source": "epa"
     },
     {
       "id": "530330069",
@@ -2221,8 +2242,9 @@
       "slope": 0.6157,
       "intercept": 0.8439,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 47.498535,
+      "lon": -122.278385,
+      "coord_source": "epa"
     },
     {
       "id": "530330010",
@@ -2234,8 +2256,9 @@
       "slope": 0.7827,
       "intercept": 1.4396,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 47.5525,
+      "lon": -122.064722,
+      "coord_source": "epa"
     },
     {
       "id": "530332004",
@@ -2247,8 +2270,9 @@
       "slope": 0.713,
       "intercept": 0.045,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 47.386111,
+      "lon": -122.230278,
+      "coord_source": "epa"
     },
     {
       "id": "530330017",
@@ -2260,8 +2284,9 @@
       "slope": 0.7023,
       "intercept": 1.1658,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 47.49022,
+      "lon": -121.77278,
+      "coord_source": "epa"
     },
     {
       "id": "530530031",
@@ -2273,8 +2298,9 @@
       "slope": 0.7859,
       "intercept": -0.3331,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 47.2656,
+      "lon": -122.3858,
+      "coord_source": "epa"
     },
     {
       "id": "530530033",
@@ -2286,8 +2312,9 @@
       "slope": 0.7749,
       "intercept": 1.3818,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 47.242166,
+      "lon": -122.4575,
+      "coord_source": "epa"
     },
     {
       "id": "530330089",
@@ -2299,8 +2326,9 @@
       "slope": 0.4642,
       "intercept": 1.9356,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 47.2875,
+      "lon": -122.2144,
+      "coord_source": "epa"
     },
     {
       "id": "530330047",
@@ -2312,8 +2340,9 @@
       "slope": 0.6251,
       "intercept": 1.1524,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 47.2814,
+      "lon": -122.2233,
+      "coord_source": "epa"
     },
     {
       "id": "530530024",
@@ -2325,8 +2354,9 @@
       "slope": 0.7429,
       "intercept": 0.5168,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 47.22634,
+      "lon": -122.46256,
+      "coord_source": "epa"
     },
     {
       "id": "530530034",
@@ -2338,8 +2368,9 @@
       "slope": 0.6002,
       "intercept": 2.1221,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 47.226666,
+      "lon": -122.412166,
+      "coord_source": "epa"
     },
     {
       "id": "530531020",
@@ -2351,8 +2382,9 @@
       "slope": 0.4228,
       "intercept": 2.6616,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 47.211,
+      "lon": -122.357,
+      "coord_source": "epa"
     },
     {
       "id": "530530029",
@@ -2364,8 +2396,9 @@
       "slope": 0.6564,
       "intercept": 1.1226,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 47.1864,
+      "lon": -122.4517,
+      "coord_source": "epa"
     },
     {
       "id": "530531022",
@@ -2377,8 +2410,9 @@
       "slope": 0.2214,
       "intercept": 2.3887,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 47.204986,
+      "lon": -122.344619,
+      "coord_source": "epa"
     },
     {
       "id": "530530022",
@@ -2390,8 +2424,9 @@
       "slope": 0.5678,
       "intercept": 1.5795,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 47.2044,
+      "lon": -122.3433,
+      "coord_source": "epa"
     },
     {
       "id": "530531018",
@@ -2403,8 +2438,9 @@
       "slope": 0.6887,
       "intercept": 1.1557,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 47.14,
+      "lon": -122.3003,
+      "coord_source": "epa"
     },
     {
       "id": "530330023",
@@ -2416,8 +2452,9 @@
       "slope": 0.9274,
       "intercept": 0.8072,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 47.1411,
+      "lon": -121.9379,
+      "coord_source": "epa"
     },
     {
       "id": "530531010",
@@ -2429,8 +2466,9 @@
       "slope": 0.7858,
       "intercept": 1.9236,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 46.75838,
+      "lon": -122.12429,
+      "coord_source": "epa"
     },
     {
       "id": "530110022",
@@ -2442,8 +2480,9 @@
       "slope": 0.5279,
       "intercept": 2.9287,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 45.8639,
+      "lon": -122.410889,
+      "coord_source": "epa"
     },
     {
       "id": "530650005",
@@ -2455,8 +2494,9 @@
       "slope": 0.3204,
       "intercept": 2.4744,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 48.544448,
+      "lon": -117.903425,
+      "coord_source": "epa"
     },
     {
       "id": "530650004",
@@ -2468,8 +2508,9 @@
       "slope": 0.2446,
       "intercept": 3.5941,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 48.544722,
+      "lon": -117.903611,
+      "coord_source": "epa"
     },
     {
       "id": "530110023",
@@ -2481,8 +2522,9 @@
       "slope": 0.5906,
       "intercept": 1.9399,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 45.64987,
+      "lon": -122.5901,
+      "coord_source": "epa"
     },
     {
       "id": "530110013",
@@ -2494,8 +2536,9 @@
       "slope": 0.5129,
       "intercept": 1.833,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 45.648333,
+      "lon": -122.586944,
+      "coord_source": "epa"
     },
     {
       "id": "530110024",
@@ -2507,8 +2550,9 @@
       "slope": 0.3055,
       "intercept": 3.8488,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 45.64336,
+      "lon": -122.58737,
+      "coord_source": "epa"
     },
     {
       "id": "530110019",
@@ -2520,8 +2564,9 @@
       "slope": 0.6305,
       "intercept": 0.9289,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 45.623729,
+      "lon": -122.613151,
+      "coord_source": "epa"
     },
     {
       "id": "530650002",
@@ -2533,8 +2578,9 @@
       "slope": 0.4054,
       "intercept": 2.6635,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 47.88528,
+      "lon": -117.98865,
+      "coord_source": "epa"
     },
     {
       "id": "530510007",
@@ -2546,8 +2592,9 @@
       "slope": 0.5651,
       "intercept": 2.6828,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 48.3457,
+      "lon": -117.2716,
+      "coord_source": "epa"
     },
     {
       "id": "530630047",
@@ -2559,8 +2606,9 @@
       "slope": 0.2807,
       "intercept": 3.0538,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 47.69978,
+      "lon": -117.42635,
+      "coord_source": "epa"
     },
     {
       "id": "530630021",
@@ -2572,8 +2620,9 @@
       "slope": 0.3655,
       "intercept": 1.9943,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 47.672482,
+      "lon": -117.364852,
+      "coord_source": "epa"
     },
     {
       "id": "530510008",
@@ -2585,8 +2634,9 @@
       "slope": 0.1596,
       "intercept": 2.9255,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 48.181952,
+      "lon": -117.053102,
+      "coord_source": "epa"
     },
     {
       "id": "530630016",
@@ -2598,8 +2648,9 @@
       "slope": 0.2583,
       "intercept": 2.8503,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 47.660743,
+      "lon": -117.358121,
+      "coord_source": "epa"
     },
     {
       "id": "530630017",
@@ -2611,8 +2662,9 @@
       "slope": 0.1608,
       "intercept": 3.7181,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 47.663962,
+      "lon": -117.257654,
+      "coord_source": "epa"
     },
     {
       "id": "410090004",
@@ -2624,8 +2676,9 @@
       "slope": 0.6063,
       "intercept": 2.0615,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 45.768531,
+      "lon": -122.7721,
+      "coord_source": "epa"
     },
     {
       "id": "410510246",
@@ -2637,8 +2690,9 @@
       "slope": 0.6973,
       "intercept": 0.6462,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 45.56137,
+      "lon": -122.6679,
+      "coord_source": "epa"
     },
     {
       "id": "410512011",
@@ -2650,8 +2704,9 @@
       "slope": 0.3803,
       "intercept": 3.096,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 45.562192,
+      "lon": -122.575705,
+      "coord_source": "epa"
     },
     {
       "id": "410670004",
@@ -2663,8 +2718,9 @@
       "slope": 0.4895,
       "intercept": 2.9905,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 45.528501,
+      "lon": -122.972398,
+      "coord_source": "epa"
     },
     {
       "id": "410512008",
@@ -2676,8 +2732,9 @@
       "slope": 0.725,
       "intercept": 1.5968,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 45.511984,
+      "lon": -122.482029,
+      "coord_source": "epa"
     },
     {
       "id": "410510080",
@@ -2689,8 +2746,9 @@
       "slope": 0.3329,
       "intercept": 3.2093,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 45.496641,
+      "lon": -122.602877,
+      "coord_source": "epa"
     },
     {
       "id": "410670111",
@@ -2702,8 +2760,9 @@
       "slope": 0.4357,
       "intercept": 3.1495,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 45.470191,
+      "lon": -122.816411,
+      "coord_source": "epa"
     },
     {
       "id": "410670005",
@@ -2715,8 +2774,9 @@
       "slope": 0.3469,
       "intercept": 3.0807,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 45.3992,
+      "lon": -122.7455,
+      "coord_source": "epa"
     },
     {
       "id": "410050004",
@@ -2728,8 +2788,9 @@
       "slope": 0.5425,
       "intercept": 2.6997,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 45.25928,
+      "lon": -122.588151,
+      "coord_source": "epa"
     },
     {
       "id": "410711002",
@@ -2741,8 +2802,9 @@
       "slope": 0.9876,
       "intercept": 1.1,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 45.2094,
+      "lon": -123.2118,
+      "coord_source": "epa"
     },
     {
       "id": "410050102",
@@ -2754,8 +2816,9 @@
       "slope": 0.4858,
       "intercept": 2.9465,
       "data_type": "Daily",
-      "lat": null,
-      "lon": null
+      "lat": 45.28845,
+      "lon": -121.782775,
+      "coord_source": "epa"
     }
   ]
 }

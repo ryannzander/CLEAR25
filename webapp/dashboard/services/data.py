@@ -124,6 +124,29 @@ def _get_bundled_json():
     return _bundled_json_cache
 
 
+def _bundled_coord_lookup():
+    """Master coordinate registry from bundled_stations.json: {id: (lat, lon, coord_source)}.
+
+    Lets the research-Excel path reuse the exact NAPS/EPA coordinates already baked into the
+    bundle (the Excel files carry no lat/lon), so local dev and production place stations
+    identically without needing the NAPS/EPA source files at runtime.
+    """
+    data = _get_bundled_json()
+    out = {}
+    if not data:
+        return out
+    for rows in data.values():
+        if not isinstance(rows, list):
+            continue
+        for r in rows:
+            if isinstance(r, dict) and r.get("lat") is not None and r.get("lon") is not None:
+                try:
+                    out[str(r.get("id"))] = (float(r["lat"]), float(r["lon"]), str(r.get("coord_source") or "naps"))
+                except (ValueError, TypeError):
+                    continue
+    return out
+
+
 def _derive_coord(center_lat, center_lon, direction, distance_km):
     """Approximate a station position from a city center + compass direction + great-circle
     distance. Mirrors how the methodology's polar maps are drawn. Returns (lat, lon) or None
@@ -514,19 +537,25 @@ def load_stations(city_key):
         stations = stations + [st for st in tb_stations if st["id"] not in existing_ids]
 
     coord_map = _get_coord_map(city_key, from_research)
+    bundled_coords = _bundled_coord_lookup()
     center = CITIES.get(city_key)
     for st in stations:
         c = coord_map.get(st["id"])
         if c:
-            # Exact coordinate from NAPS / legacy lookup.
+            # Exact coordinate from NAPS / legacy lookup (Canadian stations).
             st["lat"], st["lon"] = c[0], c[1]
             st["coord_source"] = "naps"
         elif st.get("lat") is not None and st.get("lon") is not None:
-            # Exact coordinate already baked into the bundled catalog.
+            # Exact coordinate already baked into the bundled catalog (NAPS or EPA).
             st.setdefault("coord_source", "naps")
+        elif st["id"] in bundled_coords:
+            # Reuse the exact coordinate from the bundle (e.g. US EPA stations on the
+            # research-Excel path, where the Excel carries no lat/lon).
+            bc = bundled_coords[st["id"]]
+            st["lat"], st["lon"], st["coord_source"] = bc[0], bc[1], bc[2]
         elif center:
-            # No exact coordinate (US EPA stations): approximate from distance + direction so
-            # the station still appears on the map. Flagged so live WAQI matching can skip it.
+            # Last resort: approximate from distance + direction so the station still appears.
+            # Flagged "derived" so live WAQI matching skips it (no exact location to trust).
             derived = _derive_coord(center["lat"], center["lon"], st.get("direction"), st.get("distance"))
             if derived:
                 st["lat"], st["lon"] = derived
