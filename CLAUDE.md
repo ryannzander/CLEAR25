@@ -1,0 +1,35 @@
+Analyze the methodology of the project (located in data/LAPTOP TSF 2026/01. Summary Documents/CLEAR_Methodology_ScienceFair Ver#1.pdf).
+
+Do not guess about ANYTHING. Always refer to the data folder if needing context about a feature. If no context is found, ask me. Do not guess at all.
+
+This is a RESEARCH project. It is very important that you make no mistakes while programming or leave any vulnerability.
+
+After each feature I want you to git commit it. Make sure to make separate branches and such for a smooth and optimized workflow. DO NOT INCLUDE CURSOR IN YOUR COMMIT NAMES. Analyze previous commits and make a census whether or not to commit to a specific branch.
+
+Any error that you make in the process should be dealt with as soon as possible. As well, I want you to update this specific file with any new discoveries/errors you have went through, and how to solve them.
+
+---
+
+## Explicit Data Paths (do not guess)
+
+- **Methodology:** `data/LAPTOP TSF 2026/01. Summary Documents/CLEAR_Methodology_ScienceFair Ver#1.pdf`
+- **Regression Excel:** `data/LAPTOP TSF 2026/07. The 4 Cities - Regression formulas and alert network stations/{City}/`
+- **Validation:** `data/LAPTOP TSF 2026/10. Validation/`
+- **Raw PM2.5 data:** `data/LAPTOP TSF 2026/03. RAW DATA PM25 CANADA+Provinces/`
+
+---
+
+## Git Workflow
+
+- Create feature branches per phase (e.g., `feature/cursorrules-update`, `feature/data-layer-research`)
+- Commit after each feature; avoid "Cursor" in commit messages
+- Update this file's "Discoveries & Errors" section when encountering issues
+
+---
+
+## Discoveries & Errors
+
+- **Research Excel structure:** Research files use a single sheet (e.g. Toronto_ALL_Regression_ON_QC), headers on row 4, columns: Station ID, City, Distance (km), Direction, Tier, R, Slope, Intercept. No separate "All Stations Data" sheet for lat/lon. Coordinates are loaded from Canada NAPS Stations file (05. NAPS Stations/04. Canada_NAPS_Stations_Active_Years.xlsx) for NAPS IDs; US EPA station IDs get coords from legacy Excel if available, else remain None (WAQI live fetch will skip them).
+- **Station filtering:** R ≥ 0.30 (methodology 2.3); skip non-numeric station IDs (header rows like "Rule 3 Québec Stations").
+- **Thunder Bay (Rule 2):** NAPS 60807, 60809 injected into Toronto network; coords from NAPS file. Used for trigger only (>35 µg/m³); weak correlation with Toronto per methodology.
+- **Public-facing numbers must match the methodology (fixed 2026-05-23):** The landing page shipped with figures found in NO project doc — "97.9% detection", "0% false alarms", "6–48hr" as a stat, "20 years", "218 stations", and "83 smoke events" (the "83" was a misread of **83.3%** = 2024 precision), plus per-city detection rates. Canonical source = `CLEAR_Methodology_ScienceFair Ver#1` + `CLEAR_Performance_Reference.docx` (matches the dashboard Research tab). **Historical (2003–2023, 21 seasons, 33 events):** 90.9% accuracy, 100% sensitivity (0 missed), 89.7% precision, 15.7h avg / 87h max lead, 36M+ obs, 309 NAPS + 131 U.S. EPA = 440 stations. **2024 out-of-sample (8 events):** 87.5% accuracy, 83.3% precision, 24.7h avg lead. The system is **Toronto-validated**; the 4 cities are *target* cities. Verify other surfaces (README, app) before quoting stats.
