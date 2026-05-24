@@ -1,0 +1,34 @@
+name: Refresh air-quality data
+
+# Replaces the Vercel cron (Hobby plan only allows once/day). Calls the
+# CRON_SECRET-protected /api/refresh/ endpoint every 30 minutes.
+# NOTE: GitHub-scheduled runs are best-effort (can be delayed under load) and
+# are auto-disabled after 60 days with no repo commits.
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"   # every 30 minutes (UTC)
+  workflow_dispatch: {}        # allow manual runs from the Actions tab
+
+# Avoid overlapping runs if one is slow
+concurrency:
+  group: refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Call /api/refresh/
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          REFRESH_URL: https://clear25.xyz/api/refresh/
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::error::CRON_SECRET repository secret is not set. Add it under Settings > Secrets and variables > Actions (same value as the Vercel CRON_SECRET env var)." >&2
+            exit 1
+          fi
+          curl -fsS --retry 2 --retry-delay 5 --max-time 60 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$REFRESH_URL"
