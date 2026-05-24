@@ -114,10 +114,12 @@ function updateMapMarkers(results) {
         mapMarkers.push(m);
     }
 
-    // Station markers: use results when available (have lat/lon), else stations from /api/stations/
-    const stationsToShow = (results && results.length > 0)
-        ? results.filter(r => r.lat != null && r.lon != null)
-        : stations.filter(s => s.lat != null && s.lon != null);
+    // Station markers: always render the full network catalog (gray = no current reading),
+    // and color the stations that have a live result via resultMap below. Only fall back to
+    // results when the catalog (/api/stations/) failed to load, so the map is never empty.
+    const stationsToShow = (stations && stations.length > 0)
+        ? stations.filter(s => s.lat != null && s.lon != null)
+        : (results || []).filter(r => r.lat != null && r.lon != null);
     stationsToShow.forEach(st => {
         const city = st.target_city || "";
         const r = resultMap[(st.id || st.station) + city] || resultMap[st.id + city];
