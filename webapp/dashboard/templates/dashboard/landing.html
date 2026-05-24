@@ -126,6 +126,23 @@
             transition-delay: 0.24s;
         }
 
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.001ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.001ms !important;
+                scroll-behavior: auto !important;
+            }
+
+            .reveal {
+                opacity: 1 !important;
+                transform: none !important;
+            }
+        }
+
         /* ========== Dashed margin guides (Cloudflare signature) ========== */
         .guides {
             position: fixed;
@@ -680,6 +697,22 @@
             height: 20px;
         }
 
+        .globe-marker {
+            animation: markerPulse 2.6s ease-in-out infinite;
+        }
+
+        @keyframes markerPulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 24px rgba(246, 130, 31, 0.35), 0 0 0 0 rgba(246, 130, 31, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 0 30px rgba(246, 130, 31, 0.5), 0 0 0 10px rgba(246, 130, 31, 0);
+            }
+        }
+
         .cov-cols {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -1100,6 +1133,67 @@
             padding: 110px 0 0;
         }
 
+        .wave-chart {
+            max-width: 820px;
+            margin: 0 auto 34px;
+            border: 1px solid var(--border-soft);
+            border-radius: 18px;
+            background: var(--bg-soft);
+            padding: 22px 22px 10px;
+        }
+
+        .wave-chart svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .wave-line {
+            fill: none;
+            stroke: #ff9d4d;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 2400;
+            stroke-dashoffset: 2400;
+        }
+
+        .wave-chart.revealed .wave-line {
+            animation: waveDraw 2.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes waveDraw {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        .wave-area,
+        .wave-mark {
+            opacity: 0;
+        }
+
+        .wave-chart.revealed .wave-area {
+            animation: waveFade 1.2s ease 0.9s forwards;
+        }
+
+        .wave-chart.revealed .wave-mark {
+            animation: waveFade 0.6s ease 2.1s forwards;
+        }
+
+        @keyframes waveFade {
+            to {
+                opacity: 1;
+            }
+        }
+
+        .wave-caption {
+            text-align: center;
+            font-size: 12.5px;
+            color: var(--text-faint);
+            margin-top: 4px;
+        }
+
         .timeline {
             max-width: 760px;
             margin: 0 auto;
@@ -1233,6 +1327,148 @@
             font-size: 13px;
             color: var(--text-faint);
             line-height: 1.55;
+        }
+
+        /* ========== Smoke-travel corridor ========== */
+        .corridor {
+            max-width: 760px;
+            margin: 0 auto 44px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding: 26px 28px;
+            border: 1px solid var(--border-soft);
+            border-radius: 18px;
+            background: var(--bg-soft);
+        }
+
+        .corridor-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+            width: 92px;
+            text-align: center;
+        }
+
+        .corridor-badge {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(246, 130, 31, 0.4);
+            background: rgba(246, 130, 31, 0.1);
+            color: var(--orange);
+        }
+
+        .corridor-badge svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .corridor-node.city .corridor-badge {
+            border-color: var(--border);
+            background: rgba(255, 255, 255, 0.04);
+            color: #fff;
+            animation: cityAlert 3.2s ease-in-out infinite;
+        }
+
+        .corridor-node-label {
+            font-size: 12.5px;
+            color: var(--text-dim);
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        .corridor-track {
+            position: relative;
+            flex: 1;
+            height: 40px;
+            display: flex;
+            align-items: center;
+        }
+
+        .corridor-track::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            height: 2px;
+            transform: translateY(-50%);
+            background-image: repeating-linear-gradient(90deg, rgba(246, 130, 31, 0.55) 0 8px, transparent 8px 16px);
+        }
+
+        .track-dist {
+            position: absolute;
+            top: -2px;
+            left: 50%;
+            transform: translate(-50%, -100%);
+            font-size: 11.5px;
+            color: var(--text-faint);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .smoke-dot {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            background: #ff9d4d;
+            box-shadow: 0 0 12px 3px rgba(246, 130, 31, 0.6);
+            transform: translate(-50%, -50%);
+            animation: smokeTravel 3.2s cubic-bezier(0.45, 0, 0.35, 1) infinite;
+        }
+
+        @keyframes smokeTravel {
+            0% {
+                left: 0%;
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+
+            12% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+
+            82% {
+                opacity: 1;
+            }
+
+            100% {
+                left: 100%;
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1.2);
+            }
+        }
+
+        @keyframes cityAlert {
+
+            0%,
+            78% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+                border-color: var(--border);
+                color: #fff;
+            }
+
+            88% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.55);
+                border-color: #ef4444;
+                color: #fca5a5;
+            }
+
+            100% {
+                box-shadow: 0 0 0 16px rgba(239, 68, 68, 0);
+                border-color: var(--border);
+                color: #fff;
+            }
         }
 
         /* ========== Responsive ========== */
@@ -1422,19 +1658,21 @@
     <div class="stats-row">
         <div class="stats-grid">
             <div class="stat-item">
-                <div class="stat-value"><span class="accent">90.9%</span></div>
+                <div class="stat-value"><span class="accent count" data-target="90.9" data-decimals="1"
+                        data-suffix="%">0%</span></div>
                 <div class="stat-label">Detection Accuracy (2003–2023)</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value">100%</div>
+                <div class="stat-value"><span class="count" data-target="100" data-suffix="%">0%</span></div>
                 <div class="stat-label">Events Detected · 0 missed</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value">15.7h</div>
+                <div class="stat-value"><span class="count" data-target="15.7" data-decimals="1"
+                        data-suffix="h">0h</span></div>
                 <div class="stat-label">Average Lead Time</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value">87h</div>
+                <div class="stat-value"><span class="count" data-target="87" data-suffix="h">0h</span></div>
                 <div class="stat-label">Maximum Lead Time</div>
             </div>
         </div>
@@ -1470,6 +1708,14 @@
                             <mask id="globe-mask">
                                 <circle cx="300" cy="230" r="225" fill="url(#globe-fade)" />
                             </mask>
+                            <clipPath id="sphere-clip">
+                                <circle cx="300" cy="230" r="225" />
+                            </clipPath>
+                            <radialGradient id="sweep-grad" cx="300" cy="230" r="225"
+                                gradientUnits="userSpaceOnUse">
+                                <stop offset="0" stop-color="#f6821f" stop-opacity="0.5" />
+                                <stop offset="100%" stop-color="#f6821f" stop-opacity="0" />
+                            </radialGradient>
                         </defs>
                         <!-- dotted sphere -->
                         <g mask="url(#globe-mask)">
@@ -1484,6 +1730,25 @@
                             <ellipse cx="300" cy="230" rx="150" ry="225" />
                             <line x1="300" y1="5" x2="300" y2="455" />
                             <line x1="75" y1="230" x2="525" y2="230" />
+                        </g>
+                        <!-- rotating radar sweep -->
+                        <g clip-path="url(#sphere-clip)">
+                            <g>
+                                <path d="M300 230 L300 5 A225 225 0 0 1 472 85 Z" fill="url(#sweep-grad)" />
+                                <line x1="300" y1="230" x2="300" y2="5" stroke="#ff9d4d" stroke-width="2"
+                                    stroke-opacity="0.7" />
+                                <animateTransform attributeName="transform" attributeType="XML" type="rotate"
+                                    from="0 300 230" to="360 300 230" dur="8s" repeatCount="indefinite" />
+                            </g>
+                        </g>
+                        <!-- orbit ring + travelling blip (detected smoke) -->
+                        <circle cx="300" cy="230" r="200" fill="none" stroke="#f6821f" stroke-opacity="0.22"
+                            stroke-width="1" stroke-dasharray="3 7" />
+                        <g>
+                            <circle cx="300" cy="30" r="11" fill="none" stroke="#ff9d4d" stroke-opacity="0.4" />
+                            <circle cx="300" cy="30" r="6" fill="#ff9d4d" />
+                            <animateTransform attributeName="transform" attributeType="XML" type="rotate"
+                                from="0 300 230" to="360 300 230" dur="14s" repeatCount="indefinite" />
                         </g>
                     </svg>
                     <div class="globe-marker" title="Monitoring station">
@@ -1534,19 +1799,19 @@
     <section class="section scale">
         <div class="scale-grid">
             <div class="scale-item reveal">
-                <div class="scale-value">36M+</div>
+                <div class="scale-value"><span class="count" data-target="36" data-suffix="M+">0</span></div>
                 <div class="scale-label">Hourly PM2.5 measurements</div>
             </div>
             <div class="scale-item reveal reveal-delay-1">
-                <div class="scale-value">440</div>
+                <div class="scale-value"><span class="count" data-target="440">0</span></div>
                 <div class="scale-label">Monitoring stations<br>309 NAPS + 131 U.S. EPA</div>
             </div>
             <div class="scale-item reveal reveal-delay-2">
-                <div class="scale-value">21</div>
+                <div class="scale-value"><span class="count" data-target="21">0</span></div>
                 <div class="scale-label">Wildfire seasons<br>2003–2023</div>
             </div>
             <div class="scale-item reveal reveal-delay-3">
-                <div class="scale-value">33</div>
+                <div class="scale-value"><span class="count" data-target="33">0</span></div>
                 <div class="scale-label">Wildfire events validated</div>
             </div>
         </div>
@@ -1561,6 +1826,33 @@
                 independently against 21 years of historical data.
             </p>
         </div>
+        <div class="corridor reveal reveal-delay-1">
+            <div class="corridor-node station">
+                <div class="corridor-badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                        <circle cx="12" cy="12" r="9" />
+                        <circle cx="12" cy="12" r="5" />
+                        <circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" />
+                    </svg>
+                </div>
+                <div class="corridor-node-label">Upstream<br>station</div>
+            </div>
+            <div class="corridor-track">
+                <span class="track-dist">smoke travels 100–600+ km</span>
+                <span class="smoke-dot"></span>
+            </div>
+            <div class="corridor-node city">
+                <div class="corridor-badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                        <rect x="4" y="9" width="7" height="12" rx="1" />
+                        <rect x="13" y="4" width="7" height="17" rx="1" />
+                        <path d="M7.5 13h.01M7.5 17h.01M16.5 8h.01M16.5 12h.01M16.5 16h.01" />
+                    </svg>
+                </div>
+                <div class="corridor-node-label">City<br>alerted</div>
+            </div>
+        </div>
+
         <div class="rules-grid">
             <div class="rule-card reveal reveal-delay-1">
                 <div class="rule-num">1</div>
@@ -1600,6 +1892,58 @@
                 flagged EXTREME conditions days ahead.
             </p>
         </div>
+        <div class="wave-chart reveal">
+            <svg viewBox="0 0 820 320" font-family="Inter, -apple-system, sans-serif" aria-label="Toronto PM2.5 during June 2023, rising to a record 241 micrograms per cubic metre">
+                <defs>
+                    <linearGradient id="wave-fill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stop-color="#f6821f" stop-opacity="0.4" />
+                        <stop offset="100%" stop-color="#f6821f" stop-opacity="0" />
+                    </linearGradient>
+                </defs>
+                <!-- alert-level bands -->
+                <rect x="50" y="30" width="750" height="134.6" fill="#7f1d1d" opacity="0.12" />
+                <rect x="50" y="164.6" width="750" height="38.5" fill="#ef4444" opacity="0.07" />
+                <rect x="50" y="203.1" width="750" height="19.2" fill="#f97316" opacity="0.07" />
+                <rect x="50" y="222.3" width="750" height="38.5" fill="#eab308" opacity="0.06" />
+                <rect x="50" y="260.8" width="750" height="19.2" fill="#22c55e" opacity="0.06" />
+                <!-- EXTREME threshold -->
+                <line x1="50" y1="164.6" x2="800" y2="164.6" stroke="#ef4444" stroke-width="1" stroke-dasharray="4 4"
+                    stroke-opacity="0.55" />
+                <text x="796" y="159" text-anchor="end" font-size="11" font-weight="600" fill="#fca5a5">EXTREME ≥ 120
+                    µg/m³</text>
+                <!-- y axis -->
+                <text x="42" y="284" text-anchor="end" font-size="11" fill="rgba(255,255,255,0.42)">0</text>
+                <text x="42" y="168" text-anchor="end" font-size="11" fill="rgba(255,255,255,0.42)">120</text>
+                <text x="42" y="52" text-anchor="end" font-size="11" fill="rgba(255,255,255,0.42)">240</text>
+                <text x="425" y="309" text-anchor="middle" font-size="12" font-weight="600"
+                    fill="rgba(255,255,255,0.42)">June 2023 — Toronto PM2.5 (µg/m³)</text>
+                <!-- area + line -->
+                <path class="wave-area" fill="url(#wave-fill)"
+                    d="M70 272 L165 265.6 L213 193 L284 241.5 L402 262.7 L521 246.3 L639 155 L710 48.3 L780 164.6 L780 280 L70 280 Z" />
+                <path class="wave-line"
+                    d="M70 272 L165 265.6 L213 193 L284 241.5 L402 262.7 L521 246.3 L639 155 L710 48.3 L780 164.6" />
+                <!-- upstream early-alert flags -->
+                <g class="wave-mark">
+                    <line x1="117" y1="280" x2="117" y2="118" stroke="#f6821f" stroke-width="1.5" stroke-dasharray="3 4"
+                        stroke-opacity="0.7" />
+                    <circle cx="117" cy="118" r="3.5" fill="#ff9d4d" />
+                    <text x="113" y="111" font-size="11" font-weight="600" fill="#cfcfcf">Ottawa · 156</text>
+                    <line x1="188" y1="280" x2="188" y2="140" stroke="#f6821f" stroke-width="1.5" stroke-dasharray="3 4"
+                        stroke-opacity="0.7" />
+                    <circle cx="188" cy="140" r="3.5" fill="#ff9d4d" />
+                    <text x="184" y="133" font-size="11" font-weight="600" fill="#cfcfcf">Cornwall · 160</text>
+                </g>
+                <!-- peak marker -->
+                <g class="wave-mark">
+                    <circle cx="710" cy="48.3" r="5" fill="#fff" stroke="#f6821f" stroke-width="2" />
+                    <text x="710" y="38" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">241
+                        µg/m³</text>
+                </g>
+            </svg>
+            <p class="wave-caption">Illustrative Toronto profile; peak (241 µg/m³, Jun 28) and upstream alerts from
+                project data.</p>
+        </div>
+
         <div class="timeline reveal reveal-delay-1">
             <div class="tl-row">
                 <div class="tl-date">June 3</div>
@@ -1706,7 +2050,8 @@
                     <span class="bf-tag">Toronto · 2003–2023</span>
                 </div>
                 <div class="bf-bottom">
-                    <div class="bf-stat">90.9%</div>
+                    <div class="bf-stat"><span class="count" data-target="90.9" data-decimals="1"
+                            data-suffix="%">0%</span></div>
                     <p class="bf-desc">Detection accuracy across 33 validated wildfire events — with zero missed events
                         (100% sensitivity).</p>
                 </div>
@@ -1813,6 +2158,43 @@
                 a.addEventListener('click', () => mobileMenu.classList.remove('open'));
             });
         }
+
+        // Respect reduced motion: pause SVG (SMIL) animations
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (reduceMotion) {
+            document.querySelectorAll('svg').forEach(s => {
+                if (s.pauseAnimations) s.pauseAnimations();
+            });
+        }
+
+        // Count-up numbers on scroll
+        function animateCount(el) {
+            const target = parseFloat(el.dataset.target);
+            const dec = parseInt(el.dataset.decimals || '0', 10);
+            const suffix = el.dataset.suffix || '';
+            const prefix = el.dataset.prefix || '';
+            const finalText = prefix + target.toFixed(dec) + suffix;
+            if (reduceMotion) { el.textContent = finalText; return; }
+            const dur = 1500;
+            const start = performance.now();
+            function tick(now) {
+                const p = Math.min((now - start) / dur, 1);
+                const eased = 1 - Math.pow(1 - p, 3);
+                el.textContent = prefix + (target * eased).toFixed(dec) + suffix;
+                if (p < 1) requestAnimationFrame(tick);
+                else el.textContent = finalText;
+            }
+            requestAnimationFrame(tick);
+        }
+        const countObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    animateCount(entry.target);
+                    countObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.6 });
+        document.querySelectorAll('.count').forEach(el => countObserver.observe(el));
     </script>
 </body>
 
