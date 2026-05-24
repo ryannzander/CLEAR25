@@ -22,15 +22,20 @@ function initMap() {
     });
 }
 
-function createCircleIcon(color, size, pulse) {
+function createCircleIcon(color, size, pulse, derived) {
     const pulseRing = pulse
         ? `<div class="marker-pulse" style="position:absolute;inset:-6px;border-radius:50%;border:2px solid ${color};opacity:0.5;animation:markerPulse 2s ease-out infinite;"></div>`
         : "";
+    // Derived (US EPA, approximate) stations render as a rotated square (diamond) with a
+    // dashed border so they are distinguishable from exact-coordinate circular markers.
+    const shape = derived
+        ? `border-radius:2px;transform:rotate(45deg);border:2px dashed rgba(255,255,255,0.7);`
+        : `border-radius:50%;border:2px solid rgba(255,255,255,0.4);`;
     return L.divIcon({
         className: "marker-icon",
         html: `<div style="position:relative;width:${size}px;height:${size}px;">
             ${pulseRing}
-            <div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:2px solid rgba(255,255,255,0.4);box-shadow:0 0 10px ${color}88;transition:all 0.3s;"></div>
+            <div style="width:${size}px;height:${size}px;${shape}background:${color};box-shadow:0 0 10px ${color}88;transition:all 0.3s;"></div>
         </div>`,
         iconSize: [size, size],
         iconAnchor: [size / 2, size / 2],
@@ -141,14 +146,19 @@ function updateMapMarkers(results) {
             `;
         }
 
-        const marker = L.marker([st.lat, st.lon], { icon: createCircleIcon(color, size, shouldPulse) }).addTo(map);
+        const isDerived = st.coord_source === "derived";
+        const marker = L.marker([st.lat, st.lon], { icon: createCircleIcon(color, size, shouldPulse, isDerived) }).addTo(map);
         const name = st.city_name || st.station || "Station";
         const dist = st.distance ?? st.dist ?? 0;
         const dir = st.direction ?? st.dir ?? "";
+        const derivedNote = isDerived
+            ? `<div class="popup-meta" style="color:#fbbf24;">US EPA · approx. position (from distance/direction)</div>`
+            : "";
         marker.bindPopup(`
             <div class="popup-name">${name}</div>
             <div class="popup-meta">${st.id || st.station}</div>
             <div class="popup-meta">${city} · ${dist.toFixed(0)} km ${dir} · Tier ${st.tier ?? ""}</div>
+            ${derivedNote}
             ${popupExtra}
         `);
 
