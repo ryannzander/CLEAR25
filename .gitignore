@@ -30,6 +30,9 @@ db.sqlite3
 *.log
 staticfiles/
 
+# Generator inputs (downloaded on demand by scripts/gen_bundled_stations.py)
+scripts/aqs_sites.zip
+
 # Claude
 .claude/
 

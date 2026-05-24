@@ -22,15 +22,20 @@ function initMap() {
     });
 }
 
-function createCircleIcon(color, size, pulse, derived) {
+function createCircleIcon(color, size, pulse, variant) {
     const pulseRing = pulse
         ? `<div class="marker-pulse" style="position:absolute;inset:-6px;border-radius:50%;border:2px solid ${color};opacity:0.5;animation:markerPulse 2s ease-out infinite;"></div>`
         : "";
-    // Derived (US EPA, approximate) stations render as a rotated square (diamond) with a
-    // dashed border so they are distinguishable from exact-coordinate circular markers.
-    const shape = derived
-        ? `border-radius:2px;transform:rotate(45deg);border:2px dashed rgba(255,255,255,0.7);`
-        : `border-radius:50%;border:2px solid rgba(255,255,255,0.4);`;
+    // Marker shape encodes the network: Canadian NAPS = circle; US EPA = solid diamond;
+    // approximate (derived position, rare) = dashed diamond.
+    let shape;
+    if (variant === "epa") {
+        shape = `border-radius:2px;transform:rotate(45deg);border:2px solid rgba(255,255,255,0.6);`;
+    } else if (variant === "derived") {
+        shape = `border-radius:2px;transform:rotate(45deg);border:2px dashed rgba(255,255,255,0.7);`;
+    } else {
+        shape = `border-radius:50%;border:2px solid rgba(255,255,255,0.4);`;
+    }
     return L.divIcon({
         className: "marker-icon",
         html: `<div style="position:relative;width:${size}px;height:${size}px;">
@@ -146,19 +151,22 @@ function updateMapMarkers(results) {
             `;
         }
 
-        const isDerived = st.coord_source === "derived";
-        const marker = L.marker([st.lat, st.lon], { icon: createCircleIcon(color, size, shouldPulse, isDerived) }).addTo(map);
+        const variant = st.coord_source === "epa" ? "epa" : (st.coord_source === "derived" ? "derived" : "circle");
+        const marker = L.marker([st.lat, st.lon], { icon: createCircleIcon(color, size, shouldPulse, variant) }).addTo(map);
         const name = st.city_name || st.station || "Station";
         const dist = st.distance ?? st.dist ?? 0;
         const dir = st.direction ?? st.dir ?? "";
-        const derivedNote = isDerived
-            ? `<div class="popup-meta" style="color:#fbbf24;">US EPA · approx. position (from distance/direction)</div>`
-            : "";
+        let sourceNote = "";
+        if (variant === "epa") {
+            sourceNote = `<div class="popup-meta" style="color:#60a5fa;">US EPA network</div>`;
+        } else if (variant === "derived") {
+            sourceNote = `<div class="popup-meta" style="color:#fbbf24;">Approx. position (from distance/direction)</div>`;
+        }
         marker.bindPopup(`
             <div class="popup-name">${name}</div>
             <div class="popup-meta">${st.id || st.station}</div>
             <div class="popup-meta">${city} · ${dist.toFixed(0)} km ${dir} · Tier ${st.tier ?? ""}</div>
-            ${derivedNote}
+            ${sourceNote}
             ${popupExtra}
         `);
 

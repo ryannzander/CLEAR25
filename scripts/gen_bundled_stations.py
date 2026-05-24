@@ -10,11 +10,20 @@ Source of truth (local only, gitignored):
   projdata/07.  The 4 Cities - Regression formulas and alert network stations/{City}/01.*Regression_Formulas.xlsx
   projdata/05. NAPS Stations/04.  Canada_NAPS_Stations_Active_Years.xlsx
 """
+import csv
+import io
 import json
 import os
+import ssl
 import sys
+import urllib.request
+import zipfile
 
 import openpyxl
+
+# Public EPA AQS sites file: exact lat/lon for every US monitor, keyed by
+# State(2)+County(3)+Site(4) — the same 9-digit code used as our US station IDs.
+EPA_SITES_URL = "https://aqs.epa.gov/aqsweb/airdata/aqs_sites.zip"
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RESEARCH_BASE = os.path.join(
@@ -72,6 +81,46 @@ def load_naps_coords():
         except (TypeError, ValueError):
             continue
     return coords
+
+
+def load_epa_coords():
+    """Exact US monitor coordinates from the EPA AQS sites file. Downloads it (cached in
+    scripts/aqs_sites.zip) if absent. Returns {site_id_9digit: (lat, lon)}."""
+    zpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "aqs_sites.zip")
+    if not os.path.isfile(zpath):
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        req = urllib.request.Request(EPA_SITES_URL, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=120, context=ctx) as r:
+            open(zpath, "wb").write(r.read())
+
+    z = zipfile.ZipFile(zpath)
+    name = next(n for n in z.namelist() if n.lower().endswith(".csv"))
+    rd = csv.DictReader(io.StringIO(z.read(name).decode("latin-1")))
+    cols = rd.fieldnames
+
+    def col(*cands):
+        for c in cols:
+            cl = c.lower().strip()
+            for x in cands:
+                if x in cl:
+                    return c
+        return None
+
+    c_state, c_county, c_site = col("state code"), col("county code"), col("site number")
+    c_lat, c_lon = col("latitude"), col("longitude")
+    out = {}
+    for row in rd:
+        try:
+            key = f"{int(row[c_state]):02d}{int(row[c_county]):03d}{int(row[c_site]):04d}"
+            lat, lon = float(row[c_lat]), float(row[c_lon])
+            if lat == 0 and lon == 0:
+                continue
+            out[key] = (lat, lon)
+        except (ValueError, TypeError, KeyError):
+            continue
+    return out
 
 
 def load_existing_coords():
@@ -173,12 +222,13 @@ THUNDER_BAY_IDS = ("60807", "60809")
 def main():
     write = "--write" in sys.argv
     naps = load_naps_coords()
+    epa = load_epa_coords()
     existing = load_existing_coords()
-    print(f"NAPS coords loaded: {len(naps)}")
+    print(f"NAPS coords: {len(naps)} | EPA coords: {len(epa)}")
 
     out = {}
     grand = 0
-    grand_coords = 0
+    by_src = {"naps": 0, "epa": 0}
     no_coord_ids = []
     for city, rel in FILES.items():
         sts = load_city(city, rel)
@@ -194,28 +244,36 @@ def main():
                         "intercept": 5.0, "data_type": "Rule2",
                     })
 
-        with_coords = 0
+        city_naps = city_epa = 0
         for s in sts:
-            c = naps.get(s["id"]) or existing.get(s["id"])
-            if c:
-                # Exact coordinate: bake it so production (no NAPS file) keeps precise placement.
-                s["lat"], s["lon"] = c[0], c[1]
+            # Canadian stations: NAPS. US stations: EPA AQS. Both exact; baked so production
+            # (which has neither file) keeps precise placement and can fetch live data.
+            if s["id"] in naps:
+                s["lat"], s["lon"] = naps[s["id"]]
                 s["coord_source"] = "naps"
-                with_coords += 1
+                city_naps += 1
+            elif s["id"] in epa:
+                s["lat"], s["lon"] = epa[s["id"]]
+                s["coord_source"] = "epa"
+                city_epa += 1
+            elif s["id"] in existing:
+                s["lat"], s["lon"] = existing[s["id"]]
+                s["coord_source"] = "naps"
+                city_naps += 1
             else:
-                # No exact coord (US EPA stations): leave null. load_stations() derives lat/lon
-                # at runtime from city center + distance + direction (coord_source="derived").
+                # Truly unknown: leave null; load_stations() derives from distance+direction.
                 s["lat"] = None
                 s["lon"] = None
                 no_coord_ids.append(f"{city}:{s['id']}({s['data_type']})")
         out[city] = sts
         grand += len(sts)
-        grand_coords += with_coords
-        print(f"{city}: {len(sts)} stations, {with_coords} exact coords, {len(sts)-with_coords} runtime-derived")
+        by_src["naps"] += city_naps
+        by_src["epa"] += city_epa
+        print(f"{city}: {len(sts)} stations | NAPS {city_naps} | EPA {city_epa} | missing {len(sts)-city_naps-city_epa}")
 
-    print(f"TOTAL: {grand} stations, {grand_coords} exact, {grand-grand_coords} derived")
+    print(f"TOTAL: {grand} stations | NAPS {by_src['naps']} | EPA {by_src['epa']} | missing {len(no_coord_ids)}")
     if no_coord_ids:
-        print("Runtime-derived (US EPA):", ", ".join(no_coord_ids))
+        print("Missing (runtime-derived):", ", ".join(no_coord_ids))
 
     if write:
         with open(OUT_PATH, "w", encoding="utf-8") as f:
