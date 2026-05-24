@@ -7,8 +7,20 @@
    ============================================================ */
 
 :root {
+    /* Severity-reactive accent — set dynamically by app-render.js to the
+       worst city's air-quality colour. Do not repurpose as a brand colour. */
     --accent-color: #71717a;
     --accent-text: #fff;
+    /* Cloudflare brand — static chrome only (active tab, primary buttons,
+       focus rings). Never severity-driven. */
+    --brand: #f6821f;
+    --brand-hover: #ff8c2e;
+    --brand-text: #fff;
+    /* Surfaces — matched to the landing page */
+    --bg: #0a0a0a;
+    --surface: #0f0f10;
+    --border-soft: rgba(255, 255, 255, 0.06);
+    --border: rgba(255, 255, 255, 0.10);
 }
 
 /* ========== Global Animations ========== */
@@ -51,7 +63,7 @@ html {
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: #000;
+    background: var(--bg, #0a0a0a);
     color: #fff;
     min-height: 100vh;
     width: 100%;
@@ -79,7 +91,7 @@ body {
 
 /* ---- Focus Rings ---- */
 *:focus-visible {
-    outline: 2px solid rgba(255, 255, 255, 0.4);
+    outline: 2px solid var(--brand, #f6821f);
     outline-offset: 2px;
     border-radius: 4px;
 }
@@ -93,8 +105,8 @@ body {
 
 .sidebar {
     width: 160px;
-    background: #000;
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--bg, #0a0a0a);
+    border-right: 1px solid var(--border-soft, rgba(255, 255, 255, 0.06));
     display: flex;
     flex-direction: column;
     padding: 12px 0;
@@ -170,11 +182,11 @@ body {
 }
 
 .sidebar-tab.tab-active {
-    color: var(--accent-text, #000);
-    background: var(--accent-color, #71717a);
+    color: var(--brand-text, #fff);
+    background: var(--brand, #f6821f);
     font-weight: 600;
-    transition: background 0.3s ease, color 0.3s ease;
-    box-shadow: 0 2px 12px color-mix(in srgb, var(--accent-color, #71717a) 35%, transparent);
+    transition: background 0.2s ease, color 0.2s ease;
+    box-shadow: 0 2px 14px color-mix(in srgb, var(--brand, #f6821f) 38%, transparent);
 }
 
 .sidebar-bottom {
@@ -221,7 +233,7 @@ body {
     font-size: 13px;
     font-weight: 500;
     transition: all 0.15s ease;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--surface, #0f0f10);
     text-decoration: none;
 }
 
@@ -400,13 +412,13 @@ body {
 }
 
 .action-primary {
-    background: var(--accent-color, #71717a);
-    color: var(--accent-text, #000);
-    transition: background 0.3s ease, color 0.3s ease;
+    background: var(--brand, #f6821f);
+    color: var(--brand-text, #fff);
+    transition: background 0.2s ease, color 0.2s ease;
 }
 
 .action-primary:hover {
-    filter: brightness(0.9);
+    background: var(--brand-hover, #ff8c2e);
     transform: translateY(-1px);
 }
 
@@ -475,7 +487,7 @@ body {
 }
 
 .modal-box {
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--surface, #0f0f10);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
     width: 100%;
@@ -629,7 +641,7 @@ body {
 .auth-card {
     width: 100%;
     max-width: 400px;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--surface, #0f0f10);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 16px;
     padding: 40px 32px;
@@ -779,7 +791,7 @@ body {
 /* ---- Progress Bar ---- */
 .progress-wrap {
     margin-top: 20px;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--surface, #0f0f10);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
     padding: 16px 20px;
@@ -843,9 +855,9 @@ body {
 .city-card {
     position: relative;
     overflow: hidden;
-    border-radius: 14px;
+    border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--surface, #0f0f10);
     padding: 20px;
     transition: border-color 0.4s, transform 0.3s;
     animation: dashFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -868,7 +880,9 @@ body {
 }
 
 .city-card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-4px);
+    border-color: rgba(255, 255, 255, 0.14);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
 }
 
 .city-card-glow {
@@ -918,7 +932,7 @@ body {
     overflow: hidden;
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--surface, #0f0f10);
     padding: 32px;
     text-align: center;
     transition: border-color 0.4s;
@@ -970,9 +984,9 @@ body {
 }
 
 .stat-card {
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--surface, #0f0f10);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
+    border-radius: 14px;
     padding: 16px 20px;
     text-align: center;
 }
@@ -1003,9 +1017,9 @@ body {
 .table-card {
     margin-top: 16px;
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 14px;
+    border-radius: 16px;
     overflow: hidden;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--surface, #0f0f10);
 }
 
 .table-head {
@@ -1242,7 +1256,7 @@ body {
     gap: 14px;
     margin-top: 12px;
     padding: 10px 16px;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--surface, #0f0f10);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 10px;
     flex-wrap: wrap;
@@ -1366,7 +1380,7 @@ body {
 .research-nav {
     display: flex;
     gap: 4px;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--surface, #0f0f10);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
     padding: 4px;
@@ -1405,17 +1419,17 @@ body {
 }
 
 .research-card {
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--surface, #0f0f10);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 14px;
+    border-radius: 16px;
     padding: 28px 32px;
     margin-bottom: 16px;
     transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s;
 }
 
 .research-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    transform: translateY(-4px);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
 }
 
 .research-badge {
@@ -1887,7 +1901,7 @@ body {
     text-align: center;
     color: #71717a;
     padding: 60px 24px;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--surface, #0f0f10);
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     font-size: 0.95rem;
@@ -1896,7 +1910,7 @@ body {
 .suggestion-card {
     display: flex;
     gap: 16px;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--surface, #0f0f10);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
     padding: 18px 20px;
@@ -2176,8 +2190,9 @@ body {
 }
 
 .stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    transform: translateY(-4px);
+    border-color: rgba(255, 255, 255, 0.14);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
 }
 
 /* ============================================================
