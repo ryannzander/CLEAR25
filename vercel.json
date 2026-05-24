@@ -16,11 +16,5 @@
             "src": "/(.*)",
             "dest": "webapp/ews/wsgi.py"
         }
-    ],
-    "crons": [
-        {
-            "path": "/api/refresh/",
-            "schedule": "*/30 * * * *"
-        }
     ]
 }
