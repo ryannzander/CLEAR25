@@ -372,9 +372,15 @@
             </div>
             <h3>Delete your account?</h3>
             <p>This will permanently delete your account, all your suggestions, comments, and votes. This action cannot be undone.</p>
+            <p style="margin-top:12px;font-size:13px;color:#a1a1aa;">
+                To confirm, type <code style="background:#27272a;padding:2px 6px;border-radius:4px;">DELETE MY ACCOUNT</code> below.
+            </p>
+            <input type="text" id="delete-confirmation" autocomplete="off" spellcheck="false"
+                   placeholder="DELETE MY ACCOUNT"
+                   style="width:100%;margin-top:8px;padding:8px 12px;background:#18181b;border:1px solid #3f3f46;border-radius:6px;color:#fafafa;font-family:'JetBrains Mono',monospace;font-size:13px;">
             <div class="delete-modal-actions">
                 <button class="btn btn-ghost" id="cancel-delete">Cancel</button>
-                <button class="btn btn-danger" id="confirm-delete">Yes, delete my account</button>
+                <button class="btn btn-danger" id="confirm-delete" disabled>Yes, delete my account</button>
             </div>
         </div>
     </div>
@@ -437,14 +443,24 @@
             }
         });
 
-        document.getElementById("confirm-delete").addEventListener("click", async () => {
-            const btn = document.getElementById("confirm-delete");
-            btn.disabled = true;
-            btn.textContent = "Deleting...";
+        const DELETE_PHRASE = "DELETE MY ACCOUNT";
+        const deleteConfirmationInput = document.getElementById("delete-confirmation");
+        const confirmDeleteBtn = document.getElementById("confirm-delete");
+
+        deleteConfirmationInput.addEventListener("input", () => {
+            confirmDeleteBtn.disabled = deleteConfirmationInput.value.trim() !== DELETE_PHRASE;
+        });
+
+        confirmDeleteBtn.addEventListener("click", async () => {
+            if (deleteConfirmationInput.value.trim() !== DELETE_PHRASE) return;
+            confirmDeleteBtn.disabled = true;
+            confirmDeleteBtn.textContent = "Deleting...";
 
             try {
                 const resp = await fetch("/api/settings/delete-account/", {
                     method: "DELETE",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ confirmation: DELETE_PHRASE }),
                 });
                 const data = await resp.json();
 
@@ -452,13 +468,13 @@
                     window.location.href = "/";
                 } else {
                     alert(data.error || "Failed to delete account");
-                    btn.disabled = false;
-                    btn.textContent = "Yes, delete my account";
+                    confirmDeleteBtn.disabled = false;
+                    confirmDeleteBtn.textContent = "Yes, delete my account";
                 }
             } catch (err) {
                 alert("Network error");
-                btn.disabled = false;
-                btn.textContent = "Yes, delete my account";
+                confirmDeleteBtn.disabled = false;
+                confirmDeleteBtn.textContent = "Yes, delete my account";
             }
         });
 
