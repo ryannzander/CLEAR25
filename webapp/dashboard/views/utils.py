@@ -2,6 +2,7 @@
 Shared utilities for views: validation, sanitization, profanity filter.
 """
 
+import hmac
 import json
 import re
 import urllib.parse
@@ -10,6 +11,16 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.utils.http import url_has_allowed_host_and_scheme
+
+
+def timing_safe_token_compare(a, b):
+    """Constant-time comparison for shared secrets / bearer tokens.
+
+    Returns False on type mismatch or empty inputs.
+    """
+    if not isinstance(a, str) or not isinstance(b, str) or not a or not b:
+        return False
+    return hmac.compare_digest(a.encode("utf-8"), b.encode("utf-8"))
 
 
 # =============================================================================

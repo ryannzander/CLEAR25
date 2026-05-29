@@ -12,15 +12,17 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
 from django.views.decorators.cache import cache_page
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
 
 from .. import services
 from ..models import ReadingSnapshot, CachedResult
-from .utils import safe_redirect
+from .utils import safe_redirect, timing_safe_token_compare
 
 logger = logging.getLogger(__name__)
 
 
+@ensure_csrf_cookie
 def index(request):
     """Render the main dashboard page."""
     cities = list(services.CITIES.keys())
@@ -150,7 +152,8 @@ def api_refresh(request):
     """
     cron_secret = os.environ.get("CRON_SECRET", "")
     auth_header = request.headers.get("Authorization", "")
-    if not cron_secret or auth_header != f"Bearer {cron_secret}":
+    expected = f"Bearer {cron_secret}" if cron_secret else ""
+    if not cron_secret or not timing_safe_token_compare(auth_header, expected):
         return JsonResponse({"error": "Unauthorized"}, status=401)
 
     config = services.load_config()

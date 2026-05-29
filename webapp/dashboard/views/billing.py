@@ -15,11 +15,11 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
 
 from ..models import Payment, PLAN_LIMITS
-from .utils import safe_redirect
+from .utils import safe_redirect, timing_safe_token_compare
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +29,7 @@ PLAN_PRICES = {
 }
 
 
+@ensure_csrf_cookie
 def billing_page(request):
     """Render the billing/subscription page."""
     if not request.user.is_authenticated:
@@ -46,7 +47,6 @@ def billing_page(request):
     })
 
 
-@csrf_exempt
 @require_http_methods(["POST"])
 def api_create_payment(request):
     """Create a NOWPayments invoice for a plan upgrade."""

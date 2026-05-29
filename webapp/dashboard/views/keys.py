@@ -7,7 +7,6 @@ import logging
 
 from django.http import JsonResponse
 from django.utils import timezone
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from ..models import APIKey
@@ -15,7 +14,6 @@ from ..models import APIKey
 logger = logging.getLogger(__name__)
 
 
-@csrf_exempt
 @require_http_methods(["GET", "POST"])
 def api_create_key(request):
     """List API keys (GET) or create a new one (POST)."""
@@ -77,7 +75,6 @@ def api_create_key(request):
     })
 
 
-@csrf_exempt
 @require_http_methods(["POST"])
 def api_revoke_key(request):
     """Revoke an API key."""
