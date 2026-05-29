@@ -2,19 +2,49 @@ import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = os.environ.get("SECRET_KEY", "dev-only-key-change-in-production")
-DEBUG = os.environ.get("DEBUG", "true").lower() == "true"
+
+
+# =============================================================================
+# CORE SECURITY: SECRET_KEY, DEBUG, ALLOWED_HOSTS
+# =============================================================================
+
+# DEBUG defaults to False — production-safe default. Set DEBUG=true in local dev.
+DEBUG = os.environ.get("DEBUG", "false").lower() == "true"
+
+# SECRET_KEY must be supplied explicitly. We fail closed in any environment that
+# is not explicitly DEBUG, refusing to boot rather than silently signing
+# sessions/JWTs with a known constant. Local dev gets a stable dev key so it is
+# obvious in logs and bug reports that the deployment is not configured.
+_DEV_SECRET_KEY = "dev-only-key-DO-NOT-USE-IN-PRODUCTION"
+SECRET_KEY = os.environ.get("SECRET_KEY") or os.environ.get("DJANGO_SECRET_KEY", "")
+
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = _DEV_SECRET_KEY
+    else:
+        raise RuntimeError(
+            "SECRET_KEY environment variable is required when DEBUG=false. "
+            "Generate one with: python -c 'import secrets; print(secrets.token_urlsafe(64))'"
+        )
+
+if not DEBUG and SECRET_KEY == _DEV_SECRET_KEY:
+    raise RuntimeError(
+        "Refusing to boot with the development SECRET_KEY in a non-DEBUG environment."
+    )
 
 # Allowed hosts
 ALLOWED_HOSTS = [
     "clear25.xyz",
     "www.clear25.xyz",
-    ".vercel.app",  # Vercel preview deployments
 ]
-# Add any additional hosts from env var
+# Add any additional hosts from env var (comma-separated)
 ALLOWED_HOSTS += [
     h.strip() for h in os.environ.get("ALLOWED_HOSTS", "").split(",") if h.strip()
 ]
+# Vercel preview deployments are scoped to a known prefix when set.
+_VERCEL_HOST_PREFIX = os.environ.get("VERCEL_HOST_PREFIX", "").strip()
+if _VERCEL_HOST_PREFIX:
+    ALLOWED_HOSTS.append(f".{_VERCEL_HOST_PREFIX}.vercel.app")
 if DEBUG:
     ALLOWED_HOSTS = ["*"]
 
@@ -39,17 +69,17 @@ SITE_ID = 1
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    "dashboard.middleware.RequestSizeLimitMiddleware",
+    "dashboard.middleware.SecurityHeadersMiddleware",
+    "dashboard.middleware.RateLimitMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
-    # Custom middleware (uncomment after testing):
-    # "dashboard.middleware.RequestSizeLimitMiddleware",
-    # "dashboard.middleware.SecurityHeadersMiddleware",
-    # "dashboard.middleware.RateLimitMiddleware",
 ]
 
 ROOT_URLCONF = "ews.urls"
@@ -75,15 +105,13 @@ WSGI_APPLICATION = "ews.wsgi.application"
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
 if DATABASE_URL:
     # Parse the URL manually to avoid urlparse issues with special chars in passwords.
-    # Expected format: postgresql://user:password@host:port/dbname
+    # Expected format: postgresql://user:password@host:port/dbname[?params]
     import re as _re
-    # Use last @ as delimiter: password may contain @
-    # Username stops at first : after scheme://
-    # Password is everything between user: and the last @
-    _m = _re.match(r'^(\w+)://([^:]+):(.+)@([^@]+)$', DATABASE_URL)
+    # Strip any query string so it doesn't end up in the db name.
+    _db_url, _, _qs = DATABASE_URL.partition("?")
+    _m = _re.match(r'^(\w+)://([^:]+):(.+)@([^@]+)$', _db_url)
     if _m:
         _scheme, _user, _pw, _hostpath = _m.groups()
-        # Split host:port/dbname
         _hp, _, _dbname = _hostpath.partition("/")
         _host, _, _port = _hp.partition(":")
         DATABASES = {
@@ -95,7 +123,7 @@ if DATABASE_URL:
                 "HOST": _host,
                 "PORT": _port or "5432",
                 "CONN_MAX_AGE": 600,
-                "OPTIONS": {"sslmode": "require"}
+                "OPTIONS": {"sslmode": "require"},
             }
         }
     else:
@@ -106,6 +134,11 @@ if DATABASE_URL:
         DATABASES["default"].setdefault("OPTIONS", {})
         DATABASES["default"]["OPTIONS"]["sslmode"] = "require"
 else:
+    if not DEBUG:
+        raise RuntimeError(
+            "DATABASE_URL is required when DEBUG=false. SQLite is not a "
+            "supported production backend for this deployment."
+        )
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -163,15 +196,32 @@ LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
-# Allauth
+# Allauth — security-tightened
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
-ACCOUNT_EMAIL_VERIFICATION = "none"
+# Require email verification before account is usable. "mandatory" blocks login
+# until the email link is clicked.
+ACCOUNT_EMAIL_VERIFICATION = os.environ.get(
+    "ACCOUNT_EMAIL_VERIFICATION", "mandatory"
+)
+# Allauth rate limits: per IP/user/email. See allauth docs for keys.
+ACCOUNT_RATE_LIMITS = {
+    "login":           "5/m",
+    "login_failed":    "10/15m",
+    "signup":          "5/h",
+    "send_email":      "5/5m",
+    "change_password": "3/h",
+    "reset_password":  "3/h",
+    "reset_password_from_key": "5/h",
+    "confirm_email":   "5/h",
+}
 SOCIALACCOUNT_AUTO_SIGNUP = True
-SOCIALACCOUNT_LOGIN_ON_GET = True
-SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
+# Disable login-on-GET and logout-on-GET — both enable drive-by CSRF.
+SOCIALACCOUNT_LOGIN_ON_GET = False
+ACCOUNT_LOGOUT_ON_GET = False
+# Social account email linking only when email is verified by the provider.
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = False
 SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
-ACCOUNT_LOGOUT_ON_GET = True
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
         "APP": {
@@ -182,6 +232,20 @@ SOCIALACCOUNT_PROVIDERS = {
         "AUTH_PARAMS": {"access_type": "online"},
     }
 }
+
+# Email backend — console in DEBUG, SMTP via env in production.
+if DEBUG:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+else:
+    EMAIL_BACKEND = os.environ.get(
+        "EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend"
+    )
+    EMAIL_HOST = os.environ.get("EMAIL_HOST", "")
+    EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+    EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+    EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+    EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "true").lower() == "true"
+    DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "no-reply@clear25.xyz")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -205,6 +269,7 @@ LOGGING = {
         "django": {"handlers": ["console"], "level": "ERROR", "propagate": False},
         # App views — log exceptions with full tracebacks server-side
         "dashboard.views": {"handlers": ["console"], "level": "ERROR", "propagate": False},
+        "dashboard.middleware": {"handlers": ["console"], "level": "WARNING", "propagate": False},
     },
 }
 
@@ -254,17 +319,19 @@ else:
     SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 7  # 1 week
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_HTTPONLY = False  # Read by JS for fetch headers
+CSRF_COOKIE_SAMESITE = "Lax"
 
 # =============================================================================
-# CSRF SECURITY (minimal config - Vercel handles HTTPS)
+# CSRF
 # =============================================================================
 
-# CSRF trusted origins
 CSRF_TRUSTED_ORIGINS = [
     "https://clear25.xyz",
     "https://www.clear25.xyz",
 ]
-# Add any additional origins from env var
 CSRF_TRUSTED_ORIGINS += [
     origin.strip()
     for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
@@ -274,19 +341,38 @@ if DEBUG:
     CSRF_TRUSTED_ORIGINS += ["http://localhost:8000", "http://127.0.0.1:8000"]
 
 # =============================================================================
-# SECURITY SETTINGS (minimal - let Vercel handle HTTPS/redirects)
+# TRANSPORT / TLS SECURITY
 # =============================================================================
 
 X_FRAME_OPTIONS = "DENY"
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
-# Vercel handles SSL, so we just need the proxy header
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    # HSTS — start with 1 year, allow preload via env once you're ready.
+    SECURE_HSTS_SECONDS = int(os.environ.get("SECURE_HSTS_SECONDS", "31536000"))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = os.environ.get(
+        "SECURE_HSTS_PRELOAD", "true"
+    ).lower() == "true"
+
+# Request size cap (1 MiB by default). Honored by RequestSizeLimitMiddleware.
+MAX_REQUEST_BODY_BYTES = int(os.environ.get("MAX_REQUEST_BODY_BYTES", str(1024 * 1024)))
+# Django's built-in upload guard, set to match.
+DATA_UPLOAD_MAX_MEMORY_SIZE = MAX_REQUEST_BODY_BYTES
+
+# Per-IP rate-limit for unauthenticated mutating endpoints.
+IP_RATE_LIMIT_REQUESTS = int(os.environ.get("IP_RATE_LIMIT_REQUESTS", "30"))
+IP_RATE_LIMIT_WINDOW_SECONDS = int(os.environ.get("IP_RATE_LIMIT_WINDOW_SECONDS", "60"))
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", "OPTIONS": {"min_length": 8}},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", "OPTIONS": {"min_length": 12}},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
@@ -321,11 +407,22 @@ CORS_ALLOWED_ORIGINS = [
     "https://clear25.xyz",
     "https://www.clear25.xyz",
 ]
-
-# Allow Vercel preview deployments (*.vercel.app)
-CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^https://.*\.vercel\.app$",
+# Additional production origins from env (comma-separated)
+CORS_ALLOWED_ORIGINS += [
+    origin.strip()
+    for origin in os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",")
+    if origin.strip()
 ]
+
+# Preview deployments: only allow Vercel previews scoped to our project, never
+# the generic *.vercel.app namespace (any free Vercel project would qualify).
+CORS_ALLOWED_ORIGIN_REGEXES = []
+if _VERCEL_HOST_PREFIX:
+    # Escape the prefix to use it inside a regex literal safely.
+    import re as _cors_re
+    CORS_ALLOWED_ORIGIN_REGEXES.append(
+        rf"^https://{_cors_re.escape(_VERCEL_HOST_PREFIX)}-[a-z0-9\-]+\.vercel\.app$"
+    )
 
 if DEBUG:
     CORS_ALLOWED_ORIGINS += [
@@ -333,6 +430,8 @@ if DEBUG:
         "http://127.0.0.1:8000",
     ]
 
-# Only allow the methods and headers actually needed by the API
+# Credentials are NOT allowed on cross-origin requests. Sessions are same-origin
+# only; API consumers should use Authorization headers.
+CORS_ALLOW_CREDENTIALS = False
 CORS_ALLOW_METHODS = ["GET", "OPTIONS"]
 CORS_ALLOW_HEADERS = ["accept", "authorization", "content-type", "x-api-key"]

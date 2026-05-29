@@ -5,17 +5,16 @@ API key management: list, create, revoke.
 import json
 import logging
 
+from django.db import transaction
 from django.http import JsonResponse
 from django.utils import timezone
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from ..models import APIKey
+from ..models import APIKey, RefreshToken
 
 logger = logging.getLogger(__name__)
 
 
-@csrf_exempt
 @require_http_methods(["GET", "POST"])
 def api_create_key(request):
     """List API keys (GET) or create a new one (POST)."""
@@ -77,7 +76,6 @@ def api_create_key(request):
     })
 
 
-@csrf_exempt
 @require_http_methods(["POST"])
 def api_revoke_key(request):
     """Revoke an API key."""
@@ -90,10 +88,17 @@ def api_revoke_key(request):
         return JsonResponse({"error": "Invalid JSON"}, status=400)
 
     key = data.get("key", "")
+    if not isinstance(key, str) or not key.strip():
+        return JsonResponse({"error": "key is required"}, status=400)
     try:
         api_key = APIKey.objects.get(key=key, user=request.user)
-        api_key.is_active = False
-        api_key.save()
-        return JsonResponse({"ok": True})
     except APIKey.DoesNotExist:
         return JsonResponse({"error": "API key not found"}, status=404)
+
+    with transaction.atomic():
+        api_key.is_active = False
+        api_key.save(update_fields=["is_active"])
+        # Revoke every refresh token minted from this key so a stolen
+        # refresh token cannot survive its parent key.
+        RefreshToken.objects.filter(api_key=api_key, revoked=False).update(revoked=True)
+    return JsonResponse({"ok": True})

@@ -1,7 +1,8 @@
 import datetime
 import hashlib
 import secrets
-from django.db import models
+from django.db import models, transaction
+from django.db.models import F
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -90,26 +91,57 @@ class APIKey(models.Model):
             return PLAN_LIMITS["free"]["rate_limit"]
 
     def check_rate_limit(self):
-        """Check and update rate limit. Returns (allowed, remaining, reset_seconds)."""
+        """Check and update rate limit atomically.
+
+        Returns ``(allowed, remaining, reset_seconds)``.
+
+        Concurrency model: a single SELECT … FOR UPDATE inside a transaction
+        serializes parallel requests against the same key so the counter can
+        never overshoot the limit. The previous implementation read the counter
+        into Python, decided, then wrote — a classic TOCTOU race that allowed
+        the limit to be exceeded by roughly the worker count under load.
+        """
         now = timezone.now()
         rate_limit = self.get_rate_limit()
 
-        # Reset if hour has passed
-        if not self.hour_started or (now - self.hour_started).total_seconds() >= 3600:
-            self.hour_started = now
-            self.requests_this_hour = 0
+        with transaction.atomic():
+            locked = type(self).objects.select_for_update().get(pk=self.pk)
 
-        remaining = max(0, rate_limit - self.requests_this_hour)
-        reset_seconds = int(3600 - (now - self.hour_started).total_seconds())
+            window_expired = (
+                not locked.hour_started
+                or (now - locked.hour_started).total_seconds() >= 3600
+            )
+            if window_expired:
+                locked.hour_started = now
+                locked.requests_this_hour = 0
 
-        if self.requests_this_hour >= rate_limit:
-            return False, 0, reset_seconds
+            reset_seconds = int(3600 - (now - locked.hour_started).total_seconds())
 
-        self.requests_this_hour += 1
-        self.total_requests += 1
-        self.last_used = now
-        self.save(update_fields=["requests_this_hour", "hour_started", "last_used", "total_requests"])
-        return True, remaining - 1, reset_seconds
+            if locked.requests_this_hour >= rate_limit:
+                # Persist the (possibly reset) window so a future call sees
+                # the same state, then refuse.
+                locked.save(update_fields=["requests_this_hour", "hour_started"])
+                # Sync in-memory instance for the caller.
+                self.hour_started = locked.hour_started
+                self.requests_this_hour = locked.requests_this_hour
+                return False, 0, reset_seconds
+
+            locked.requests_this_hour = F("requests_this_hour") + 1
+            locked.total_requests = F("total_requests") + 1
+            locked.last_used = now
+            locked.save(update_fields=[
+                "requests_this_hour", "hour_started", "last_used", "total_requests",
+            ])
+            # Refresh to materialize the F() expressions and sync to self.
+            locked.refresh_from_db(fields=[
+                "requests_this_hour", "hour_started", "last_used", "total_requests",
+            ])
+            self.hour_started = locked.hour_started
+            self.requests_this_hour = locked.requests_this_hour
+            self.total_requests = locked.total_requests
+            self.last_used = locked.last_used
+            remaining = max(0, rate_limit - locked.requests_this_hour)
+            return True, remaining, reset_seconds
 
     def __str__(self):
         return f"{self.name or 'API Key'} ({self.key[:8]}...)"
@@ -211,8 +243,11 @@ class Payment(models.Model):
     plan = models.CharField(max_length=10, choices=PLAN_CHOICES)
     billing_period = models.CharField(max_length=10, choices=BILLING_PERIOD_CHOICES, default="monthly")
     amount_usd = models.DecimalField(max_digits=10, decimal_places=2)
+    currency = models.CharField(max_length=10, default="usd")
     nowpayments_id = models.CharField(max_length=100, unique=True)
-    status = models.CharField(max_length=20, default="waiting")  # waiting, confirming, confirmed, failed
+    # Opaque internal order ID — does not embed user/plan info.
+    order_id = models.CharField(max_length=64, unique=True, db_index=True, default="")
+    status = models.CharField(max_length=20, default="waiting")  # waiting, confirming, confirmed, failed, rejected, underpaid
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -227,8 +262,18 @@ class RefreshToken(models.Model):
 
     The raw token is given to the client exactly once.  Only its SHA-256
     hash is persisted so a database leak cannot be used to forge tokens.
+
+    Refresh tokens are bound to the API key that originated them. Revoking the
+    API key cascade-deletes its refresh tokens (FK on_delete=CASCADE), so a
+    stolen refresh token can never outlive the key it was minted for.
     """
     user       = models.ForeignKey(User, on_delete=models.CASCADE, related_name="refresh_tokens")
+    # Nullable for legacy rows created before the binding was added; new rows
+    # always set it.
+    api_key    = models.ForeignKey(
+        "APIKey", on_delete=models.CASCADE,
+        related_name="refresh_tokens", null=True, blank=True,
+    )
     token_hash = models.CharField(max_length=64, unique=True, db_index=True)
     expires_at = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -242,26 +287,43 @@ class RefreshToken(models.Model):
     # ── Factory ───────────────────────────────────────────────────────────────
 
     @classmethod
-    def create_for_user(cls, user):
-        """Generate a new refresh token.  Returns ``(raw_token, instance)``."""
+    def create_for_api_key(cls, api_key):
+        """Generate a new refresh token bound to ``api_key``.
+
+        Returns ``(raw_token, instance)``.
+        """
         from .jwt_auth import REFRESH_TOKEN_LIFETIME
         raw        = secrets.token_hex(32)          # 64-char hex, 256 bits
         token_hash = hashlib.sha256(raw.encode()).hexdigest()
         expires_at = timezone.now() + REFRESH_TOKEN_LIFETIME
-        instance   = cls.objects.create(user=user, token_hash=token_hash, expires_at=expires_at)
+        instance   = cls.objects.create(
+            user=api_key.user,
+            api_key=api_key,
+            token_hash=token_hash,
+            expires_at=expires_at,
+        )
         return raw, instance
 
     # ── Lookup ────────────────────────────────────────────────────────────────
 
     @classmethod
     def verify(cls, raw_token):
-        """Return the ``RefreshToken`` if valid and not expired; else ``None``."""
+        """Return the ``RefreshToken`` if valid and not expired; else ``None``.
+
+        A refresh token is rejected if its originating API key has been revoked
+        or removed.
+        """
         token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
         try:
-            rt = cls.objects.select_related("user").get(token_hash=token_hash, revoked=False)
+            rt = cls.objects.select_related("user", "api_key").get(
+                token_hash=token_hash, revoked=False,
+            )
         except cls.DoesNotExist:
             return None
         if rt.expires_at < timezone.now():
+            return None
+        # Refuse if the bound API key has been revoked.
+        if rt.api_key_id is not None and not rt.api_key.is_active:
             return None
         return rt
 

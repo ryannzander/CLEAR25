@@ -10,6 +10,7 @@ import jwt as _jwt
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
 
 from .. import services
@@ -212,6 +213,7 @@ def api_v1_cities(request):
     })
 
 
+@ensure_csrf_cookie
 def api_docs(request):
     """Render the API documentation page."""
     api_keys = []

@@ -5,7 +5,7 @@ Account views: settings page, profile updates, account deletion.
 from django.contrib import auth
 from django.http import JsonResponse
 from django.shortcuts import render
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
 
 from ..models import Suggestion, SuggestionVote, Comment
@@ -15,6 +15,7 @@ from .utils import (
 )
 
 
+@ensure_csrf_cookie
 def settings_page(request):
     """Render the settings page. Requires authentication."""
     if not request.user.is_authenticated:
@@ -33,7 +34,6 @@ def settings_page(request):
     })
 
 
-@csrf_exempt
 @require_http_methods(["POST"])
 def api_update_profile(request):
     """Update user's first and last name."""
@@ -74,7 +74,6 @@ def api_update_profile(request):
     })
 
 
-@csrf_exempt
 @require_http_methods(["POST"])
 def api_downgrade_plan(request):
     """Downgrade user plan back to free."""
@@ -92,12 +91,32 @@ def api_downgrade_plan(request):
     return JsonResponse({"ok": True, "plan": "free"})
 
 
-@csrf_exempt
-@require_http_methods(["DELETE"])
+DELETE_CONFIRMATION_PHRASE = "DELETE MY ACCOUNT"
+
+
+@require_http_methods(["DELETE", "POST"])
 def api_delete_account(request):
-    """Delete user account and all associated data."""
+    """Delete user account and all associated data.
+
+    Requires the caller to type the exact phrase ``DELETE MY ACCOUNT`` in the
+    request body. CSRF protection is enforced (the view is not @csrf_exempt),
+    so this can only be triggered from same-origin code that holds the user's
+    CSRF cookie. The two factors together make accidental and CSRF-driven
+    account loss effectively impossible.
+    """
     if not request.user.is_authenticated:
         return JsonResponse({"error": "Login required"}, status=401)
+
+    data, error = validate_json_body(request)
+    if error:
+        return error
+
+    confirmation = data.get("confirmation", "")
+    if not isinstance(confirmation, str) or confirmation.strip() != DELETE_CONFIRMATION_PHRASE:
+        return JsonResponse(
+            {"error": f"Type '{DELETE_CONFIRMATION_PHRASE}' to confirm"},
+            status=400,
+        )
 
     user = request.user
 

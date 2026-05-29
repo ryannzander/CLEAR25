@@ -7,7 +7,6 @@ from datetime import datetime
 from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.utils import timezone
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from ..models import Suggestion, SuggestionVote, Comment
@@ -66,7 +65,6 @@ def api_suggestions(request):
     return JsonResponse({"suggestions": items})
 
 
-@csrf_exempt
 @require_http_methods(["POST"])
 def api_suggestion_create(request):
     """Create a new suggestion. Requires authentication."""
@@ -104,7 +102,6 @@ def api_suggestion_create(request):
     })
 
 
-@csrf_exempt
 @require_http_methods(["POST"])
 def api_suggestion_vote(request, suggestion_id):
     """Vote on a suggestion. Requires authentication."""
@@ -183,7 +180,6 @@ def api_suggestion_detail(request, suggestion_id):
     })
 
 
-@csrf_exempt
 @require_http_methods(["POST"])
 def api_comment_create(request, suggestion_id):
     """Add a comment to a suggestion. Requires authentication."""
@@ -222,7 +218,6 @@ def api_comment_create(request, suggestion_id):
     })
 
 
-@csrf_exempt
 @require_http_methods(["DELETE"])
 def api_suggestion_delete(request, suggestion_id):
     """Delete a suggestion. Only the author can delete."""
