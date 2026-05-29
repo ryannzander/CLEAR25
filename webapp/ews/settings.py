@@ -3,6 +3,23 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Auto-load .env for local development. Probes the repo root and the
+# webapp/ directory so it works from either CWD. Production (Vercel) sets
+# env vars directly and never has a .env file, so this is a no-op there.
+try:
+    from dotenv import load_dotenv as _load_dotenv
+
+    for _candidate in (
+        BASE_DIR.parent / ".env",   # repo root: CLEAR25/.env
+        BASE_DIR / ".env",          # webapp/.env
+    ):
+        if _candidate.is_file():
+            _load_dotenv(_candidate, override=False)
+            break
+except ImportError:
+    # python-dotenv is optional; if it's missing we rely on real env vars.
+    pass
+
 
 # =============================================================================
 # CORE SECURITY: SECRET_KEY, DEBUG, ALLOWED_HOSTS
