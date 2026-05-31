@@ -1,16 +1,39 @@
 name: Refresh air-quality data
 
-# Replaces the Vercel cron (Hobby plan only allows once/day). Calls the
-# CRON_SECRET-protected /api/refresh/ endpoint every 30 minutes.
-# NOTE: GitHub-scheduled runs are best-effort (can be delayed under load) and
-# are auto-disabled after 60 days with no repo commits.
+# Calls the CRON_SECRET-protected /api/refresh/ endpoint to pull fresh WAQI
+# readings, re-evaluate the 3-rule detection system, and update CachedResult.
+#
+# ── Why the cadence drifted to ~1.5–2h on a "*/30" schedule ───────────────────
+# GitHub Actions scheduled workflows are explicitly best-effort, NOT guaranteed:
+#   - Runs are queued, and during high load GitHub delays or silently DROPS them.
+#   - The most congested cron times are the top/bottom of the hour (":00"/":30"),
+#     which is exactly what "*/30 * * * *" targets — so a large fraction of those
+#     runs never fire, stretching the real spacing to 1.5–2h.
+#   - Scheduled runs are also auto-disabled after 60 days with no repo commits.
+#
+# ── What this change does ─────────────────────────────────────────────────────
+# Schedule at staggered, OFF-PEAK minutes (:09 and :39 instead of :00/:30). This
+# materially reduces GitHub's drop/delay rate while keeping a 30-minute nominal
+# cadence. At ~30s per run that is ~48 runs/day ≈ 1,440 Actions-minutes/month,
+# which stays under the free private-repo allowance (2,000 min/month). The
+# /api/refresh/ endpoint is idempotent (CachedResult.update_or_create), so any
+# duplicate or late fire is harmless.
+#
+# ── If you need a GUARANTEED 30-minute cadence ────────────────────────────────
+# GitHub's scheduler cannot promise on-time sub-hourly runs on any plan. For a
+# hard guarantee, point a free external cron service (e.g. cron-job.org,
+# UptimeRobot, Cronitor) at the same endpoint every 30 minutes:
+#     URL:    https://clear25.xyz/api/refresh/
+#     Method: GET
+#     Header: Authorization: Bearer <your CRON_SECRET>
+# Those services fire to the minute. This workflow can then stay on as a backup.
 
 on:
   schedule:
-    - cron: "*/30 * * * *"   # every 30 minutes (UTC)
+    - cron: "9,39 * * * *"   # off-peak, 30-min spacing (UTC) — see notes above
   workflow_dispatch: {}        # allow manual runs from the Actions tab
 
-# Avoid overlapping runs if one is slow
+# Avoid overlapping runs if one is slow; let a queued run wait rather than cancel.
 concurrency:
   group: refresh
   cancel-in-progress: false
@@ -29,6 +52,6 @@ jobs:
             echo "::error::CRON_SECRET repository secret is not set. Add it under Settings > Secrets and variables > Actions (same value as the Vercel CRON_SECRET env var)." >&2
             exit 1
           fi
-          curl -fsS --retry 2 --retry-delay 5 --max-time 60 \
+          curl -fsS --retry 3 --retry-delay 5 --retry-all-errors --max-time 60 \
             -H "Authorization: Bearer $CRON_SECRET" \
             "$REFRESH_URL"
