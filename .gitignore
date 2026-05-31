@@ -44,3 +44,4 @@ android/
 # AI
 AGENTS.mds
 /projdata
+.cursorrules # cursor is no longer being used in the devlelopment of the project
