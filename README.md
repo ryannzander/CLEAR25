@@ -683,51 +683,6 @@ The app prefers `WAQI_API_TOKEN` env var over `config.json`.
 
 ---
 
-## V2 Migration Plan
-
-A full rewrite plan exists at `.cursor/plans/clear25_v2_safe_migration_e69a4963.plan.md`.
-
-### Stack Comparison
-
-| Layer | V1 (Current) | V2 (Planned) |
-|-------|---------------|--------------|
-| Framework | Django | Next.js 14 (App Router) |
-| Language | Python | TypeScript |
-| API | Django views | tRPC + API v1 compat |
-| ORM | Django ORM | Prisma |
-| Auth | django-allauth + JWT | NextAuth + JWT |
-| Styling | Tailwind + vanilla JS | Tailwind + React |
-| Deploy | Vercel Python | Vercel (native Next.js) |
-
-### Key V2 Features
-
-- Open-Meteo PM2.5 fallback when WAQI empty
-- Responsive redesign, dark mode, favorite cities
-- Historical trends (7-day PM2.5), event history
-- Accuracy dashboard, methodology explorer
-- API v2, webhooks, interactive API docs
-- Offline support, skeleton loading
-
-### Migration Strategy
-
-1. Build V2 in parallel (v2.clear25.xyz)
-2. Same Supabase database (no data migration)
-3. API v1 identical JSON responses for existing clients
-4. Cutover: point clear25.xyz to Next.js when ready
-5. Rollback: revert DNS/config to Django if needed
-
----
-
-## Discoveries & Errors (.cursorrules)
-
-| Issue | Resolution |
-|-------|------------|
-| **Research Excel structure** | Single sheet, headers row 4; columns: Station ID, City, Distance, Direction, Tier, R, Slope, Intercept. Coords from NAPS file. |
-| **Station filtering** | R ≥ 0.30; skip non-numeric IDs (e.g. "Rule 3 Québec Stations"). |
-| **Thunder Bay (Rule 2)** | NAPS 60807, 60809 injected into Toronto; coords from NAPS; trigger-only (>35 µg/m³); weak correlation per methodology. |
-
----
-
 ## License & Authors
 
 **C.L.E.A.R.** — Canadian Lead-Time Early Air Response
