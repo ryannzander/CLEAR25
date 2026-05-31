@@ -1,0 +1,19 @@
+C.L.E.A.R. — Canadian Lead-Time Early Air Response
+Copyright 2026 Hugo Bui and Ryan Zander
+
+This product includes software developed by Hugo Bui and Ryan Zander
+(University of Toronto Schools) as part of the C.L.E.A.R. wildfire-smoke
+early-warning research project (https://clear25.xyz).
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not
+use this software except in compliance with the License. You may obtain a
+copy of the License at:
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+The scientific methodology underlying this software is documented in
+"CLEAR_Methodology_ScienceFair Ver#1". Air-quality observations are sourced
+from the World Air Quality Index project (WAQI), Environment and Climate
+Change Canada's National Air Pollution Surveillance (NAPS) program, and the
+United States Environmental Protection Agency Air Quality System (EPA AQS).
+Those datasets remain subject to their respective owners' terms of use.
