@@ -88,11 +88,45 @@ CITY_CENTROIDS = {
     "Vancouver": (49.3686, -123.2767),
 }
 
-# TODO (deferred -- far-field extension): virtual upwind sample points beyond the
-# ~600 km station ring go here once the sector/distance geometry is defined in the
-# methodology. The grid has values everywhere, so no monitor is required at these
-# points; they are how the forecast sees smoke originating past the station network.
-FAR_FIELD_POINTS: dict[str, tuple[float, float]] = {}
+# Far-field extension: virtual upwind sample points BEYOND the ~600 km station
+# ring. The grid has values everywhere, so no physical monitor is required here --
+# these are how the forecast sees smoke originating past the station network.
+#
+# Geometry is anchored in the methodology's documented smoke corridors: boreal
+# fires arrive from the N/NW and the Québec upstream corridor reaches out to
+# ~1400 km NE (Rule 3). We cast points along those bearings at a few distances.
+# First-pass defaults -- easy to retune later once checked against event data.
+_FAR_FIELD_BEARINGS_DEG = [315, 0, 45]        # NW, N, NE
+_FAR_FIELD_DISTANCES_KM = [800, 1100, 1400]
+
+
+def _destination_point(lat, lon, bearing_deg, distance_km):
+    """Great-circle destination from (lat,lon) along a bearing for a distance."""
+    R = 6371.0
+    br = math.radians(bearing_deg)
+    la1, lo1 = math.radians(lat), math.radians(lon)
+    dr = distance_km / R
+    la2 = math.asin(math.sin(la1) * math.cos(dr) + math.cos(la1) * math.sin(dr) * math.cos(br))
+    lo2 = lo1 + math.atan2(
+        math.sin(br) * math.sin(dr) * math.cos(la1),
+        math.cos(dr) - math.sin(la1) * math.sin(la2),
+    )
+    return (round(math.degrees(la2), 4), round(((math.degrees(lo2) + 540) % 360) - 180, 4))
+
+
+def _build_far_field():
+    """name -> (lat, lon, city) for every far-field point around every city."""
+    pts = {}
+    for city, (lat, lon) in CITY_CENTROIDS.items():
+        for brg in _FAR_FIELD_BEARINGS_DEG:
+            for dist in _FAR_FIELD_DISTANCES_KM:
+                name = f"{city}-{brg:03d}deg-{dist}km"
+                dlat, dlon = _destination_point(lat, lon, brg, dist)
+                pts[name] = (dlat, dlon, city)
+    return pts
+
+
+FAR_FIELD_POINTS = _build_far_field()
 
 
 # ---------------------------------------------------------------------------
@@ -265,9 +299,11 @@ def load_sample_points() -> tuple[list[str], np.ndarray, dict[str, str]]:
         ids.append(sid)
         coords.append((lat, lon))
         city_of[sid] = city
-    for name, (lat, lon) in FAR_FIELD_POINTS.items():
-        ids.append(f"FAR:{name}")
+    for name, (lat, lon, city) in FAR_FIELD_POINTS.items():
+        sid = f"FAR:{name}"
+        ids.append(sid)
         coords.append((lat, lon))
+        city_of[sid] = city
     return ids, np.asarray(coords, dtype="float64"), city_of
 
 
