@@ -581,53 +581,6 @@ erDiagram
 
 ---
 
-## Deployment
-
-### Vercel Configuration
-
-```mermaid
-flowchart LR
-    subgraph Build [Build]
-        BuildCmd[build_files.sh]
-        Pip[pip install requirements]
-        Migrate[python manage.py migrate]
-        Site[Site.objects.update_or_create]
-        Static[collectstatic]
-    end
-
-    subgraph Deploy [Deploy]
-        Python[@vercel/python]
-        WSGI[ews/wsgi.py]
-    end
-
-    subgraph Cron [Cron]
-        Refresh[/api/refresh/ every 30 min]
-    end
-
-    BuildCmd --> Pip --> Migrate --> Site --> Static
-    Python --> WSGI
-    Refresh -->|Bearer CRON_SECRET| WSGI
-```
-
-### Build Script (build_files.sh)
-
-```bash
-# On Vercel: slim requirements (openpyxl optional; bundled JSON works without it)
-# Locally: full requirements.txt includes openpyxl for Excel-backed data
-pip install -r webapp/requirements-vercel.txt  # or requirements.txt
-cd webapp && python manage.py migrate --noinput
-python manage.py shell -c "Site.objects.update_or_create(...)"
-python manage.py collectstatic --noinput
-```
-
-### Vercel Cron
-
-- **Path:** `/api/refresh/`
-- **Schedule:** `*/30 * * * *` (every 30 minutes)
-- **Auth:** `Authorization: Bearer ${CRON_SECRET}`
-
----
-
 ## Setup
 
 ### Prerequisites
