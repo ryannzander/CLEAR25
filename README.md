@@ -7,7 +7,7 @@
 
 **Source of truth:** [CLEAR_Methodology_ScienceFair Ver#1](data/LAPTOP%20TSF%202026/01.%20Summary%20Documents/CLEAR_Methodology_ScienceFair%20Ver%231.pdf)
 
-**Authors:** Hugo Bui & Ryan Zander — University of Toronto Schools
+**Authors:** Hugo Bui & Ryan Zander
 
 **Live site:** [https://clear25.xyz](https://clear25.xyz)
 
