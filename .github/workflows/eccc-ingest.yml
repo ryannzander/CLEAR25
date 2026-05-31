@@ -1,0 +1,57 @@
+name: Ingest ECCC air-quality models
+
+# Step 1 (ingest + store only): samples ECCC RDAQA (hourly analysis) and RAQDPS
+# (72h forecast) PM2.5 at CLEAR's station coordinates and POSTs a compact JSON to
+# /api/refresh/eccc/. Does NOT touch the live alert engine -- it only writes the
+# eccc_forecast / eccc_analysis CachedResult rows.
+#
+# WHY a separate workflow from refresh.yml: reading GRIB2 needs heavy native libs
+# (pygrib/eccodes) that cannot run on the slim Vercel lambda, so the work happens
+# here in the runner; the web app only receives the small sampled payload.
+#
+# ── Cadence & the private-repo Actions-minute budget ──────────────────────────
+# RAQDPS forecast updates only TWICE A DAY (00Z and 12Z runs, published ~3-4h
+# later). Downloading its 73 forecast-hour files is the expensive part, so we do
+# NOT poll it hourly. RDAQA analysis updates hourly but is a single cheap file.
+#   - We run every 3 hours (off-peak minute :17, per the refresh.yml lesson that
+#     GitHub drops top/bottom-of-hour scheduled runs).
+#   - --skip-if-current makes the forecast leg a no-op when the latest published
+#     run already matches what is stored, so most runs only do the cheap analysis.
+# Both endpoints are idempotent (update_or_create), so late/duplicate fires are
+# harmless. Trigger manually any time from the Actions tab (workflow_dispatch).
+
+on:
+  schedule:
+    - cron: "17 */3 * * *"   # every 3h, off-peak minute (UTC)
+  workflow_dispatch: {}
+
+concurrency:
+  group: eccc-ingest
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install GRIB deps
+        run: pip install -r scripts/requirements-eccc.txt
+
+      - name: Ingest RDAQA analysis + RAQDPS forecast
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          ECCC_INGEST_URL: https://clear25.xyz/api/refresh/eccc/
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::error::CRON_SECRET repository secret is not set (same value as the Vercel CRON_SECRET env var)." >&2
+            exit 1
+          fi
+          python scripts/eccc_ingest.py \
+            --analysis --forecast --skip-if-current \
+            --endpoint "$ECCC_INGEST_URL"

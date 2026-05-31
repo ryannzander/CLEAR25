@@ -10,6 +10,9 @@ urlpatterns = [
     path("api/demo/", views.api_demo),
     path("api/live/", views.api_live),
     path("api/refresh/", views.api_refresh),
+    # ECCC model ingestion (isolated from alert engine): store + read
+    path("api/refresh/eccc/", views.api_refresh_eccc),
+    path("api/eccc/", views.api_eccc),
     path("api/auth-status/", views.api_auth_status),
     path("accounts/logout/", views.logout_view, name="logout"),
     # Feedback board

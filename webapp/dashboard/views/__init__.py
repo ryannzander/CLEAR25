@@ -57,6 +57,9 @@ from .billing import (
 # JWT token endpoints
 from .tokens import api_v1_get_token, api_v1_refresh_token, api_v1_revoke_token
 
+# ECCC model ingestion (isolated from the alert engine)
+from .eccc import api_refresh_eccc, api_eccc
+
 # Export all for `from dashboard.views import *`
 __all__ = [
     # Landing
@@ -101,4 +104,7 @@ __all__ = [
     "api_v1_get_token",
     "api_v1_refresh_token",
     "api_v1_revoke_token",
+    # ECCC model ingestion
+    "api_refresh_eccc",
+    "api_eccc",
 ]

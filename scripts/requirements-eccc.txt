@@ -1,0 +1,9 @@
+# Heavy GRIB2 ingestion deps for scripts/eccc_ingest.py.
+# CI-ONLY (GitHub Actions runner). These are deliberately NOT in
+# webapp/requirements*.txt -- they must never reach the slim Vercel lambda.
+#
+# pygrib ships manylinux wheels that bundle the eccodes binary, so no apt
+# package is required on ubuntu-latest.
+pygrib
+numpy
+scipy
