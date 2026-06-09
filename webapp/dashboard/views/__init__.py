@@ -60,6 +60,9 @@ from .tokens import api_v1_get_token, api_v1_refresh_token, api_v1_revoke_token
 # ECCC model ingestion (isolated from the alert engine)
 from .eccc import api_refresh_eccc, api_eccc
 
+# Plan / Ontario smoke-plume tracker (isolated from the alert engine)
+from .plan import api_plan_refresh, api_plan_frames, plan_page
+
 # Export all for `from dashboard.views import *`
 __all__ = [
     # Landing
@@ -107,4 +110,8 @@ __all__ = [
     # ECCC model ingestion
     "api_refresh_eccc",
     "api_eccc",
+    # Plan / plume tracker
+    "api_plan_refresh",
+    "api_plan_frames",
+    "plan_page",
 ]
