@@ -90,6 +90,87 @@ def _ensure_migrated():
     except Exception:
         logger.error("_ensure_migrated: migrate command failed", exc_info=True)
 
+    # Step 2c: dashboard_plumeframe (added in migration 0016, after the original
+    # deploy). If a stale django_migrations row marks dashboard.0016 as applied
+    # while the table is missing, plain `migrate` skips it forever. The Step 1
+    # check above only watches dashboard_userprofile, so it never clears this one.
+    # Delete just the 0016 record and re-run dashboard migrations — 0016 only
+    # CREATEs the new table, so re-applying it touches nothing else — then fall
+    # back to raw SQL if migrate still will not create it.
+    if _table_exists('django_migrations') and not _table_exists('dashboard_plumeframe'):
+        logger.warning("_ensure_migrated: dashboard_plumeframe missing — forcing migration 0016")
+        try:
+            from django.db import transaction as _tx
+            with _tx.atomic():
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        "DELETE FROM django_migrations WHERE app=%s AND name=%s",
+                        ['dashboard', '0016_plumeframe'],
+                    )
+            import django.db
+            django.db.connections.close_all()
+            from django.core.management import call_command
+            call_command("migrate", "dashboard", "--noinput", verbosity=0)
+            logger.info("_ensure_migrated: re-applied dashboard.0016")
+        except Exception:
+            logger.error("_ensure_migrated: re-applying dashboard.0016 failed", exc_info=True)
+            try:
+                connection.rollback()
+            except Exception:
+                pass
+
+    if not _table_exists('dashboard_plumeframe'):
+        logger.warning("_ensure_migrated: creating dashboard_plumeframe via raw SQL")
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS "dashboard_plumeframe" (
+                        "id"           BIGSERIAL                NOT NULL PRIMARY KEY,
+                        "source"       VARCHAR(16)              NOT NULL,
+                        "captured_at"  TIMESTAMP WITH TIME ZONE NOT NULL,
+                        "sensor_count" INTEGER                  NOT NULL,
+                        "payload"      JSONB                    NOT NULL,
+                        "created_at"   TIMESTAMP WITH TIME ZONE NOT NULL
+                    )
+                ''')
+                cursor.execute(
+                    'CREATE INDEX IF NOT EXISTS "dashboard_p_source_13a3a3_idx" '
+                    'ON "dashboard_plumeframe" ("source", "captured_at" DESC)'
+                )
+                cursor.execute(
+                    'CREATE INDEX IF NOT EXISTS "dashboard_plumeframe_captured_at_idx" '
+                    'ON "dashboard_plumeframe" ("captured_at")'
+                )
+            # ADD CONSTRAINT has no IF NOT EXISTS; run it on its own so an existing
+            # constraint just aborts this one statement (autocommit), not the table.
+            try:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        'ALTER TABLE "dashboard_plumeframe" ADD CONSTRAINT '
+                        '"uniq_plumeframe_source_captured" UNIQUE ("source", "captured_at")'
+                    )
+            except Exception:
+                try:
+                    connection.rollback()
+                except Exception:
+                    pass
+            # Record 0016 as applied (idempotently) so future migrate is consistent.
+            if _table_exists('django_migrations'):
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        "INSERT INTO django_migrations (app, name, applied) "
+                        "SELECT 'dashboard','0016_plumeframe',NOW() "
+                        "WHERE NOT EXISTS (SELECT 1 FROM django_migrations "
+                        "WHERE app='dashboard' AND name='0016_plumeframe')"
+                    )
+            logger.info("_ensure_migrated: dashboard_plumeframe created via raw SQL")
+        except Exception:
+            logger.error("_ensure_migrated: dashboard_plumeframe raw SQL failed", exc_info=True)
+            try:
+                connection.rollback()
+            except Exception:
+                pass
+
     # Step 3: raw-SQL fallbacks for the two tables the app cannot start without.
     # These run only if migrate still failed to create them.
 
