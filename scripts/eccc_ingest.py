@@ -130,6 +130,39 @@ FAR_FIELD_POINTS = _build_far_field()
 
 
 # ---------------------------------------------------------------------------
+# Ontario RDAQA mesh (analysis only) -- a regular lat/lon grid over Ontario so
+# the Plan plume tracker can render a true gridded 10 km model surface, not just
+# sparse station points. Sampled ONLY in the hourly ANALYSIS (RDAQA), NOT in the
+# 73-hour forecast, so the forecast payload stays small. Stored compactly as a
+# flat row-major values array (north->south rows, west->east cols), so ~8k cells
+# cost only tens of KB. Bbox MUST stay in sync with
+# webapp/dashboard/services/purpleair.py ONTARIO_BBOX.
+# ---------------------------------------------------------------------------
+ONTARIO_BBOX = {"nwlat": 56.9, "nwlng": -95.2, "selat": 41.6, "selng": -74.3}
+ONTARIO_MESH_SPACING_DEG = 0.2  # ~22 km lat; coarser than RDAQA's 10 km but bounded
+
+
+def build_ontario_mesh(spacing=ONTARIO_MESH_SPACING_DEG, bbox=None):
+    """Regular lat/lon grid over the Ontario bbox.
+
+    Returns a dict with row-major cell-center coordinates (row 0 = north, col 0 =
+    west) so the frontend can paint values[r*cols+c] straight onto a canvas:
+        {"rows", "cols", "spacing", "bbox", "coords": [(lat, lon), ...]}
+    Pure-Python (no numpy) so it is unit-testable on a box without the grib deps.
+    """
+    b = bbox or ONTARIO_BBOX
+    cols = max(1, int(round((b["selng"] - b["nwlng"]) / spacing)))
+    rows = max(1, int(round((b["nwlat"] - b["selat"]) / spacing)))
+    coords = []
+    for r in range(rows):
+        lat = b["nwlat"] - (r + 0.5) * spacing          # north -> south
+        for c in range(cols):
+            lon = b["nwlng"] + (c + 0.5) * spacing       # west -> east
+            coords.append((round(lat, 4), round(lon, 4)))
+    return {"rows": rows, "cols": cols, "spacing": spacing, "bbox": b, "coords": coords}
+
+
+# ---------------------------------------------------------------------------
 # Directory-index helpers (parse Apache listing; pick by filename stamp)
 # ---------------------------------------------------------------------------
 def _http_get(url: str, timeout: int = 60) -> bytes:
@@ -353,10 +386,13 @@ def _download(url: str, dest: Path) -> None:
     dest.write_bytes(data)
 
 
-def ingest_analysis(ids, coords, city_of, tmp: Path) -> dict:
+def ingest_analysis(ids, coords, city_of, tmp: Path, mesh: dict | None = None) -> dict:
     run = find_latest_rdaqa(RDAQA_PRODUCTS)
     if not run:
         raise RuntimeError("No RDAQA run found on Datamart")
+    primary_series = next(iter(RDAQA_PRODUCTS))
+    mesh_coords = np.asarray(mesh["coords"], dtype="float64") if mesh else None
+    mesh_values = None
     sampler = None
     points: dict[str, dict[str, float | None]] = {sid: {} for sid in ids}
     for series, url in run["files"].items():
@@ -367,8 +403,15 @@ def ingest_analysis(ids, coords, city_of, tmp: Path) -> dict:
         vals = sampler.sample(str(gpath))
         for sid in ids:
             points[sid][series] = vals.get(sid)
+        # Gridded Ontario mesh: sample the primary (total PM2.5) field only, on
+        # the analysis pass, for the Plan plume-tracker model surface.
+        if mesh_coords is not None and series == primary_series:
+            mesh_idx = list(range(len(mesh_coords)))
+            mesh_sampler = _GridSampler(str(gpath), mesh_idx, mesh_coords)
+            mvals = mesh_sampler.sample(str(gpath))
+            mesh_values = [mvals.get(i) for i in mesh_idx]
         gpath.unlink(missing_ok=True)
-    return {
+    payload = {
         "kind": "analysis",
         "model": "RDAQA",
         "run": run["run"],
@@ -376,6 +419,16 @@ def ingest_analysis(ids, coords, city_of, tmp: Path) -> dict:
         "city_of": city_of,
         "points": points,
     }
+    if mesh is not None and mesh_values is not None:
+        payload["mesh"] = {
+            "var": primary_series,
+            "rows": mesh["rows"],
+            "cols": mesh["cols"],
+            "spacing": mesh["spacing"],
+            "bbox": mesh["bbox"],
+            "values": mesh_values,  # row-major, north->south, west->east
+        }
+    return payload
 
 
 def ingest_forecast(ids, coords, city_of, tmp: Path, max_hours: int) -> dict:
@@ -452,6 +505,8 @@ def main(argv=None) -> int:
     ap.add_argument("--skip-if-current", action="store_true",
                     help="skip forecast download if the stored run stamp matches the latest")
     ap.add_argument("--dry-run", action="store_true", help="print payload, do not POST")
+    ap.add_argument("--no-mesh", action="store_true",
+                    help="skip the Ontario RDAQA analysis mesh (plume-tracker model surface)")
     args = ap.parse_args(argv)
 
     if not (args.analysis or args.forecast):
@@ -466,8 +521,13 @@ def main(argv=None) -> int:
         tmp = Path(td)
         if args.analysis:
             print("RDAQA analysis...")
-            payload = ingest_analysis(ids, coords, city_of, tmp)
-            print(f"  run={payload['run']} series={payload['series']}")
+            mesh = None if args.no_mesh else build_ontario_mesh()
+            if mesh:
+                print(f"  Ontario mesh: {mesh['rows']}x{mesh['cols']} = {len(mesh['coords'])} cells "
+                      f"@ {mesh['spacing']} deg")
+            payload = ingest_analysis(ids, coords, city_of, tmp, mesh=mesh)
+            mesh_info = f" mesh={'yes' if payload.get('mesh') else 'no'}"
+            print(f"  run={payload['run']} series={payload['series']}{mesh_info}")
             _emit(payload, args)
         if args.forecast:
             print("RAQDPS forecast...")
