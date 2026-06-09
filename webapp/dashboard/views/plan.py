@@ -39,12 +39,17 @@ _VALID_SOURCES = {s for s, _ in PlumeFrame.SOURCE_CHOICES}
 
 
 @csrf_exempt
-@require_http_methods(["POST"])
+@require_http_methods(["GET", "POST"])
 def api_plan_refresh(request):
     """Cron/runner endpoint: fetch one PurpleAir snapshot, clean, store, prune.
 
-    CRON_SECRET-gated; CSRF-exempt is intentional and consistent with the other
-    secret-gated external endpoints (the caller is a cron, not a browser).
+    Accepts GET or POST: GET is what most free cron services (cron-job.org,
+    UptimeRobot) send by default, matching the project's other CRON_SECRET-gated
+    cron endpoint (/api/refresh/). CSRF-exempt is intentional (the caller is a
+    cron, not a browser). The action is idempotent, so a GET trigger is safe.
+
+    Every failure returns a precise JSON error (with the exception class) instead
+    of an opaque 5xx, so a misconfigured deploy is diagnosable from the cron log.
     """
     cron_secret = os.environ.get("CRON_SECRET", "")
     auth_header = request.headers.get("Authorization", "")
@@ -53,39 +58,56 @@ def api_plan_refresh(request):
         return JsonResponse({"error": "Unauthorized"}, status=401)
 
     source = "purpleair"
+
+    # 1. Fetch + standardize one PurpleAir snapshot.
     try:
         frame = purpleair.fetch_purpleair_frame()
     except RuntimeError as exc:
-        # Configuration / response-shape problem (e.g. key missing). Not a 500.
+        # Configuration / response-shape problem (e.g. PURPLEAIR_API_KEY unset).
         logger.warning("api_plan_refresh: PurpleAir config/shape error: %s", exc)
-        return JsonResponse({"error": str(exc)}, status=503)
+        return JsonResponse({"error": "config", "detail": str(exc)}, status=503)
     except requests.RequestException as exc:
         logger.warning("api_plan_refresh: PurpleAir transport error: %s", exc)
-        return JsonResponse({"error": "PurpleAir fetch failed"}, status=502)
-    except Exception:
-        logger.exception("api_plan_refresh: unexpected error")
-        return JsonResponse({"error": "Plume refresh failed"}, status=500)
+        return JsonResponse(
+            {"error": "purpleair_fetch_failed", "detail": exc.__class__.__name__},
+            status=502,
+        )
+    except Exception as exc:  # noqa: BLE001 - report, don't leak a stack to the caller
+        logger.exception("api_plan_refresh: unexpected fetch error")
+        return JsonResponse(
+            {"error": "fetch_error", "detail": exc.__class__.__name__}, status=500
+        )
 
-    captured = datetime.datetime.fromtimestamp(
-        frame["captured_at"], tz=datetime.timezone.utc
-    )
-    _, created = PlumeFrame.objects.update_or_create(
-        source=source,
-        captured_at=captured,
-        defaults={
-            "sensor_count": frame["stats"]["kept"],
-            "payload": {
-                "points": frame["points"],
-                "stats": frame["stats"],
-                "bbox": purpleair.ONTARIO_BBOX,
+    # 2. Store the frame + prune the rolling buffer. Wrapped so a DB problem
+    #    (e.g. an unmigrated table) returns a clear error instead of a raw 500/502.
+    try:
+        captured = datetime.datetime.fromtimestamp(
+            frame["captured_at"], tz=datetime.timezone.utc
+        )
+        _, created = PlumeFrame.objects.update_or_create(
+            source=source,
+            captured_at=captured,
+            defaults={
+                "sensor_count": frame["stats"]["kept"],
+                "payload": {
+                    "points": frame["points"],
+                    "stats": frame["stats"],
+                    "bbox": purpleair.ONTARIO_BBOX,
+                },
             },
-        },
-    )
-
-    cutoff = timezone.now() - datetime.timedelta(hours=PLUME_BUFFER_HOURS)
-    pruned, _ = PlumeFrame.objects.filter(
-        source=source, captured_at__lt=cutoff
-    ).delete()
+        )
+        cutoff = timezone.now() - datetime.timedelta(hours=PLUME_BUFFER_HOURS)
+        pruned, _ = PlumeFrame.objects.filter(
+            source=source, captured_at__lt=cutoff
+        ).delete()
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("api_plan_refresh: storage failed")
+        return JsonResponse(
+            {"error": "storage_failed", "detail": exc.__class__.__name__,
+             "hint": "If this is ProgrammingError/OperationalError, the "
+                     "dashboard_plumeframe table is missing — run migrations."},
+            status=500,
+        )
 
     return JsonResponse({
         "ok": True,
