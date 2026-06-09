@@ -1,0 +1,117 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLEAR · Ontario Smoke-Plume Tracker</title>
+    <link rel="icon" type="image/svg+xml" href="{% static 'dashboard/favicon.svg' %}?v=3">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        :root { --bg:#0a0a0b; --panel:#141417; --panel2:#1c1c21; --line:#2a2a31; --muted:#8b8b96; --text:#ededf2; }
+        * { box-sizing: border-box; }
+        html, body { margin:0; height:100%; background:var(--bg); color:var(--text);
+            font-family:'Inter',system-ui,sans-serif; overflow:hidden; }
+        #plan-map { position:absolute; inset:0; z-index:1; background:#0a0a0b; }
+        .leaflet-container { background:#0a0a0b; }
+
+        .topbar { position:absolute; top:0; left:0; right:0; z-index:1000; display:flex;
+            align-items:center; gap:14px; padding:12px 18px;
+            background:linear-gradient(180deg, rgba(10,10,11,0.92), rgba(10,10,11,0)); }
+        .topbar a.back { color:var(--muted); text-decoration:none; font-size:13px; font-weight:600; }
+        .topbar a.back:hover { color:var(--text); }
+        .topbar h1 { font-size:15px; font-weight:800; margin:0; letter-spacing:0.2px; }
+        .topbar h1 span { color:#f97316; }
+        .topbar .sub { font-size:11px; color:var(--muted); font-weight:500; }
+        .pill { font-size:11px; color:var(--muted); background:var(--panel); border:1px solid var(--line);
+            padding:3px 9px; border-radius:999px; }
+
+        .panel { position:absolute; left:50%; transform:translateX(-50%); bottom:18px; z-index:1000;
+            width:min(880px, calc(100% - 28px)); background:rgba(20,20,23,0.94);
+            border:1px solid var(--line); border-radius:14px; padding:14px 16px 12px;
+            backdrop-filter:blur(10px); box-shadow:0 18px 50px rgba(0,0,0,0.5); }
+        .row { display:flex; align-items:center; gap:14px; }
+        .play { flex:none; width:42px; height:42px; border-radius:50%; border:1px solid var(--line);
+            background:var(--panel2); color:var(--text); font-size:16px; cursor:pointer; display:flex;
+            align-items:center; justify-content:center; transition:.15s; }
+        .play:hover { background:#26262d; border-color:#3a3a44; }
+        .timewrap { flex:1; min-width:0; }
+        .timehead { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:5px; }
+        .clock { font-size:15px; font-weight:700; font-variant-numeric:tabular-nums; }
+        .rel { font-size:11px; color:var(--muted); font-weight:600; }
+        input[type=range] { width:100%; accent-color:#f97316; height:4px; cursor:pointer; }
+        .meta { display:flex; gap:16px; margin-top:8px; font-size:11px; color:var(--muted); flex-wrap:wrap; }
+        .meta b { color:var(--text); font-weight:600; }
+        .toggle { margin-left:auto; display:flex; align-items:center; gap:6px; cursor:pointer; user-select:none; }
+
+        .legend { position:absolute; right:14px; bottom:140px; z-index:1000; background:rgba(20,20,23,0.92);
+            border:1px solid var(--line); border-radius:10px; padding:10px 12px; font-size:10.5px; }
+        .legend .lt { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.6px; margin-bottom:6px; }
+        .legend .bar { width:150px; height:10px; border-radius:3px; margin-bottom:4px;
+            background:linear-gradient(90deg,#2ecc71 0%, #f1c40f 16%, #e67e22 35%, #e74c3c 50%, #8e44ad 75%, #7e0023 100%); }
+        .legend .ticks { display:flex; justify-content:space-between; color:var(--muted); }
+
+        .overlay-msg { position:absolute; inset:0; z-index:1500; display:flex; align-items:center;
+            justify-content:center; pointer-events:none; }
+        .overlay-msg .card { pointer-events:auto; background:rgba(20,20,23,0.96); border:1px solid var(--line);
+            border-radius:14px; padding:22px 26px; max-width:420px; text-align:center; }
+        .overlay-msg h2 { margin:0 0 8px; font-size:16px; }
+        .overlay-msg p { margin:0; font-size:13px; color:var(--muted); line-height:1.5; }
+        .spinner { width:26px; height:26px; border:3px solid var(--line); border-top-color:#f97316;
+            border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 12px; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+        .hidden { display:none !important; }
+    </style>
+</head>
+<body>
+    <div id="plan-map"></div>
+
+    <div class="topbar">
+        <a class="back" href="/dashboard/">← Dashboard</a>
+        <div>
+            <h1>CLEAR · <span>Ontario Smoke-Plume Tracker</span></h1>
+            <div class="sub">PurpleAir PM2.5 · EPA-corrected · rolling 6&nbsp;h at 5-min frames</div>
+        </div>
+        <span class="pill" id="status-pill">loading…</span>
+    </div>
+
+    <div class="legend">
+        <div class="lt">PM2.5 µg/m³ (corrected)</div>
+        <div class="bar"></div>
+        <div class="ticks"><span>0</span><span>12</span><span>35</span><span>55</span><span>150</span><span>250+</span></div>
+    </div>
+
+    <div class="panel" id="panel">
+        <div class="row">
+            <button class="play" id="play" title="Play / pause">▶</button>
+            <div class="timewrap">
+                <div class="timehead">
+                    <span class="clock" id="clock">—</span>
+                    <span class="rel" id="rel"></span>
+                </div>
+                <input type="range" id="slider" min="0" max="0" value="0" step="1">
+            </div>
+        </div>
+        <div class="meta">
+            <span>Frame <b id="frame-idx">0</b>/<b id="frame-total">0</b></span>
+            <span><b id="sensor-count">0</b> sensors</span>
+            <span>Updated <b id="age">—</b></span>
+            <label class="toggle"><input type="checkbox" id="show-sensors"> show sensors</label>
+        </div>
+    </div>
+
+    <div class="overlay-msg" id="overlay">
+        <div class="card">
+            <div class="spinner" id="ov-spin"></div>
+            <h2 id="ov-title">Loading plume data…</h2>
+            <p id="ov-body">Fetching the last 6 hours of PurpleAir frames.</p>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="{% static 'dashboard/app-plan.js' %}?v=1"></script>
+</body>
+</html>
