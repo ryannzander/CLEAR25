@@ -37,6 +37,10 @@
     var bbox = null;
     var canvasCache = {};        // index -> dataURL
     var cur = 0, playing = false, playTimer = null, showSensors = false;
+    // ECCC RDAQA model layer (a single current gridded analysis surface).
+    var mode = "observed";       // "observed" (PurpleAir, animated) | "model" (ECCC)
+    var eccc = null;             // { mesh: {rows,cols,bbox,values}, run } or null
+    var ecccOverlay = null;
 
     // ---- DOM ------------------------------------------------------------
     var $ = function (id) { return document.getElementById(id); };
@@ -138,6 +142,91 @@
     function frameBounds() {
         // Leaflet imageOverlay bounds: [[south, west], [north, east]]
         return [[bbox.selat, bbox.nwlng], [bbox.nwlat, bbox.selng]];
+    }
+
+    // ---- ECCC RDAQA model surface (already gridded -> direct raster, no IDW) --
+    function meshBounds(mesh) {
+        var b = mesh.bbox;
+        return [[b.selat, b.nwlng], [b.nwlat, b.selng]];
+    }
+
+    function renderMeshURL(mesh) {
+        // values are row-major, north->south rows, west->east cols -> paint
+        // directly: pixel (c, r) = values[r*cols + c].
+        var rows = mesh.rows, cols = mesh.cols, vals = mesh.values || [];
+        var cv = document.createElement("canvas");
+        cv.width = cols; cv.height = rows;
+        var ctx = cv.getContext("2d");
+        var img = ctx.createImageData(cols, rows);
+        var d = img.data;
+        for (var i = 0; i < rows * cols; i++) {
+            var v = vals[i], o = i * 4;
+            if (v === null || v === undefined || (typeof v === "number" && isNaN(v))) { d[o + 3] = 0; continue; }
+            var c = rampColor(v);
+            d[o] = c[0]; d[o + 1] = c[1]; d[o + 2] = c[2]; d[o + 3] = 209; // ~0.82
+        }
+        ctx.putImageData(img, 0, 0);
+        return cv.toDataURL();
+    }
+
+    function clearPurpleAir() {
+        if (overlay) { map.removeLayer(overlay); overlay = null; }
+        if (sensorLayer) { map.removeLayer(sensorLayer); sensorLayer = null; }
+    }
+    function clearEccc() {
+        if (ecccOverlay) { map.removeLayer(ecccOverlay); ecccOverlay = null; }
+    }
+
+    function showModel() {
+        clearPurpleAir();
+        var url = renderMeshURL(eccc.mesh);
+        if (!ecccOverlay) {
+            ecccOverlay = L.imageOverlay(url, meshBounds(eccc.mesh), { opacity: 1, interactive: false }).addTo(map);
+        } else {
+            ecccOverlay.setUrl(url); ecccOverlay.addTo(map);
+        }
+        var live = (eccc.mesh.values || []).filter(function (v) { return v !== null && v !== undefined; }).length;
+        els.clock.textContent = "ECCC RDAQA · 10 km analysis";
+        els.rel.textContent = eccc.run ? ("run " + eccc.run) : "";
+        els.sensorCount.textContent = live.toLocaleString() + " cells";
+        els.transport.classList.add("disabled");
+    }
+
+    function setMode(m) {
+        if (m === mode) return;
+        if (m === "model" && (!eccc || !eccc.mesh)) return;
+        mode = m;
+        els.modeObserved.classList.toggle("active", m === "observed");
+        els.modeModel.classList.toggle("active", m === "model");
+        if (m === "model") {
+            pause();
+            showModel();
+        } else {
+            clearEccc();
+            els.transport.classList.remove("disabled");
+            if (frames.length) showFrame(cur);
+        }
+    }
+
+    function loadEccc() {
+        fetch("/api/eccc/?kind=analysis")
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (d) {
+                var mesh = d && d.data && d.data.mesh;
+                if (!mesh || !mesh.values || !mesh.rows) {
+                    els.modeModel.disabled = true;
+                    els.modeModel.title = "No ECCC model surface ingested yet";
+                    return;
+                }
+                eccc = { mesh: mesh, run: (d.data.run || "") };
+                els.modeModel.disabled = false;
+                els.modeModel.title = "ECCC RDAQA 10 km analysis (model nowcast)";
+                // Deep-link: /plan/?mode=model opens straight on the model surface.
+                try {
+                    if (new URLSearchParams(window.location.search).get("mode") === "model") setMode("model");
+                } catch (e) { /* URLSearchParams unsupported -> ignore */ }
+            })
+            .catch(function () { els.modeModel.disabled = true; });
     }
 
     function relTime(iso, latestIso) {
@@ -254,9 +343,13 @@
             frameIdx: $("frame-idx"), frameTotal: $("frame-total"), sensorCount: $("sensor-count"),
             age: $("age"), showSensors: $("show-sensors"), statusPill: $("status-pill"),
             overlay: $("overlay"), ovTitle: $("ov-title"), ovBody: $("ov-body"), ovSpin: $("ov-spin"),
+            transport: $("transport"), modeObserved: $("mode-observed"), modeModel: $("mode-model"),
         };
+        els.modeModel.disabled = true;  // enabled by loadEccc() once a model surface exists
         els.slider.addEventListener("input", function () { pause(); showFrame(parseInt(this.value, 10)); });
         els.play.addEventListener("click", function () { playing ? pause() : play(); });
+        els.modeObserved.addEventListener("click", function () { setMode("observed"); });
+        els.modeModel.addEventListener("click", function () { setMode("model"); });
         els.showSensors.addEventListener("change", function () {
             showSensors = this.checked;
             if (frames.length) { showSensors ? drawSensors(frames[cur]) : drawSensors({ points: [] }); }
@@ -267,5 +360,6 @@
         wire();
         initMap();
         load();
+        loadEccc();
     });
 })();
