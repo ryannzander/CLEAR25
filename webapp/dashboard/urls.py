@@ -13,6 +13,10 @@ urlpatterns = [
     # ECCC model ingestion (isolated from alert engine): store + read
     path("api/refresh/eccc/", views.api_refresh_eccc),
     path("api/eccc/", views.api_eccc),
+    # Plan / Ontario smoke-plume tracker (isolated from alert engine)
+    path("plan/", views.plan_page, name="plan"),
+    path("api/plan/refresh/", views.api_plan_refresh),
+    path("api/plan/frames/", views.api_plan_frames),
     path("api/auth-status/", views.api_auth_status),
     path("accounts/logout/", views.logout_view, name="logout"),
     # Feedback board

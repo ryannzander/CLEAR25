@@ -139,7 +139,8 @@ class RateLimitMiddleware:
     # callable by external services (webhooks).
     EXEMPT_PREFIXES = (
         "/api/v1/subscribe/webhook/",   # signed HMAC webhook
-        "/api/refresh/",                # gated by CRON_SECRET
+        "/api/refresh/",                # gated by CRON_SECRET (covers /api/refresh/eccc/)
+        "/api/plan/refresh/",           # gated by CRON_SECRET (plume ingest cron)
         "/api/v1/subscribe/test/",      # gated by CRON_SECRET (dev only)
     )
 

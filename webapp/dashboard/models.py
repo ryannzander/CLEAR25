@@ -163,6 +163,41 @@ class CachedResult(models.Model):
     timestamp = models.DateTimeField(auto_now=True)
 
 
+class PlumeFrame(models.Model):
+    """One cleaned PM2.5 spatial snapshot for the Ontario plume tracker.
+
+    A rolling ~6-hour buffer of these frames (one per ~5-minute ingest) drives
+    the animated GIS view. ISOLATION: written only by the Plan ingest endpoint
+    and read only by the Plan view; it never feeds evaluate.py, CachedResult
+    (key="latest"), or any alert surface.
+    """
+    SOURCE_CHOICES = [("purpleair", "PurpleAir"), ("eccc_rdaqa", "ECCC RDAQA")]
+
+    source = models.CharField(max_length=16, choices=SOURCE_CHOICES, default="purpleair")
+    # Provider snapshot time (PurpleAir data_time_stamp), not ingest time — so
+    # frames are de-duplicated and ordered by when the air was actually sampled.
+    captured_at = models.DateTimeField(db_index=True)
+    sensor_count = models.IntegerField(default=0)
+    # {"points": [{"lat","lon","pm","raw","rh","conf"}...], "stats": {...}, "bbox": {...}}
+    payload = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-captured_at"]
+        indexes = [
+            models.Index(fields=["source", "-captured_at"]),
+        ]
+        constraints = [
+            # One frame per provider-snapshot, so a retried/jittered cron fire is
+            # idempotent rather than duplicating a snapshot.
+            models.UniqueConstraint(fields=["source", "captured_at"],
+                                    name="uniq_plumeframe_source_captured"),
+        ]
+
+    def __str__(self):
+        return f"PlumeFrame({self.source} @ {self.captured_at:%Y-%m-%d %H:%M} n={self.sensor_count})"
+
+
 class Suggestion(models.Model):
     """User suggestion/feedback for the improvement board."""
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="suggestions")
