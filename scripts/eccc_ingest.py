@@ -194,35 +194,68 @@ def find_latest_rdaqa(products: dict[str, str]) -> dict | None:
     return best
 
 
+def _probe_raqdps_run(run: str, products: dict[str, str], max_hours: int):
+    """Inspect a single run folder ('00/' or '12/').
+
+    Returns ``(stamp_key, stamp, hour_dirs, sample, run_url)`` for a run that has a
+    usable primary PM2.5 file in its lowest forecast-hour folder, else ``None``.
+    ``stamp_key`` is the sortable (yyyymmdd, hh) read from the actual filename.
+    """
+    run_url = RAQDPS_BASE + run
+    try:
+        hour_dirs = sorted(
+            int(h.rstrip("/")) for h in _list_index(run_url) if re.fullmatch(r"\d{3}/", h)
+        )
+    except OSError:
+        return None
+    hour_dirs = [h for h in hour_dirs if h <= max_hours]
+    if not hour_dirs:
+        return None
+    primary = next(iter(products.values()))
+    try:
+        first_files = _list_index(f"{run_url}{hour_dirs[0]:03d}/")
+    except OSError:
+        return None
+    sample = next((f for f in first_files if primary in f and f.endswith(".grib2")), None)
+    if not sample:
+        return None
+    key = _stamp_key(sample)
+    if key == (0, 0):
+        return None
+    stamp = f"{key[0]:08d}T{key[1]:02d}Z"
+    return key, stamp, hour_dirs, sample, run_url
+
+
 def find_latest_raqdps(products: dict[str, str], max_hours: int) -> dict | None:
     """Find the most recent RAQDPS forecast run and build per-hour file URLs.
 
     Returns {"run": "...", "hours": [0..N], "files": {series: {hour: url}}}.
-    The date+run prefix is constant across all forecast-hour folders of a run,
-    so we read it once from the 000 folder and synthesise the rest.
+
+    Run-folder names ('00'/'12') do NOT encode the date, and ECCC's /today keeps
+    the previous day's files inside a run folder until that run is re-published.
+    So the run is chosen by the date+hour stamp embedded in its 000-hour FILENAME
+    (newest wins), never by the numeric run id -- otherwise, in the window before
+    today's 12Z run lands, the stale '12' folder (still holding yesterday's files)
+    would be preferred over today's fresh '00'. This mirrors find_latest_rdaqa's
+    stamp-based discovery, and also lets us fall back to the other run when the
+    newest folder exists but hasn't published its PM2.5 file yet.
+
+    The date+run prefix is constant across all forecast-hour folders of a run, so
+    we read it once from the 000 folder and synthesise the rest.
     """
     run_dirs = [d for d in _list_index(RAQDPS_BASE) if re.fullmatch(r"\d{2}/", d)]
     if not run_dirs:
         return None
-    # Prefer the newest run that is actually published (highest run number present).
-    run = sorted(run_dirs, key=lambda d: int(d.rstrip("/")))[-1]
-    run_url = RAQDPS_BASE + run
-    hour_dirs = sorted(
-        (int(h.rstrip("/")) for h in _list_index(run_url) if re.fullmatch(r"\d{3}/", h))
-    )
-    hour_dirs = [h for h in hour_dirs if h <= max_hours]
-    if not hour_dirs:
+    best = None
+    for run in run_dirs:
+        probe = _probe_raqdps_run(run, products, max_hours)
+        if probe and (best is None or probe[0] > best[0]):
+            best = probe
+    if best is None:
         return None
+    _key, stamp, hour_dirs, sample, run_url = best
 
-    # Read the filename prefix/stamp from the first available forecast-hour folder.
-    first_files = _list_index(f"{run_url}{hour_dirs[0]:03d}/")
     primary = next(iter(products.values()))
-    sample = next((f for f in first_files if primary in f and f.endswith(".grib2")), None)
-    if not sample:
-        return None
-    m = _STAMP_RE.search(sample)
-    stamp = f"{m.group(1)}T{m.group(2)}Z"
-
     files: dict[str, dict[int, str]] = {s: {} for s in products}
     for h in hour_dirs:
         for series, sub in products.items():
@@ -266,13 +299,18 @@ class _GridSampler:
     def sample(self, grib_path: str) -> dict[str, float | None]:
         grbs = pygrib.open(grib_path)
         try:
-            vals = np.asarray(grbs[1].values, dtype="float64").ravel()
+            # pygrib returns a numpy MaskedArray when the field carries a bitmap of
+            # missing cells. np.asarray() would DROP that mask and surface the raw
+            # fill value as if it were real data, so fill masked cells with NaN and
+            # let the math.isnan() guard below reject them.
+            raw = grbs[1].values
+            vals = np.ma.filled(np.ma.asarray(raw, dtype="float64"), np.nan).ravel()
         finally:
             grbs.close()
         out: dict[str, float | None] = {}
         for sid, gi in zip(self._ids, self._idx):
             v = vals[gi]
-            out[sid] = None if (v is None or np.ma.is_masked(v) or math.isnan(v)) else round(float(v), 1)
+            out[sid] = None if math.isnan(v) else round(float(v), 1)
         return out
 
 
