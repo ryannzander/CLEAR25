@@ -67,9 +67,13 @@ def api_plan_refresh(request):
         logger.warning("api_plan_refresh: PurpleAir config/shape error: %s", exc)
         return JsonResponse({"error": "config", "detail": str(exc)}, status=503)
     except requests.RequestException as exc:
-        logger.warning("api_plan_refresh: PurpleAir transport error: %s", exc)
+        # Surface the upstream HTTP status when present (e.g. 403 = bad/unset key,
+        # 429 = rate limited) so the cron log pinpoints the cause.
+        pa_status = getattr(getattr(exc, "response", None), "status_code", None)
+        logger.warning("api_plan_refresh: PurpleAir transport error: %s (status=%s)", exc, pa_status)
         return JsonResponse(
-            {"error": "purpleair_fetch_failed", "detail": exc.__class__.__name__},
+            {"error": "purpleair_fetch_failed", "detail": exc.__class__.__name__,
+             "purpleair_status": pa_status},
             status=502,
         )
     except Exception as exc:  # noqa: BLE001 - report, don't leak a stack to the caller

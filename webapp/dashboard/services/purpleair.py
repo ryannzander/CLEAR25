@@ -93,7 +93,7 @@ def _to_float(value):
         return None
 
 
-def fetch_purpleair_frame(api_key=None, bbox=None, timeout=30):
+def fetch_purpleair_frame(api_key=None, bbox=None, timeout=20, retries=1):
     """Fetch + clean one PurpleAir snapshot over the bbox.
 
     Returns a dict:
@@ -112,20 +112,33 @@ def fetch_purpleair_frame(api_key=None, bbox=None, timeout=30):
         raise RuntimeError("PURPLEAIR_API_KEY is not set")
     box = bbox or ONTARIO_BBOX
 
-    resp = requests.get(
-        PURPLEAIR_BASE,
-        headers={"X-API-Key": api_key},
-        params={
-            "fields": _REQUEST_FIELDS,
-            "nwlng": box["nwlng"], "nwlat": box["nwlat"],
-            "selng": box["selng"], "selat": box["selat"],
-            # Real-time snapshot (Average=0). Anything else returns time-averaged
-            # values, which would blur the 5-minute plume frames.
-            "average": 0,
-        },
-        timeout=timeout,
-    )
-    resp.raise_for_status()
+    params = {
+        "fields": _REQUEST_FIELDS,
+        "nwlng": box["nwlng"], "nwlat": box["nwlat"],
+        "selng": box["selng"], "selat": box["selat"],
+        # Real-time snapshot (Average=0). Anything else returns time-averaged
+        # values, which would blur the 5-minute plume frames.
+        "average": 0,
+    }
+    # Retry transient transport hiccups (Vercel egress, brief PurpleAir 5xx/429).
+    # The final failure propagates with its response attached so the caller can
+    # surface the actual HTTP status. A 403 here almost always means a bad/unset
+    # PURPLEAIR_API_KEY in the deployment env.
+    resp = None
+    for attempt in range(retries + 1):
+        try:
+            resp = requests.get(
+                PURPLEAIR_BASE,
+                headers={"X-API-Key": api_key},
+                params=params,
+                timeout=timeout,
+            )
+            resp.raise_for_status()
+            break
+        except requests.RequestException:
+            if attempt >= retries:
+                raise
+            time.sleep(1.0)
     data = resp.json()
 
     fields = data.get("fields")
