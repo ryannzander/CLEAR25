@@ -110,10 +110,12 @@ def contains_profanity(text):
     text_clean = text_lower.replace("@", "a").replace("$", "s").replace("0", "o").replace("1", "i").replace("3", "e")
 
     for word in PROFANITY_LIST:
+        # Word-boundary match only. A bare substring test (e.g. ``word in text``)
+        # causes the classic Scunthorpe problem -- it would reject legitimate
+        # names and words that merely contain a flagged sequence ("Cassidy",
+        # "Hancock", "classic", "Bass"), breaking real profile/comment input.
         pattern = r'\b' + re.escape(word) + r'\b'
         if re.search(pattern, text_clean):
-            return word
-        if word in text_clean:
             return word
     return None
 

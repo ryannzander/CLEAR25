@@ -136,7 +136,13 @@ def send_alert_notifications(city, level_name, pm25_value, health_advisory):
     devices = DeviceToken.objects.filter(is_active=True)
 
     title = f"Air Quality Alert: {city}"
-    body = f"{level_name} - PM2.5: {pm25_value:.1f} µg/m³"
+    # pm25_value may be None if a predicted value failed to compute; format defensively
+    # so the notification text never raises instead of alerting.
+    try:
+        pm25_text = f"{float(pm25_value):.1f}"
+    except (TypeError, ValueError):
+        pm25_text = "—"
+    body = f"{level_name} - PM2.5: {pm25_text} µg/m³"
 
     if level_name == "EXTREME":
         title = f"⚠️ EXTREME Air Quality: {city}"
