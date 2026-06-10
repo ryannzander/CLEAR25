@@ -41,10 +41,13 @@ ONTARIO_BBOX = {
 # Fields we request. PurpleAir reorders the columns and always prepends
 # sensor_index, so the response is parsed by its own `fields` array, never by
 # this request order.
-_REQUEST_FIELDS = (
-    "latitude,longitude,pm2.5_cf_1,pm2.5_atm,humidity,confidence,"
-    "channel_flags,last_seen"
-)
+#
+# COST: PurpleAir bills each call per sensor (row) x per field. So we request
+# the MINIMUM set we actually use -- dropping pm2.5_atm (never read) and last_seen
+# (replaced by the server-side `max_age` filter below). Fewer fields + fewer rows
+# = far fewer API points. The dominant cost lever is still call frequency: do not
+# poll a dense bbox every few minutes on a metered key.
+_REQUEST_FIELDS = "latitude,longitude,pm2.5_cf_1,humidity,confidence,channel_flags"
 
 # ---------------------------------------------------------------------------
 # Quality-control thresholds (documented; tune in one place)
@@ -119,6 +122,10 @@ def fetch_purpleair_frame(api_key=None, bbox=None, timeout=20, retries=1):
         # Real-time snapshot (Average=0). Anything else returns time-averaged
         # values, which would blur the 5-minute plume frames.
         "average": 0,
+        # Server-side freshness filter: only return sensors that reported within
+        # the QA window. Fewer rows = fewer billed points, and it lets us drop the
+        # last_seen field (freshness is now enforced by PurpleAir, not us).
+        "max_age": _QA_MAX_AGE_SECONDS,
     }
     # Retry transient transport hiccups (Vercel egress, brief PurpleAir 5xx/429).
     # The final failure propagates with its response attached so the caller can
@@ -148,7 +155,7 @@ def fetch_purpleair_frame(api_key=None, bbox=None, timeout=20, retries=1):
 
     idx = {name: i for i, name in enumerate(fields)}
     required = ("latitude", "longitude", "pm2.5_cf_1", "humidity",
-                "confidence", "channel_flags", "last_seen")
+                "confidence", "channel_flags")
     missing = [c for c in required if c not in idx]
     if missing:
         raise RuntimeError(f"PurpleAir response missing fields: {missing}")
@@ -161,7 +168,6 @@ def fetch_purpleair_frame(api_key=None, bbox=None, timeout=20, retries=1):
         try:
             flags = row[idx["channel_flags"]]
             conf = row[idx["confidence"]]
-            last_seen = row[idx["last_seen"]]
             lat = _to_float(row[idx["latitude"]])
             lon = _to_float(row[idx["longitude"]])
             cf1 = _to_float(row[idx["pm2.5_cf_1"]])
@@ -175,8 +181,7 @@ def fetch_purpleair_frame(api_key=None, bbox=None, timeout=20, retries=1):
             continue
         if conf is None or conf < _QA_MIN_CONFIDENCE:
             continue
-        if last_seen is None or (snapshot_ts - int(last_seen)) > _QA_MAX_AGE_SECONDS:
-            continue
+        # Freshness is enforced server-side via the `max_age` request param above.
         if lat is None or lon is None:
             continue
         if cf1 is None or cf1 < 0 or cf1 > _QA_MAX_RAW_PM:

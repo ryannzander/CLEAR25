@@ -36,6 +36,13 @@ logger = logging.getLogger(__name__)
 # Rolling buffer length. 6 hours at a 5-minute cadence ~= 72 frames.
 PLUME_BUFFER_HOURS = int(getattr(settings, "PLUME_BUFFER_HOURS", 6))
 
+# COST GUARD: the minimum spacing (minutes) between actual PurpleAir fetches.
+# PurpleAir bills every call per sensor x per field, so a dense bbox polled too
+# often burns API credits fast. This hard cap means a misconfigured (or doubled)
+# cron can NOT trigger more than one paid PurpleAir call per this many minutes —
+# extra fires are cheap no-ops. Raise it to spend fewer credits. Default 10 min.
+PLUME_MIN_REFRESH_MINUTES = int(getattr(settings, "PLUME_MIN_REFRESH_MINUTES", 10))
+
 _VALID_SOURCES = {s for s, _ in PlumeFrame.SOURCE_CHOICES}
 
 
@@ -59,6 +66,23 @@ def api_plan_refresh(request):
         return JsonResponse({"error": "Unauthorized"}, status=401)
 
     source = "purpleair"
+
+    # 0. Cost guard: refuse to make a paid PurpleAir call if we already stored a
+    #    frame within the minimum interval. Caps credit burn regardless of how
+    #    often the cron fires (or if two crons overlap). `force=1` overrides.
+    if request.GET.get("force") != "1" and PLUME_MIN_REFRESH_MINUTES > 0:
+        recent = (PlumeFrame.objects
+                  .filter(source=source)
+                  .order_by("-created_at")
+                  .first())
+        if recent:
+            age = timezone.now() - recent.created_at
+            if age < datetime.timedelta(minutes=PLUME_MIN_REFRESH_MINUTES):
+                return JsonResponse({
+                    "ok": True, "skipped": "too_soon",
+                    "min_refresh_minutes": PLUME_MIN_REFRESH_MINUTES,
+                    "last_frame_age_seconds": int(age.total_seconds()),
+                })
 
     # 1. Fetch + standardize one PurpleAir snapshot.
     try:
