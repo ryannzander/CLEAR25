@@ -178,6 +178,8 @@
                             <div class="city-card-name">{{ city }}</div>
                             <div class="city-card-level">Waiting for data</div>
                             <div class="city-card-detail"></div>
+                            <div class="city-card-fusion" id="fusion-{{ city }}"
+                                 style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;"></div>
                         </div>
                     </div>
                     {% endfor %}
@@ -1475,6 +1477,7 @@
     <script src="{% static 'dashboard/app-csrf.js' %}?v=1"></script>
     <script src="{% static 'dashboard/app.js' %}?v=37"></script>
     <script src="{% static 'dashboard/app-render.js' %}?v=37"></script>
+    <script src="{% static 'dashboard/app-fusion.js' %}?v=1"></script>
     <script src="{% static 'dashboard/app-map.js' %}?v=39"></script>
     <script src="{% static 'dashboard/app-feedback.js' %}?v=37"></script>
     <script src="{% static 'dashboard/app-feedback-actions.js' %}?v=37"></script>

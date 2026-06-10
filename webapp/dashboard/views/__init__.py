@@ -61,7 +61,7 @@ from .tokens import api_v1_get_token, api_v1_refresh_token, api_v1_revoke_token
 from .eccc import api_refresh_eccc, api_eccc
 
 # Plan / Ontario smoke-plume tracker (isolated from the alert engine)
-from .plan import api_plan_refresh, api_plan_frames, plan_page, api_plan_confirm
+from .plan import api_plan_refresh, api_plan_frames, plan_page, api_plan_fusion
 
 # Export all for `from dashboard.views import *`
 __all__ = [
@@ -114,5 +114,5 @@ __all__ = [
     "api_plan_refresh",
     "api_plan_frames",
     "plan_page",
-    "api_plan_confirm",
+    "api_plan_fusion",
 ]

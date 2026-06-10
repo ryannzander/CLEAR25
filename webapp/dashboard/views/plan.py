@@ -175,14 +175,19 @@ def plan_page(request):
 
 
 @require_http_methods(["GET"])
-def api_plan_confirm(request):
-    """Read-only fusion preview: does live PurpleAir confirm CLEAR's alerts?
+def api_plan_fusion(request):
+    """Read-only fusion readout per city (PurpleAir confirmation + ECCC warning).
 
-    For each CLEAR city, reports the validated alert side-by-side with the live
-    PurpleAir observation near that city and an agreement status. ISOLATED — it
-    reads the latest PlumeFrame + CachedResult and computes a comparison; it does
-    NOT alter the alert engine. Cities outside PurpleAir coverage (currently only
-    Ontario is scraped) come back with status "no_purpleair".
+    For each CLEAR city, reports three things side by side:
+      - the validated CLEAR alert,
+      - the live PurpleAir observation near the city and whether it confirms,
+      - the ECCC RAQDPS far-field early warning (does the model predict smoke
+        reaching the city, and when — the >600 km extension).
+
+    ISOLATED: reads the latest PlumeFrame + CachedResult(latest|eccc_forecast) and
+    computes a comparison. It does NOT alter evaluate.py or any alert decision.
+    Cities outside PurpleAir coverage (only Ontario is scraped) report
+    "no_purpleair"; ECCC warning covers all cities once the forecast is ingested.
     """
     latest = (PlumeFrame.objects
               .filter(source="purpleair")
@@ -194,11 +199,17 @@ def api_plan_confirm(request):
         city_alerts = CachedResult.objects.get(key="latest").city_alerts or {}
     except CachedResult.DoesNotExist:
         city_alerts = {}
+    try:
+        eccc_forecast = CachedResult.objects.get(key="eccc_forecast").readings or {}
+    except CachedResult.DoesNotExist:
+        eccc_forecast = {}
 
-    cities = [
-        fusion.confirmation_for_city(city_key, city_alerts.get(city_key), points)
-        for city_key in CITIES
-    ]
+    cities = []
+    for city_key in CITIES:
+        row = fusion.confirmation_for_city(city_key, city_alerts.get(city_key), points)
+        row["early_warning"] = fusion.early_warning_for_city(city_key, eccc_forecast)
+        cities.append(row)
+
     return JsonResponse({
         "as_of": latest.captured_at.isoformat() if latest else None,
         "radius_km": fusion.CONFIRM_RADIUS_KM,

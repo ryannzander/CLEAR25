@@ -17,7 +17,7 @@ urlpatterns = [
     path("plan/", views.plan_page, name="plan"),
     path("api/plan/refresh/", views.api_plan_refresh),
     path("api/plan/frames/", views.api_plan_frames),
-    path("api/plan/confirm/", views.api_plan_confirm),
+    path("api/plan/fusion/", views.api_plan_fusion),
     path("api/auth-status/", views.api_auth_status),
     path("accounts/logout/", views.logout_view, name="logout"),
     # Feedback board
