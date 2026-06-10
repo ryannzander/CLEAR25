@@ -12,14 +12,14 @@
     "use strict";
 
     // ---- Config ---------------------------------------------------------
-    var GRID_COLS = 150;          // interpolation resolution (stretched by Leaflet)
-    var GRID_ROWS = 110;
-    var IDW_POWER = 2;            // inverse-distance exponent
-    var CUTOFF_DEG = 1.0;        // sensors beyond this (deg, lat-corrected) don't contribute
-    var NEAR_FADE_DEG = 0.22;    // full opacity when a sensor is this close
-    var FAR_FADE_DEG = 0.95;     // fades to transparent out to here
-    var MAX_ALPHA = 0.72;
-    var PLAY_MS = 650;           // ms per frame during playback
+    var GRID_COLS = 200;          // interpolation resolution (stretched + smoothed by Leaflet)
+    var GRID_ROWS = 150;
+    var IDW_POWER = 2;            // inverse-distance exponent (for the value / colour)
+    var CUTOFF_DEG = 1.2;         // sensors beyond this (deg, lat-corrected) don't contribute
+    var COV_SIGMA = 0.35;         // Gaussian coverage radius (deg) -> smooth, merged opacity
+    var COV_FULL = 0.5;           // coverage at/above this -> full opacity (else fades to clear)
+    var MAX_ALPHA = 0.82;
+    var PLAY_MS = 650;            // ms per frame during playback
 
     // PM2.5 (µg/m³) -> color stops (EPA AQI category colors).
     var RAMP = [
@@ -62,6 +62,59 @@
         return RAMP[RAMP.length - 1][1];
     }
 
+    // ---- Ontario clip ---------------------------------------------------
+    // The surface is shown only inside the province (no hard bbox rectangle, no
+    // U.S. coverage). ONTARIO_POLYGONS (global from ontario-boundary.js) is an
+    // array of [lon,lat] rings; a point is "in Ontario" if it falls inside any
+    // ring. Per-ring bbox skips the ray-cast for far-away cells. If the asset
+    // failed to load we degrade to no clip rather than a blank map.
+    var _ringBoxes = null;
+    function inOntario(lon, lat) {
+        if (typeof ONTARIO_POLYGONS === "undefined") return true;
+        if (!_ringBoxes) {
+            _ringBoxes = ONTARIO_POLYGONS.map(function (ring) {
+                var b = { minx: 180, maxx: -180, miny: 90, maxy: -90 };
+                for (var i = 0; i < ring.length; i++) {
+                    var p = ring[i];
+                    if (p[0] < b.minx) b.minx = p[0];
+                    if (p[0] > b.maxx) b.maxx = p[0];
+                    if (p[1] < b.miny) b.miny = p[1];
+                    if (p[1] > b.maxy) b.maxy = p[1];
+                }
+                return b;
+            });
+        }
+        for (var k = 0; k < ONTARIO_POLYGONS.length; k++) {
+            var bb = _ringBoxes[k];
+            if (lon < bb.minx || lon > bb.maxx || lat < bb.miny || lat > bb.maxy) continue;
+            var ring = ONTARIO_POLYGONS[k], inside = false, n = ring.length;
+            for (var i = 0, j = n - 1; i < n; j = i++) {
+                var xi = ring[i][0], yi = ring[i][1], xj = ring[j][0], yj = ring[j][1];
+                if (((yi > lat) !== (yj > lat)) &&
+                    (lon < (xj - xi) * (lat - yi) / (yj - yi) + xi)) inside = !inside;
+            }
+            if (inside) return true;
+        }
+        return false;
+    }
+
+    // Grid -> Ontario inside/outside mask, cached (the grid is identical per frame).
+    var _maskKey = null, _mask = null;
+    function ontarioMask(west, east, north, south, cols, rows) {
+        var key = west + "," + east + "," + north + "," + south + "," + cols + "," + rows;
+        if (_mask && _maskKey === key) return _mask;
+        var m = new Uint8Array(cols * rows);
+        for (var y = 0; y < rows; y++) {
+            var lat = north - (y + 0.5) / rows * (north - south);
+            for (var x = 0; x < cols; x++) {
+                var lon = west + (x + 0.5) / cols * (east - west);
+                m[y * cols + x] = inOntario(lon, lat) ? 1 : 0;
+            }
+        }
+        _mask = m; _maskKey = key;
+        return m;
+    }
+
     // Bucket sensors into a coarse grid so each cell only scans nearby points.
     function buildBuckets(points, midLatCos) {
         var bs = CUTOFF_DEG; // bucket size = cutoff radius
@@ -76,15 +129,20 @@
         return { buckets: buckets, bs: bs };
     }
 
-    // Interpolate one frame to a dataURL (cached).
+    // Interpolate one frame to a dataURL (cached), clipped to Ontario.
+    // Colour = IDW of PM2.5; opacity = a smooth Gaussian "coverage" that merges
+    // neighbouring sensors into one continuous field and fades out where data
+    // thins (so no per-sensor blobs, no hard edge).
     function renderFrame(index) {
         if (canvasCache[index]) return canvasCache[index];
         var pts = frames[index].points || [];
         var west = bbox.nwlng, east = bbox.selng, north = bbox.nwlat, south = bbox.selat;
-        var midLat = (north + south) / 2;
-        var midLatCos = Math.cos(midLat * Math.PI / 180);
+        var midLatCos = Math.cos((north + south) / 2 * Math.PI / 180);
 
         var bk = buildBuckets(pts, midLatCos), buckets = bk.buckets, bs = bk.bs;
+        var mask = ontarioMask(west, east, north, south, GRID_COLS, GRID_ROWS);
+        var cutoff2 = CUTOFF_DEG * CUTOFF_DEG;
+        var invTwoSigma2 = 1 / (2 * COV_SIGMA * COV_SIGMA);
 
         var cv = document.createElement("canvas");
         cv.width = GRID_COLS; cv.height = GRID_ROWS;
@@ -96,39 +154,33 @@
             var lat = north - (y + 0.5) / GRID_ROWS * (north - south);
             var by = Math.floor(lat / bs);
             for (var x = 0; x < GRID_COLS; x++) {
+                var idx = y * GRID_COLS + x, o = idx * 4;
+                if (!mask[idx]) { data[o + 3] = 0; continue; }   // outside Ontario
                 var lon = west + (x + 0.5) / GRID_COLS * (east - west);
                 var bx = Math.floor((lon * midLatCos) / bs);
 
-                var wsum = 0, vsum = 0, nearest = Infinity, exact = null;
+                var wsum = 0, vsum = 0, cov = 0, exact = null;
                 for (var gx = bx - 1; gx <= bx + 1; gx++) {
                     for (var gy = by - 1; gy <= by + 1; gy++) {
                         var arr = buckets[gx + ":" + gy];
                         if (!arr) continue;
                         for (var k = 0; k < arr.length; k++) {
                             var p = arr[k];
-                            var dx = (lon - p.lon) * midLatCos;
-                            var dy = lat - p.lat;
-                            var d = Math.sqrt(dx * dx + dy * dy);
-                            if (d > CUTOFF_DEG) continue;
-                            if (d < nearest) nearest = d;
-                            if (d < 1e-6) { exact = p.pm; break; }
-                            var w = 1 / Math.pow(d, IDW_POWER);
+                            var ddx = (lon - p.lon) * midLatCos, ddy = lat - p.lat;
+                            var d2 = ddx * ddx + ddy * ddy;
+                            if (d2 > cutoff2) continue;
+                            cov += Math.exp(-d2 * invTwoSigma2);
+                            if (d2 < 1e-9) { exact = p.pm; continue; }
+                            var w = 1 / Math.pow(d2, IDW_POWER / 2);
                             wsum += w; vsum += w * p.pm;
                         }
-                        if (exact !== null) break;
                     }
-                    if (exact !== null) break;
                 }
 
-                var o = (y * GRID_COLS + x) * 4;
-                if (exact === null && wsum === 0) { data[o + 3] = 0; continue; }
+                if (cov === 0 || (wsum === 0 && exact === null)) { data[o + 3] = 0; continue; }
                 var pm = exact !== null ? exact : vsum / wsum;
                 var c = rampColor(pm);
-                // Alpha fades out where the nearest sensor is far (low confidence).
-                var alpha;
-                if (nearest <= NEAR_FADE_DEG) alpha = MAX_ALPHA;
-                else if (nearest >= FAR_FADE_DEG) alpha = 0;
-                else alpha = MAX_ALPHA * (1 - (nearest - NEAR_FADE_DEG) / (FAR_FADE_DEG - NEAR_FADE_DEG));
+                var alpha = MAX_ALPHA * (cov >= COV_FULL ? 1 : cov / COV_FULL);
                 data[o] = c[0]; data[o + 1] = c[1]; data[o + 2] = c[2];
                 data[o + 3] = Math.round(alpha * 255);
             }
@@ -152,18 +204,25 @@
 
     function renderMeshURL(mesh) {
         // values are row-major, north->south rows, west->east cols -> paint
-        // directly: pixel (c, r) = values[r*cols + c].
+        // directly: pixel (c, r) = values[r*cols + c]. Clipped to Ontario so the
+        // model surface follows the province too, not the bbox rectangle.
         var rows = mesh.rows, cols = mesh.cols, vals = mesh.values || [];
+        var b = mesh.bbox, west = b.nwlng, east = b.selng, north = b.nwlat, south = b.selat;
         var cv = document.createElement("canvas");
         cv.width = cols; cv.height = rows;
         var ctx = cv.getContext("2d");
         var img = ctx.createImageData(cols, rows);
         var d = img.data;
-        for (var i = 0; i < rows * cols; i++) {
-            var v = vals[i], o = i * 4;
-            if (v === null || v === undefined || (typeof v === "number" && isNaN(v))) { d[o + 3] = 0; continue; }
-            var c = rampColor(v);
-            d[o] = c[0]; d[o + 1] = c[1]; d[o + 2] = c[2]; d[o + 3] = 209; // ~0.82
+        for (var r = 0; r < rows; r++) {
+            var lat = north - (r + 0.5) / rows * (north - south);
+            for (var col = 0; col < cols; col++) {
+                var i = r * cols + col, o = i * 4, v = vals[i];
+                if (v === null || v === undefined || (typeof v === "number" && isNaN(v))) { d[o + 3] = 0; continue; }
+                var lon = west + (col + 0.5) / cols * (east - west);
+                if (!inOntario(lon, lat)) { d[o + 3] = 0; continue; }
+                var c = rampColor(v);
+                d[o] = c[0]; d[o + 1] = c[1]; d[o + 2] = c[2]; d[o + 3] = 209; // ~0.82
+            }
         }
         ctx.putImageData(img, 0, 0);
         return cv.toDataURL();
