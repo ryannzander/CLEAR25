@@ -33,6 +33,9 @@ staticfiles/
 # Generator inputs (downloaded on demand by scripts/gen_bundled_stations.py)
 scripts/aqs_sites.zip
 
+# Pulled PurpleAir history (scripts/purpleair_history.py output; can be large)
+purpleair_history/
+
 # Claude
 .claude/
 
