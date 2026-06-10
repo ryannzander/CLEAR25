@@ -26,8 +26,9 @@ from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
 from django.shortcuts import render
 
-from ..models import PlumeFrame
-from ..services import purpleair
+from ..models import PlumeFrame, CachedResult
+from ..services import purpleair, fusion
+from ..services.data import CITIES
 from .utils import timing_safe_token_compare
 
 logger = logging.getLogger(__name__)
@@ -171,3 +172,35 @@ def api_plan_frames(request):
 def plan_page(request):
     """Render the Ontario smoke-plume tracker (animated GIS view)."""
     return render(request, "dashboard/plan.html", {})
+
+
+@require_http_methods(["GET"])
+def api_plan_confirm(request):
+    """Read-only fusion preview: does live PurpleAir confirm CLEAR's alerts?
+
+    For each CLEAR city, reports the validated alert side-by-side with the live
+    PurpleAir observation near that city and an agreement status. ISOLATED — it
+    reads the latest PlumeFrame + CachedResult and computes a comparison; it does
+    NOT alter the alert engine. Cities outside PurpleAir coverage (currently only
+    Ontario is scraped) come back with status "no_purpleair".
+    """
+    latest = (PlumeFrame.objects
+              .filter(source="purpleair")
+              .order_by("-captured_at")
+              .first())
+    points = (latest.payload or {}).get("points", []) if latest else []
+
+    try:
+        city_alerts = CachedResult.objects.get(key="latest").city_alerts or {}
+    except CachedResult.DoesNotExist:
+        city_alerts = {}
+
+    cities = [
+        fusion.confirmation_for_city(city_key, city_alerts.get(city_key), points)
+        for city_key in CITIES
+    ]
+    return JsonResponse({
+        "as_of": latest.captured_at.isoformat() if latest else None,
+        "radius_km": fusion.CONFIRM_RADIUS_KM,
+        "cities": cities,
+    })
