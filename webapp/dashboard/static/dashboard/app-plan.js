@@ -305,7 +305,25 @@
 
     function fitToBbox() {
         if (!bbox) return;
-        map.fitBounds(frameBounds(), { padding: [10, 10] });
+        // Fit to where sensors actually are (the dense southern-Ontario / Great
+        // Lakes cloud) rather than the whole Ontario bbox, most of which is empty
+        // far-north with no sensors — otherwise the surface looks like a small
+        // rectangle lost in a continent-wide view. Falls back to the bbox.
+        var f = frames.length ? frames[frames.length - 1] : null;
+        var pts = (f && f.points) || [];
+        if (pts.length >= 3) {
+            var minLa = 90, maxLa = -90, minLo = 180, maxLo = -180;
+            for (var i = 0; i < pts.length; i++) {
+                var p = pts[i];
+                if (p.lat < minLa) minLa = p.lat;
+                if (p.lat > maxLa) maxLa = p.lat;
+                if (p.lon < minLo) minLo = p.lon;
+                if (p.lon > maxLo) maxLo = p.lon;
+            }
+            map.fitBounds([[minLa, minLo], [maxLa, maxLo]], { padding: [24, 24], maxZoom: 7 });
+        } else {
+            map.fitBounds(frameBounds(), { padding: [10, 10], maxZoom: 7 });
+        }
     }
 
     function load() {
