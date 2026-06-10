@@ -10,17 +10,17 @@
 
     function chip(text, color, bg) {
         return '<span style="display:inline-flex;align-items:center;gap:4px;'
-            + 'font-size:10px;font-weight:600;padding:2px 8px;border-radius:999px;'
-            + 'color:' + color + ';background:' + bg + ';border:1px solid ' + color + '33;">'
+            + 'font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;'
+            + 'color:' + color + ';background:' + bg + ';border:1px solid ' + color + '40;">'
             + text + '</span>';
     }
 
+    // status -> [color, bg, label suffix]
     var PA = {
-        confirmed:      ["PurpleAir confirms",  "#f87171", "rgba(248,113,113,0.12)"],
-        unconfirmed:    ["PurpleAir: not seen", "#fbbf24", "rgba(251,191,36,0.12)"],
-        purpleair_only: ["PurpleAir elevated",  "#fb923c", "rgba(251,146,60,0.12)"],
-        agree_calm:     ["PurpleAir ✓",    "#34d399", "rgba(52,211,153,0.10)"],
-        // no_purpleair -> no chip (city outside PurpleAir coverage)
+        confirmed:      ["#f87171", "rgba(248,113,113,0.14)", "confirms"],
+        unconfirmed:    ["#fbbf24", "rgba(251,191,36,0.12)",  "not seen"],
+        purpleair_only: ["#fb923c", "rgba(251,146,60,0.12)",  "elevated"],
+        agree_calm:     ["#34d399", "rgba(52,211,153,0.12)",  "✓"],
     };
 
     function render(cities) {
@@ -29,16 +29,24 @@
             if (!el) return;
             var chips = [];
 
+            // ECCC model: always show a state when the forecast is ingested.
             var ew = c.early_warning || {};
-            if (ew.available && ew.incoming) {
-                var o = ew.origins && ew.origins[0];
-                var src = o ? (" · " + o.direction + " " + o.distance_km + "km") : "";
-                chips.push(chip("⚠ ECCC smoke ~" + ew.arriving_in_hours + "h" + src,
-                    "#fb923c", "rgba(251,146,60,0.14)"));
+            if (ew.available) {
+                if (ew.incoming) {
+                    var o = ew.origins && ew.origins[0];
+                    var src = o ? (" · " + o.direction + " " + o.distance_km + "km") : "";
+                    chips.push(chip("⚠ ECCC smoke ~" + ew.arriving_in_hours + "h" + src,
+                        "#fb923c", "rgba(251,146,60,0.16)"));
+                } else {
+                    chips.push(chip("ECCC ✓ clear", "#60a5fa", "rgba(96,165,250,0.10)"));
+                }
             }
 
-            var pa = PA[c.status];
-            if (pa) chips.push(chip(pa[0], pa[1], pa[2]));
+            // PurpleAir: show the live reading + agreement where there's coverage.
+            if (c.status !== "no_purpleair" && c.purpleair_pm25 != null) {
+                var m = PA[c.status] || PA.agree_calm;
+                chips.push(chip("PurpleAir " + c.purpleair_pm25 + " " + m[2], m[0], m[1]));
+            }
 
             el.innerHTML = chips.join(" ");
         });
