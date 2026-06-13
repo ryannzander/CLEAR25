@@ -15,6 +15,7 @@ Security properties:
 import json
 import time
 
+from django.conf import settings
 from django.core.cache import cache
 from django.http import JsonResponse
 from django.utils import timezone
@@ -37,9 +38,10 @@ _KEY_MAX   = 10          # token issuance per API key per window
 
 
 def _client_ip(request):
-    xff = request.META.get("HTTP_X_FORWARDED_FOR", "")
-    if xff:
-        return xff.split(",")[0].strip()
+    if getattr(settings, "SECURE_PROXY_SSL_HEADER", None):
+        xff = request.META.get("HTTP_X_FORWARDED_FOR", "")
+        if xff:
+            return xff.split(",")[0].strip()
     return request.META.get("REMOTE_ADDR", "0.0.0.0")
 
 

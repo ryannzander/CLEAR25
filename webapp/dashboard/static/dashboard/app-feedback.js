@@ -93,7 +93,7 @@ async function loadSuggestions() {
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
                     </button>
                 </div>
-                <img src="${s.author_avatar}" alt="" class="suggestion-avatar">
+                <img src="${escapeHtml(s.author_avatar)}" alt="" class="suggestion-avatar">
                 <div class="suggestion-content">
                     <div class="suggestion-title">${escapeHtml(s.title)}</div>
                     <div class="suggestion-meta">
@@ -181,7 +181,7 @@ async function openSuggestionDetail(id) {
         } else {
             commentsEl.innerHTML = s.comments.map(c => `
                 <div class="comment-item">
-                    <img src="${c.author_avatar}" alt="" class="comment-avatar">
+                    <img src="${escapeHtml(c.author_avatar)}" alt="" class="comment-avatar">
                     <div class="comment-content">
                         <div class="comment-header">
                             <span class="comment-author">${escapeHtml(c.author)}</span>

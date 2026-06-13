@@ -134,7 +134,7 @@ async function addComment() {
 
         commentsEl.insertAdjacentHTML("beforeend", `
             <div class="comment-item">
-                <img src="${data.author_avatar}" alt="" class="comment-avatar">
+                <img src="${escapeHtml(data.author_avatar)}" alt="" class="comment-avatar">
                 <div class="comment-content">
                     <div class="comment-header">
                         <span class="comment-author">${escapeHtml(data.author)}</span>
