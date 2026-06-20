@@ -16,8 +16,6 @@
     var GRID_ROWS = 150;
     var IDW_POWER = 2;            // inverse-distance exponent (for the value / colour)
     var CUTOFF_DEG = 1.2;         // sensors beyond this (deg, lat-corrected) don't contribute
-    var COV_SIGMA = 0.35;         // Gaussian coverage radius (deg) -> smooth, merged opacity
-    var COV_FULL = 0.5;           // coverage at/above this -> full opacity (else fades to clear)
     var MAX_ALPHA = 0.82;
     var PLAY_MS = 350;            // ms per frame during playback (365 daily frames)
     // Static 2023 daily dataset (compiled by scripts/gen_plume_2023.py). No live
@@ -150,7 +148,7 @@
         var bk = buildBuckets(pts, midLatCos), buckets = bk.buckets, bs = bk.bs;
         var mask = regionMask(west, east, north, south, GRID_COLS, GRID_ROWS);
         var cutoff2 = CUTOFF_DEG * CUTOFF_DEG;
-        var invTwoSigma2 = 1 / (2 * COV_SIGMA * COV_SIGMA);
+        var flatAlpha = Math.round(MAX_ALPHA * 255);
 
         var cv = document.createElement("canvas");
         cv.width = GRID_COLS; cv.height = GRID_ROWS;
@@ -167,7 +165,7 @@
                 var lon = west + (x + 0.5) / GRID_COLS * (east - west);
                 var bx = Math.floor((lon * midLatCos) / bs);
 
-                var wsum = 0, vsum = 0, cov = 0, exact = null;
+                var wsum = 0, vsum = 0, exact = null;
                 for (var gx = bx - 1; gx <= bx + 1; gx++) {
                     for (var gy = by - 1; gy <= by + 1; gy++) {
                         var arr = buckets[gx + ":" + gy];
@@ -177,20 +175,20 @@
                             var ddx = (lon - p.lon) * midLatCos, ddy = lat - p.lat;
                             var d2 = ddx * ddx + ddy * ddy;
                             if (d2 > cutoff2) continue;
-                            cov += Math.exp(-d2 * invTwoSigma2);
                             if (d2 < 1e-9) { exact = p.pm; continue; }
                             var w = 1 / Math.pow(d2, IDW_POWER / 2);
                             wsum += w; vsum += w * p.pm;
                         }
+                        
                     }
                 }
 
-                if (cov === 0 || (wsum === 0 && exact === null)) { data[o + 3] = 0; continue; }
+                if (wsum === 0 && exact === null) { data[o + 3] = 0; continue; }
                 var pm = exact !== null ? exact : vsum / wsum;
                 var c = rampColor(pm);
-                var alpha = MAX_ALPHA * (cov >= COV_FULL ? 1 : cov / COV_FULL);
+                // Flat opacity where there's data — no Gaussian coverage fade.
                 data[o] = c[0]; data[o + 1] = c[1]; data[o + 2] = c[2];
-                data[o + 3] = Math.round(alpha * 255);
+                data[o + 3] = flatAlpha;
             }
         }
         ctx.putImageData(img, 0, 0);
