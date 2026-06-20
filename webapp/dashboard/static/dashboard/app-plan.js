@@ -19,7 +19,10 @@
     var COV_SIGMA = 0.35;         // Gaussian coverage radius (deg) -> smooth, merged opacity
     var COV_FULL = 0.5;           // coverage at/above this -> full opacity (else fades to clear)
     var MAX_ALPHA = 0.82;
-    var PLAY_MS = 650;            // ms per frame during playback
+    var PLAY_MS = 350;            // ms per frame during playback (365 daily frames)
+    // Static 2023 daily dataset (compiled by scripts/gen_plume_2023.py). No live
+    // API, no cost. Bump the ?v= when the JSON is regenerated.
+    var PLUME_DATA_URL = "/static/dashboard/plume_2023.json?v=1";
 
     // PM2.5 (µg/m³) -> color stops (EPA AQI category colors).
     var RAMP = [
@@ -37,6 +40,9 @@
     var bbox = null;
     var canvasCache = {};        // index -> dataURL
     var cur = 0, playing = false, playTimer = null, showSensors = false;
+    // Clip the surface to Ontario? Off for the regional 2023 dataset (it spans
+    // the whole Great Lakes region, not just the province).
+    var clipOntario = false;
     // ECCC RDAQA model layer (a single current gridded analysis surface).
     var mode = "observed";       // "observed" (PurpleAir, animated) | "model" (ECCC)
     var eccc = null;             // { mesh: {rows,cols,bbox,values}, run } or null
@@ -101,9 +107,10 @@
     // Grid -> Ontario inside/outside mask, cached (the grid is identical per frame).
     var _maskKey = null, _mask = null;
     function ontarioMask(west, east, north, south, cols, rows) {
-        var key = west + "," + east + "," + north + "," + south + "," + cols + "," + rows;
+        var key = clipOntario + "," + west + "," + east + "," + north + "," + south + "," + cols + "," + rows;
         if (_mask && _maskKey === key) return _mask;
         var m = new Uint8Array(cols * rows);
+        if (!clipOntario) { m.fill(1); _mask = m; _maskKey = key; return m; }
         for (var y = 0; y < rows; y++) {
             var lat = north - (y + 0.5) / rows * (north - south);
             for (var x = 0; x < cols; x++) {
@@ -296,8 +303,18 @@
 
     function fmtClock(iso) {
         var d = new Date(iso);
-        return d.toLocaleString([], { month: "short", day: "numeric",
-            hour: "2-digit", minute: "2-digit" });
+        if (isNaN(d.getTime())) return String(iso);
+        // Daily frames -> show the date (UTC, so 2023-06-28 doesn't shift a day).
+        return d.toLocaleDateString([], { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" });
+    }
+
+    function medianPm(points) {
+        var v = [];
+        for (var i = 0; i < points.length; i++) v.push(points[i].pm);
+        if (!v.length) return -1;
+        v.sort(function (a, b) { return a - b; });
+        var n = v.length;
+        return n % 2 ? v[(n - 1) / 2] : (v[n / 2 - 1] + v[n / 2]) / 2;
     }
 
     function showFrame(index) {
@@ -312,7 +329,7 @@
         }
         els.slider.value = cur;
         els.clock.textContent = fmtClock(f.captured_at);
-        els.rel.textContent = relTime(f.captured_at, frames[frames.length - 1].captured_at);
+        els.rel.textContent = "day " + (cur + 1) + " / " + frames.length;
         els.frameIdx.textContent = cur + 1;
         els.sensorCount.textContent = (f.sensor_count || (f.points || []).length).toLocaleString();
         if (showSensors) drawSensors(f);
@@ -385,32 +402,48 @@
         }
     }
 
+    // Load the static 2023 daily PurpleAir dataset (no live API, zero cost) and
+    // expand it into one frame per day: {dates, stations:[{lat,lon}], values:
+    // [[pm|null x365]]} -> frames[d] = {captured_at: date, points:[{lat,lon,pm}]}.
     function load() {
-        fetch("/api/plan/frames/")
-            .then(function (r) { return r.json(); })
+        fetch(PLUME_DATA_URL)
+            .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
             .then(function (d) {
                 bbox = d.bbox;
-                frames = d.frames || [];
+                clipOntario = false;  // regional dataset -> show the full extent
+                var dates = d.dates || [], stations = d.stations || [], values = d.values || [];
+                frames = dates.map(function (dateStr, di) {
+                    var pts = [];
+                    for (var si = 0; si < stations.length; si++) {
+                        var v = values[si] && values[si][di];
+                        if (v === null || v === undefined) continue;
+                        pts.push({ lat: stations[si].lat, lon: stations[si].lon, pm: v });
+                    }
+                    return { captured_at: dateStr, points: pts };
+                });
                 els.frameTotal.textContent = frames.length;
                 els.slider.max = Math.max(0, frames.length - 1);
                 if (!frames.length) {
-                    els.statusPill.textContent = "no data yet";
-                    setOverlayMsg("No plume frames yet",
-                        "The 6-hour buffer is empty. Once the /api/plan/refresh/ cron has run a few times, frames will appear here automatically.",
-                        false);
+                    els.statusPill.textContent = "no data";
+                    setOverlayMsg("No 2023 data", "plume_2023.json is empty.", false);
                     return;
                 }
                 els.overlay.classList.add("hidden");
-                els.statusPill.textContent = frames.length + " frames · " +
-                    (d.buffer_hours || 6) + " h";
-                var latest = frames[frames.length - 1];
-                els.age.textContent = fmtClock(latest.captured_at);
+                els.statusPill.textContent = frames.length + " days · " + (d.year || 2023);
+                els.age.textContent = String(d.year || 2023);
                 fitToBbox();
-                showFrame(frames.length - 1); // start on the most recent
+                // Start on the peak-smoke day so the June-2023 event is visible at once.
+                var peak = 0, peakMed = -1;
+                for (var i = 0; i < frames.length; i++) {
+                    if (frames[i].points.length < 50) continue;
+                    var m = medianPm(frames[i].points);
+                    if (m > peakMed) { peakMed = m; peak = i; }
+                }
+                showFrame(peak);
             })
             .catch(function (e) {
                 els.statusPill.textContent = "error";
-                setOverlayMsg("Could not load plume data", String(e), false);
+                setOverlayMsg("Could not load 2023 data", String(e), false);
             });
     }
 
@@ -437,6 +470,6 @@
         wire();
         initMap();
         load();
-        loadEccc();
+        // (live ECCC model layer disabled for the 2023 historical replay)
     });
 })();
