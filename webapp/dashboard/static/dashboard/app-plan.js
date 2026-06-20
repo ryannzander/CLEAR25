@@ -320,30 +320,25 @@
         if (!frames.length) return;
         cur = Math.max(0, Math.min(index, frames.length - 1));
         var f = frames[cur];
-        var url = renderFrame(cur);
-        if (!overlay) {
-            overlay = L.imageOverlay(url, frameBounds(), { opacity: 1, interactive: false }).addTo(map);
-        } else {
-            overlay.setUrl(url);
-        }
+        drawSensors(f);   // plotted sensor readings (interpolated surface removed)
         els.slider.value = cur;
         els.clock.textContent = fmtClock(f.captured_at);
         els.rel.textContent = "day " + (cur + 1) + " / " + frames.length;
         els.frameIdx.textContent = cur + 1;
         els.sensorCount.textContent = (f.sensor_count || (f.points || []).length).toLocaleString();
-        if (showSensors) drawSensors(f);
     }
 
     function drawSensors(f) {
         if (sensorLayer) { map.removeLayer(sensorLayer); sensorLayer = null; }
-        if (!showSensors) return;
         var markers = [];
         var pts = f.points || [];
         for (var i = 0; i < pts.length; i++) {
-            var p = pts[i], c = rampColor(p.pm);
+            var p = pts[i];
+            if (clipRegion && !inRegion(p.lon, p.lat)) continue;  // Ontario + Québec only
+            var c = rampColor(p.pm);
             markers.push(L.circleMarker([p.lat, p.lon], {
-                radius: 2.5, stroke: false, fillColor: "rgb(" + c[0] + "," + c[1] + "," + c[2] + ")",
-                fillOpacity: 0.9,
+                radius: 4, stroke: false, fillColor: "rgb(" + c[0] + "," + c[1] + "," + c[2] + ")",
+                fillOpacity: 0.85,
             }));
         }
         sensorLayer = L.layerGroup(markers).addTo(map);
