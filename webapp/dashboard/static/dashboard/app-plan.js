@@ -40,9 +40,10 @@
     var bbox = null;
     var canvasCache = {};        // index -> dataURL
     var cur = 0, playing = false, playTimer = null, showSensors = false;
-    // Clip the surface to Ontario? Off for the regional 2023 dataset (it spans
-    // the whole Great Lakes region, not just the province).
-    var clipOntario = false;
+    // Clip the interpolated surface to the Ontario + Québec boundary — kills the
+    // bbox rectangle and focuses the two provinces. U.S. sensors still inform the
+    // interpolation near the border; they're just not drawn.
+    var clipRegion = true;
     // ECCC RDAQA model layer (a single current gridded analysis surface).
     var mode = "observed";       // "observed" (PurpleAir, animated) | "model" (ECCC)
     var eccc = null;             // { mesh: {rows,cols,bbox,values}, run } or null
@@ -70,15 +71,15 @@
 
     // ---- Ontario clip ---------------------------------------------------
     // The surface is shown only inside the province (no hard bbox rectangle, no
-    // U.S. coverage). ONTARIO_POLYGONS (global from ontario-boundary.js) is an
+    // U.S. coverage). PROVINCE_POLYGONS (global from ontario-boundary.js) is an
     // array of [lon,lat] rings; a point is "in Ontario" if it falls inside any
     // ring. Per-ring bbox skips the ray-cast for far-away cells. If the asset
     // failed to load we degrade to no clip rather than a blank map.
     var _ringBoxes = null;
-    function inOntario(lon, lat) {
-        if (typeof ONTARIO_POLYGONS === "undefined") return true;
+    function inRegion(lon, lat) {
+        if (typeof PROVINCE_POLYGONS === "undefined") return true;
         if (!_ringBoxes) {
-            _ringBoxes = ONTARIO_POLYGONS.map(function (ring) {
+            _ringBoxes = PROVINCE_POLYGONS.map(function (ring) {
                 var b = { minx: 180, maxx: -180, miny: 90, maxy: -90 };
                 for (var i = 0; i < ring.length; i++) {
                     var p = ring[i];
@@ -90,10 +91,10 @@
                 return b;
             });
         }
-        for (var k = 0; k < ONTARIO_POLYGONS.length; k++) {
+        for (var k = 0; k < PROVINCE_POLYGONS.length; k++) {
             var bb = _ringBoxes[k];
             if (lon < bb.minx || lon > bb.maxx || lat < bb.miny || lat > bb.maxy) continue;
-            var ring = ONTARIO_POLYGONS[k], inside = false, n = ring.length;
+            var ring = PROVINCE_POLYGONS[k], inside = false, n = ring.length;
             for (var i = 0, j = n - 1; i < n; j = i++) {
                 var xi = ring[i][0], yi = ring[i][1], xj = ring[j][0], yj = ring[j][1];
                 if (((yi > lat) !== (yj > lat)) &&
@@ -106,16 +107,16 @@
 
     // Grid -> Ontario inside/outside mask, cached (the grid is identical per frame).
     var _maskKey = null, _mask = null;
-    function ontarioMask(west, east, north, south, cols, rows) {
-        var key = clipOntario + "," + west + "," + east + "," + north + "," + south + "," + cols + "," + rows;
+    function regionMask(west, east, north, south, cols, rows) {
+        var key = clipRegion + "," + west + "," + east + "," + north + "," + south + "," + cols + "," + rows;
         if (_mask && _maskKey === key) return _mask;
         var m = new Uint8Array(cols * rows);
-        if (!clipOntario) { m.fill(1); _mask = m; _maskKey = key; return m; }
+        if (!clipRegion) { m.fill(1); _mask = m; _maskKey = key; return m; }
         for (var y = 0; y < rows; y++) {
             var lat = north - (y + 0.5) / rows * (north - south);
             for (var x = 0; x < cols; x++) {
                 var lon = west + (x + 0.5) / cols * (east - west);
-                m[y * cols + x] = inOntario(lon, lat) ? 1 : 0;
+                m[y * cols + x] = inRegion(lon, lat) ? 1 : 0;
             }
         }
         _mask = m; _maskKey = key;
@@ -147,7 +148,7 @@
         var midLatCos = Math.cos((north + south) / 2 * Math.PI / 180);
 
         var bk = buildBuckets(pts, midLatCos), buckets = bk.buckets, bs = bk.bs;
-        var mask = ontarioMask(west, east, north, south, GRID_COLS, GRID_ROWS);
+        var mask = regionMask(west, east, north, south, GRID_COLS, GRID_ROWS);
         var cutoff2 = CUTOFF_DEG * CUTOFF_DEG;
         var invTwoSigma2 = 1 / (2 * COV_SIGMA * COV_SIGMA);
 
@@ -226,7 +227,7 @@
                 var i = r * cols + col, o = i * 4, v = vals[i];
                 if (v === null || v === undefined || (typeof v === "number" && isNaN(v))) { d[o + 3] = 0; continue; }
                 var lon = west + (col + 0.5) / cols * (east - west);
-                if (!inOntario(lon, lat)) { d[o + 3] = 0; continue; }
+                if (!inRegion(lon, lat)) { d[o + 3] = 0; continue; }
                 var c = rampColor(v);
                 d[o] = c[0]; d[o + 1] = c[1]; d[o + 2] = c[2]; d[o + 3] = 209; // ~0.82
             }
@@ -410,7 +411,7 @@
             .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
             .then(function (d) {
                 bbox = d.bbox;
-                clipOntario = false;  // regional dataset -> show the full extent
+                clipRegion = true;   // clip to Ontario + Québec
                 var dates = d.dates || [], stations = d.stations || [], values = d.values || [];
                 frames = dates.map(function (dateStr, di) {
                     var pts = [];
