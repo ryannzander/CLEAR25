@@ -105,6 +105,37 @@ def discover_bluesky():
     return dt, url
 
 
+def _nearest_sample(glat, glon, grid, mesh):
+    """Nearest source-grid value at each OnQC mesh point via a 3D unit-sphere
+    KDTree (handles rotated/native grids correctly). Shared by both sources.
+    Returns (values[list; None for missing/NaN cells], max_pm)."""
+    import numpy as np
+    from scipy.spatial import cKDTree
+
+    def unit(lat, lon):
+        la, lo = np.radians(lat), np.radians(lon)
+        cl = np.cos(la)
+        return np.stack([cl * np.cos(lo), cl * np.sin(lo), np.sin(la)], axis=-1)
+
+    glat = np.asarray(glat, dtype="float64")
+    glon = np.asarray(glon, dtype="float64")
+    glon = np.where(glon > 180.0, glon - 360.0, glon)
+    tree = cKDTree(unit(glat.ravel(), glon.ravel()))
+    _, idx = tree.query(unit(np.asarray(mesh["lats"]), np.asarray(mesh["lons"])))
+    flat = np.asarray(grid, dtype="float64").ravel()
+    out, mx = [], 0.0
+    for i in idx:
+        v = float(flat[i])
+        if math.isnan(v):
+            out.append(None)
+        else:
+            v = round(v, 1)
+            out.append(v)
+            if v > mx:
+                mx = v
+    return out, mx
+
+
 def sample_bluesky(nc_path, mesh):
     """Subsample the BlueSky dispersion NetCDF onto the OnQC mesh (Pi-only deps).
 
