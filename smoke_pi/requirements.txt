@@ -1,0 +1,12 @@
+# CLEAR smoke collector — Raspberry Pi deps.
+# These read GRIB2/NetCDF and don't fit a serverless lambda, but install fine on
+# a full Linux box (Raspberry Pi OS / Debian, ARM wheels available).
+#
+# System prerequisite for GRIB2 (pygrib needs the ECCODES C library):
+#   sudo apt-get install -y libeccodes0 libeccodes-dev
+#
+numpy
+scipy
+xarray
+netCDF4
+pygrib

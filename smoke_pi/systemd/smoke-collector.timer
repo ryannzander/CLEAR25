@@ -1,0 +1,13 @@
+[Unit]
+Description=Run the CLEAR smoke collector every 3 hours
+
+[Timer]
+# BlueSky updates ~4x/day, FireWork 2x/day. The collector de-dupes on the run
+# stamp (skips the download if the run is unchanged), so polling every 3h is
+# cheap and catches each new run promptly.
+OnBootSec=3min
+OnUnitActiveSec=3h
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,13 @@
+[Unit]
+Description=CLEAR smoke collector (one cycle: BlueSky + FireWork -> ON/QC slice)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# >>> EDIT these two paths to where you cloned the repo / made the venv <<<
+WorkingDirectory=/home/pi/CLEAR25/smoke_pi
+ExecStart=/home/pi/CLEAR25/.venv/bin/python collector.py --sources bluesky,firework
+# Don't let a flaky run mark the timer failed; the collector logs errors to status.json.
+SuccessExitStatus=0 1
+TimeoutStartSec=600
