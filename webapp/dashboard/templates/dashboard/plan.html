@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CLEAR · 2023 Smoke-Plume Replay</title>
+    <title>CLEAR · 2024–2025 Smoke-Plume Replay</title>
     <link rel="icon" type="image/svg+xml" href="{% static 'dashboard/favicon.svg' %}?v=3">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -83,8 +83,8 @@
     <div class="topbar">
         <a class="back" href="/dashboard/">← Dashboard</a>
         <div>
-            <h1>CLEAR · <span>2023 Smoke-Plume Replay</span></h1>
-            <div class="sub">PurpleAir PM2.5 · daily · Ontario &amp; Québec · 2023</div>
+            <h1>CLEAR · <span>2024–2025 Smoke-Plume Replay</span></h1>
+            <div class="sub">PurpleAir PM2.5 · hourly · Ontario &amp; Québec · 2024–2025</div>
         </div>
         <span class="pill" id="status-pill">loading…</span>
     </div>
@@ -111,9 +111,9 @@
             </div>
         </div>
         <div class="meta">
-            <span>Day <b id="frame-idx">0</b>/<b id="frame-total">0</b></span>
+            <span>Hour <b id="frame-idx">0</b>/<b id="frame-total">0</b></span>
             <span><b id="sensor-count">0</b> sensors</span>
-            <span>Year <b id="age">—</b></span>
+            <span>Span <b id="age">—</b></span>
             <label class="toggle" style="display:none;"><input type="checkbox" id="show-sensors"> show sensors</label>
         </div>
     </div>
@@ -122,12 +122,12 @@
         <div class="card">
             <div class="spinner" id="ov-spin"></div>
             <h2 id="ov-title">Loading plume data…</h2>
-            <p id="ov-body">Fetching the last 6 hours of PurpleAir frames.</p>
+            <p id="ov-body">Decompressing the 2024–2025 hourly PurpleAir dataset.</p>
         </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="{% static 'dashboard/provinces-boundary.js' %}?v=1"></script>
-    <script src="{% static 'dashboard/app-plan.js' %}?v=6"></script>
+    <script src="{% static 'dashboard/app-plan.js' %}?v=8"></script>
 </body>
 </html>

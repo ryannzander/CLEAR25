@@ -36,6 +36,9 @@ scripts/aqs_sites.zip
 # Pulled PurpleAir history (scripts/purpleair_history.py output; can be large)
 purpleair_history/
 
+# PurpleAir coordinate cache (scripts/gen_plume_2024_2025.py --fetch-coords; local build artifact)
+scripts/pa_coords_cache.json
+
 # Claude
 .claude/
 
