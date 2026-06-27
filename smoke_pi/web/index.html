@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CLEAR · Smoke Collector</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <div class="brand-text">
+        <h1>CLEAR <span>· Smoke Collector</span></h1>
+        <p>Live archive · BlueSky + FireWork · Ontario&nbsp;&amp;&nbsp;Québec</p>
+      </div>
+    </div>
+    <div class="topbar-meta">
+      <div class="meta-item"><span class="meta-k">Host</span><span class="meta-v mono" id="host">—</span></div>
+      <div class="meta-item"><span class="meta-k">Updated</span><span class="meta-v mono" id="updated">—</span></div>
+      <div class="status-chip" id="overall-status"><span class="dot"></span><span id="overall-label">connecting…</span></div>
+    </div>
+  </header>
+
+  <div class="grid">
+
+    <!-- Left: telemetry -->
+    <aside class="panel">
+
+      <section class="sources" id="sources">
+        <!-- source cards injected -->
+        <div class="src-skeleton">loading sources…</div>
+      </section>
+
+      <section class="card archive">
+        <div class="card-head"><h2>Archive</h2><span class="mono tag" id="arch-slices">0 slices</span></div>
+        <div class="meters">
+          <div class="meter">
+            <div class="meter-top"><span>Disk</span><span class="mono" id="disk-label">—</span></div>
+            <div class="bar"><div class="bar-fill" id="disk-bar" style="width:0%"></div></div>
+          </div>
+          <div class="kv"><span>Slice data</span><span class="mono" id="data-size">—</span></div>
+          <div class="kv"><span>Collecting since</span><span class="mono" id="since">—</span></div>
+        </div>
+      </section>
+
+      <section class="card feed">
+        <div class="card-head"><h2>Activity</h2><span class="mono tag" id="feed-count">—</span></div>
+        <ul class="events" id="events"><li class="evt-empty">no events yet</li></ul>
+      </section>
+    </aside>
+
+    <!-- Right: map -->
+    <main class="map-wrap">
+      <div class="map-toolbar">
+        <div class="seg" id="layer-seg">
+          <button class="seg-btn active" data-src="firework">FireWork</button>
+          <button class="seg-btn" data-src="bluesky">BlueSky</button>
+        </div>
+        <div class="map-readout" id="map-readout"><span class="mono" id="frame-run">—</span><span class="sep">·</span><span id="frame-max" class="mono">—</span></div>
+      </div>
+      <div id="map"></div>
+      <div class="legend">
+        <span class="legend-title">PM2.5 µg/m³</span>
+        <div class="legend-bar"></div>
+        <div class="legend-ticks"><span>0</span><span>12</span><span>35</span><span>55</span><span>150</span><span>250+</span></div>
+      </div>
+      <div class="map-empty hidden" id="map-empty">
+        <div class="me-card">
+          <div class="me-spin"></div>
+          <p id="me-text">Waiting for the first collected slice…</p>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="dashboard.js"></script>
+</body>
+</html>

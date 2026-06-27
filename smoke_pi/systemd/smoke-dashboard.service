@@ -1,0 +1,14 @@
+[Unit]
+Description=CLEAR smoke dashboard (static server on :8077)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+# >>> EDIT these two paths to match your install <<<
+WorkingDirectory=/home/pi/CLEAR25/smoke_pi
+ExecStart=/home/pi/CLEAR25/.venv/bin/python serve.py --port 8077
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

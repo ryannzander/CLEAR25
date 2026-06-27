@@ -17,10 +17,11 @@
     var IDW_POWER = 2;            // inverse-distance exponent (for the value / colour)
     var CUTOFF_DEG = 1.2;         // sensors beyond this (deg, lat-corrected) don't contribute
     var MAX_ALPHA = 0.82;
-    var PLAY_MS = 350;            // ms per frame during playback (365 daily frames)
-    // Static 2023 daily dataset (compiled by scripts/gen_plume_2023.py). No live
-    // API, no cost. Bump the ?v= when the JSON is regenerated.
-    var PLUME_DATA_URL = "/static/dashboard/plume_2023.json?v=1";
+    var PLAY_MS = 100;            // ms per frame during playback (hourly frames)
+    // Static 2024–2025 HOURLY dataset (compiled by scripts/gen_plume_2024_2025.py).
+    // Gzip-committed and decompressed client-side (DecompressionStream). No live
+    // API, no cost. Bump the ?v= when the .gz is regenerated.
+    var PLUME_DATA_URL = "/static/dashboard/plume_2024_2025.json.gz?v=1";
 
     // PM2.5 (µg/m³) -> color stops (EPA AQI category colors).
     var RAMP = [
@@ -34,10 +35,19 @@
 
     // ---- State ----------------------------------------------------------
     var map, overlay = null, sensorLayer = null;
-    var frames = [];             // [{captured_at, sensor_count, points:[{lat,lon,pm}]}]
     var bbox = null;
-    var canvasCache = {};        // index -> dataURL
+    var canvasCache = {};        // step -> dataURL (only used by the dead IDW path)
     var cur = 0, playing = false, playTimer = null, showSensors = false;
+    // ---- Sparse hourly dataset (counting-sort index, memory-bounded) ----------
+    // The asset is station-keyed (coords once + a flat [hour,pm] list per station).
+    // On load we counting-sort all points into per-hour buckets backed by typed
+    // arrays, so a frame's points are materialized on demand in O(active sensors)
+    // without ever holding ~4.7M point objects at once.
+    var nSteps = 0, t0ms = 0, stepSeconds = 3600;
+    var stations = [];           // [{id,lat,lon}]
+    var stepStart = null;        // Int32Array(nSteps+1): first point offset per hour
+    var stationIdxByPair = null; // Int32Array(total): station index of each point
+    var pmByPair = null;         // Float32Array(total): pm value of each point
     // Clip the interpolated surface to the Ontario + Québec boundary — kills the
     // bbox rectangle and focuses the two provinces. U.S. sensors still inform the
     // interpolation near the border; they're just not drawn.
@@ -50,6 +60,75 @@
     // ---- DOM ------------------------------------------------------------
     var $ = function (id) { return document.getElementById(id); };
     var els = {};
+
+    // ---- Sparse-index helpers -------------------------------------------
+    // Counting-sort the per-station [hour,pm] lists into per-hour buckets.
+    function buildIndex(series) {
+        var counts = new Int32Array(nSteps), total = 0, s, k, arr;
+        for (s = 0; s < series.length; s++) {
+            arr = series[s];
+            for (k = 0; k < arr.length; k += 2) { counts[arr[k]]++; total++; }
+        }
+        stepStart = new Int32Array(nSteps + 1);
+        for (var i = 0; i < nSteps; i++) stepStart[i + 1] = stepStart[i] + counts[i];
+        var cursor = stepStart.slice(0, nSteps);   // mutable copy of the offsets
+        stationIdxByPair = new Int32Array(total);
+        pmByPair = new Float32Array(total);
+        for (s = 0; s < series.length; s++) {
+            arr = series[s];
+            for (k = 0; k < arr.length; k += 2) {
+                var pos = cursor[arr[k]]++;
+                stationIdxByPair[pos] = s;
+                pmByPair[pos] = arr[k + 1];
+            }
+        }
+        return total;
+    }
+
+    // Materialize one hour's sensor points on demand (cheap; not cached so long
+    // playback never accumulates ~4.7M objects).
+    function getPoints(step) {
+        if (!stepStart) return [];
+        var a = stepStart[step], b = stepStart[step + 1], pts = new Array(b - a);
+        for (var j = a, n = 0; j < b; j++, n++) {
+            var st = stations[stationIdxByPair[j]];
+            pts[n] = { lat: st.lat, lon: st.lon, pm: pmByPair[j] };
+        }
+        return pts;
+    }
+
+    // Hour with the highest median PM2.5 (among hours with enough sensors) — so
+    // the view auto-opens on the worst smoke episode in 2024–2025.
+    function findPeakStep(minCount) {
+        var best = 0, bestMed = -1, tmp = [];
+        for (var step = 0; step < nSteps; step++) {
+            var a = stepStart[step], b = stepStart[step + 1], n = b - a;
+            if (n < minCount) continue;
+            tmp.length = n;
+            for (var j = a, t = 0; j < b; j++, t++) tmp[t] = pmByPair[j];
+            tmp.sort(function (x, y) { return x - y; });
+            var med = n % 2 ? tmp[(n - 1) / 2] : (tmp[n / 2 - 1] + tmp[n / 2]) / 2;
+            if (med > bestMed) { bestMed = med; best = step; }
+        }
+        return bestMed >= 0 ? best : 0;
+    }
+
+    // The asset is a raw .gz; decompress client-side. If the server already
+    // decompressed it (Content-Encoding: gzip), the bytes are plain JSON — detect
+    // via the gzip magic number so we work identically on dev and on Vercel.
+    function decodeMaybeGzip(buf) {
+        var bytes = new Uint8Array(buf);
+        if (bytes.length >= 2 && bytes[0] === 0x1f && bytes[1] === 0x8b) {
+            if (typeof DecompressionStream === "undefined") {
+                return Promise.reject("This browser lacks DecompressionStream (needed to read the gzip dataset).");
+            }
+            var stream = new Response(bytes).body.pipeThrough(new DecompressionStream("gzip"));
+            return new Response(stream).text().then(function (t) { return JSON.parse(t); });
+        }
+        return Promise.resolve(JSON.parse(new TextDecoder("utf-8").decode(bytes)));
+    }
+
+    function stepTimeMs(step) { return t0ms + step * stepSeconds * 1000; }
 
     function rampColor(pm) {
         if (pm <= RAMP[0][0]) return RAMP[0][1];
@@ -141,7 +220,7 @@
     // thins (so no per-sensor blobs, no hard edge).
     function renderFrame(index) {
         if (canvasCache[index]) return canvasCache[index];
-        var pts = frames[index].points || [];
+        var pts = getPoints(index);
         var west = bbox.nwlng, east = bbox.selng, north = bbox.nwlat, south = bbox.selat;
         var midLatCos = Math.cos((north + south) / 2 * Math.PI / 180);
 
@@ -269,7 +348,7 @@
         } else {
             clearEccc();
             els.transport.classList.remove("disabled");
-            if (frames.length) showFrame(cur);
+            if (nSteps) showFrame(cur);
         }
     }
 
@@ -300,38 +379,31 @@
         return mins <= 0 ? "live" : "T−" + mins + " min";
     }
 
-    function fmtClock(iso) {
-        var d = new Date(iso);
-        if (isNaN(d.getTime())) return String(iso);
-        // Daily frames -> show the date (UTC, so 2023-06-28 doesn't shift a day).
-        return d.toLocaleDateString([], { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" });
-    }
-
-    function medianPm(points) {
-        var v = [];
-        for (var i = 0; i < points.length; i++) v.push(points[i].pm);
-        if (!v.length) return -1;
-        v.sort(function (a, b) { return a - b; });
-        var n = v.length;
-        return n % 2 ? v[(n - 1) / 2] : (v[n / 2 - 1] + v[n / 2]) / 2;
+    function fmtClock(ms) {
+        var d = new Date(ms);
+        if (isNaN(d.getTime())) return String(ms);
+        // Hourly frames -> date + hour (UTC, so the calendar day doesn't shift).
+        var day = d.toLocaleDateString([], { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" });
+        var hh = ("0" + d.getUTCHours()).slice(-2);
+        return day + " · " + hh + ":00 UTC";
     }
 
     function showFrame(index) {
-        if (!frames.length) return;
-        cur = Math.max(0, Math.min(index, frames.length - 1));
-        var f = frames[cur];
-        drawSensors(f);   // plotted sensor readings (interpolated surface removed)
+        if (!nSteps) return;
+        cur = Math.max(0, Math.min(index, nSteps - 1));
+        var pts = getPoints(cur);
+        drawSensors(pts);   // plotted sensor readings (interpolated surface removed)
         els.slider.value = cur;
-        els.clock.textContent = fmtClock(f.captured_at);
-        els.rel.textContent = "day " + (cur + 1) + " / " + frames.length;
-        els.frameIdx.textContent = cur + 1;
-        els.sensorCount.textContent = (f.sensor_count || (f.points || []).length).toLocaleString();
+        els.clock.textContent = fmtClock(stepTimeMs(cur));
+        els.rel.textContent = (cur + 1).toLocaleString() + " / " + nSteps.toLocaleString();
+        els.frameIdx.textContent = (cur + 1).toLocaleString();
+        els.sensorCount.textContent = pts.length.toLocaleString();
     }
 
-    function drawSensors(f) {
+    function drawSensors(pts) {
         if (sensorLayer) { map.removeLayer(sensorLayer); sensorLayer = null; }
         var markers = [];
-        var pts = f.points || [];
+        pts = pts || [];
         for (var i = 0; i < pts.length; i++) {
             var p = pts[i];
             if (clipRegion && !inRegion(p.lon, p.lat)) continue;  // Ontario + Québec only
@@ -345,12 +417,12 @@
     }
 
     function play() {
-        if (!frames.length) return;
+        if (!nSteps) return;
         playing = true; els.play.textContent = "⏸";
         clearInterval(playTimer);
         playTimer = setInterval(function () {
             var next = cur + 1;
-            if (next >= frames.length) next = 0;
+            if (next >= nSteps) next = 0;
             showFrame(next);
         }, PLAY_MS);
     }
@@ -373,17 +445,30 @@
         }).addTo(map);
     }
 
+    function pctl(sorted, p) {
+        var i = Math.floor(p * (sorted.length - 1));
+        return sorted[Math.max(0, Math.min(sorted.length - 1, i))];
+    }
+
     function fitToBbox() {
         if (!bbox) return;
         // Fit to where sensors actually are (the dense southern-Ontario / Great
-        // Lakes cloud) rather than the whole Ontario bbox, most of which is empty
-        // far-north with no sensors — otherwise the surface looks like a small
-        // rectangle lost in a continent-wide view. Falls back to the bbox.
-        var f = frames.length ? frames[frames.length - 1] : null;
-        var pts = (f && f.points) || [];
-        if (pts.length >= 3) {
+        // Lakes / St-Lawrence cloud) rather than the full station extent — a
+        // handful of far-north Québec sensors (to ~62°N) would otherwise zoom the
+        // whole continent out. Trim ~2.5% of stations off each edge so the bulk
+        // frames nicely; fall back to min/max then the bbox.
+        var pts = stations;
+        if (pts.length >= 20) {
+            var lats = [], lons = [], i;
+            for (i = 0; i < pts.length; i++) { lats.push(pts[i].lat); lons.push(pts[i].lon); }
+            lats.sort(function (a, b) { return a - b; });
+            lons.sort(function (a, b) { return a - b; });
+            map.fitBounds(
+                [[pctl(lats, 0.025), pctl(lons, 0.025)], [pctl(lats, 0.975), pctl(lons, 0.975)]],
+                { padding: [24, 24], maxZoom: 7 });
+        } else if (pts.length >= 3) {
             var minLa = 90, maxLa = -90, minLo = 180, maxLo = -180;
-            for (var i = 0; i < pts.length; i++) {
+            for (i = 0; i < pts.length; i++) {
                 var p = pts[i];
                 if (p.lat < minLa) minLa = p.lat;
                 if (p.lat > maxLa) maxLa = p.lat;
@@ -396,48 +481,40 @@
         }
     }
 
-    // Load the static 2023 daily PurpleAir dataset (no live API, zero cost) and
-    // expand it into one frame per day: {dates, stations:[{lat,lon}], values:
-    // [[pm|null x365]]} -> frames[d] = {captured_at: date, points:[{lat,lon,pm}]}.
+    // Load the static 2024–2025 HOURLY PurpleAir dataset (no live API, zero cost):
+    // {t0, step_seconds, n_steps, bbox, stations:[{id,lat,lon}], series:[[h,pm,...]]}.
+    // The .gz is fetched as bytes, decompressed, then counting-sorted into per-hour
+    // buckets so frames are built on demand (see buildIndex / getPoints).
     function load() {
+        setOverlayMsg("Loading plume data…", "Decompressing the 2024–2025 hourly dataset (~16 MB).", true);
         fetch(PLUME_DATA_URL)
-            .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+            .then(function (r) { return r.ok ? r.arrayBuffer() : Promise.reject(r.status); })
+            .then(decodeMaybeGzip)
             .then(function (d) {
                 bbox = d.bbox;
                 clipRegion = true;   // clip to Ontario + Québec
-                var dates = d.dates || [], stations = d.stations || [], values = d.values || [];
-                frames = dates.map(function (dateStr, di) {
-                    var pts = [];
-                    for (var si = 0; si < stations.length; si++) {
-                        var v = values[si] && values[si][di];
-                        if (v === null || v === undefined) continue;
-                        pts.push({ lat: stations[si].lat, lon: stations[si].lon, pm: v });
-                    }
-                    return { captured_at: dateStr, points: pts };
-                });
-                els.frameTotal.textContent = frames.length;
-                els.slider.max = Math.max(0, frames.length - 1);
-                if (!frames.length) {
+                stations = d.stations || [];
+                nSteps = d.n_steps || 0;
+                stepSeconds = d.step_seconds || 3600;
+                t0ms = Date.parse(d.t0);
+                if (!stations.length || !nSteps || isNaN(t0ms)) {
                     els.statusPill.textContent = "no data";
-                    setOverlayMsg("No 2023 data", "plume_2023.json is empty.", false);
+                    setOverlayMsg("No 2024–2025 data", "The dataset is empty or malformed.", false);
                     return;
                 }
+                buildIndex(d.series || []);
+                els.frameTotal.textContent = nSteps.toLocaleString();
+                els.slider.max = Math.max(0, nSteps - 1);
                 els.overlay.classList.add("hidden");
-                els.statusPill.textContent = frames.length + " days · " + (d.year || 2023);
-                els.age.textContent = String(d.year || 2023);
+                els.statusPill.textContent = nSteps.toLocaleString() + " hrs · 2024–2025";
+                els.age.textContent = "2024–2025";
                 fitToBbox();
-                // Start on the peak-smoke day so the June-2023 event is visible at once.
-                var peak = 0, peakMed = -1;
-                for (var i = 0; i < frames.length; i++) {
-                    if (frames[i].points.length < 50) continue;
-                    var m = medianPm(frames[i].points);
-                    if (m > peakMed) { peakMed = m; peak = i; }
-                }
-                showFrame(peak);
+                // Start on the peak-smoke hour so the worst episode is visible at once.
+                showFrame(findPeakStep(30));
             })
             .catch(function (e) {
                 els.statusPill.textContent = "error";
-                setOverlayMsg("Could not load 2023 data", String(e), false);
+                setOverlayMsg("Could not load 2024–2025 data", String(e), false);
             });
     }
 
@@ -456,7 +533,7 @@
         els.modeModel.addEventListener("click", function () { setMode("model"); });
         els.showSensors.addEventListener("change", function () {
             showSensors = this.checked;
-            if (frames.length) { showSensors ? drawSensors(frames[cur]) : drawSensors({ points: [] }); }
+            if (nSteps) { showSensors ? drawSensors(getPoints(cur)) : drawSensors([]); }
         });
     }
 
