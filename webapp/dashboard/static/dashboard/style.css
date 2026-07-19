@@ -1220,6 +1220,19 @@ body {
     transition: background 0.2s;
 }
 
+/* .google-btn is used as <button> on the allauth confirm page (no app-shell
+   reset there) and as <a> on login.html — cover both. */
+button.google-btn {
+    cursor: pointer;
+}
+
+.auth-note {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-bottom: 24px;
+    line-height: 1.5;
+}
+
 .google-btn:hover {
     background: #f0f0f0;
 }
