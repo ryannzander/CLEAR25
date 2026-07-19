@@ -26,7 +26,14 @@ from .utils import timing_safe_token_compare
 logger = logging.getLogger(__name__)
 
 # Distinct CachedResult keys so model data never collides with key="latest".
-_KIND_TO_KEY = {"forecast": "eccc_forecast", "analysis": "eccc_analysis"}
+# PM2.5 model kinds (scripts/eccc_ingest.py) + 10 m wind kinds
+# (scripts/eccc_wind_ingest.py, RDPS). All read back via GET /api/eccc/?kind=...
+_KIND_TO_KEY = {
+    "forecast": "eccc_forecast",
+    "analysis": "eccc_analysis",
+    "wind_forecast": "eccc_wind_forecast",
+    "wind_analysis": "eccc_wind_analysis",
+}
 
 
 @csrf_exempt
@@ -53,7 +60,7 @@ def api_refresh_eccc(request):
     key = _KIND_TO_KEY.get(kind)
     if not key:
         return JsonResponse(
-            {"error": "Missing or invalid 'kind' (expected 'forecast' or 'analysis')"},
+            {"error": f"Missing or invalid 'kind' (expected one of {sorted(_KIND_TO_KEY)})"},
             status=400,
         )
 
@@ -81,7 +88,8 @@ def api_eccc(request):
     kind = request.GET.get("kind", "forecast")
     key = _KIND_TO_KEY.get(kind)
     if not key:
-        return JsonResponse({"error": "Invalid 'kind' (expected 'forecast' or 'analysis')"}, status=400)
+        return JsonResponse(
+            {"error": f"Invalid 'kind' (expected one of {sorted(_KIND_TO_KEY)})"}, status=400)
 
     try:
         cached = CachedResult.objects.get(key=key)

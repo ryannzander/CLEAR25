@@ -1,0 +1,58 @@
+name: Ingest ECCC RDPS wind
+
+# LIVE / forecast half of the wind integration: samples ECCC RDPS 10 m wind
+# (speed + direction) at CLEAR's station / city / far-field coordinates and POSTs a
+# compact JSON to /api/refresh/eccc/ under the wind_analysis / wind_forecast kinds
+# (→ CachedResult eccc_wind_analysis / eccc_wind_forecast). It does NOT touch the
+# live 3-rule alert engine — read it back at GET /api/eccc/?kind=wind_forecast.
+#
+# WHY a separate workflow from eccc-ingest.yml (the PM ingest): reading GRIB2 needs
+# heavy native libs (pygrib/eccodes) that cannot run on the slim Vercel lambda, so the
+# work happens here in the runner. Kept independent of the PM ingest so the two never
+# block each other (the PM script still uses the old /today/ Datamart path; this wind
+# script uses the current date-partitioned path).
+#
+# ── Cadence & the private-repo Actions-minute budget ──────────────────────────
+# RDPS runs 4×/day (00/06/12/18Z), published a few hours later. The 000-hour ANALYSIS
+# is 2 small files (~1.7 MB); the FORECAST is ~98 files (~83 MB) and is the costly
+# part. So, exactly like eccc-ingest.yml, we run every 3h at an off-peak minute and
+# pass --skip-if-current, which makes the forecast leg a no-op when the latest
+# published run already matches what is stored — most runs then only do the cheap
+# analysis. The ingest endpoint is idempotent (update_or_create), so late/duplicate
+# fires are harmless. Trigger manually any time from the Actions tab.
+
+on:
+  schedule:
+    - cron: "27 */3 * * *"   # every 3h, off-peak minute (offset from the PM ingest's :17)
+  workflow_dispatch: {}
+
+concurrency:
+  group: eccc-wind-ingest
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install GRIB deps
+        run: pip install -r scripts/requirements-eccc.txt
+
+      - name: Ingest RDPS wind analysis + forecast
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          ECCC_INGEST_URL: https://clear25.xyz/api/refresh/eccc/
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::error::CRON_SECRET repository secret is not set (same value as the Vercel CRON_SECRET env var)." >&2
+            exit 1
+          fi
+          python scripts/eccc_wind_ingest.py \
+            --analysis --forecast --skip-if-current \
+            --endpoint "$ECCC_INGEST_URL"
