@@ -51,6 +51,89 @@
     --alert-none-glow: transparent;
 }
 
+/* ============================================================
+   APP-SHELL RESET — replaces Tailwind Preflight.
+   The dev-only Tailwind Play CDN used to inject a global reset
+   on base_app pages (dashboard / research / feedback). The CDN
+   is removed; this reproduces the reset behaviours those pages
+   actually render with. SCOPED to body.app-shell / .app-layout
+   so billing / settings / login (which load style.css but never
+   loaded Tailwind) keep rendering exactly as before.
+   ============================================================ */
+body.app-shell {
+    margin: 0;
+}
+
+/* All reset selectors are wrapped in :where() so they carry ZERO
+   specificity — any authored rule (even a bare class) overrides the
+   reset, exactly as Tailwind's element-selector Preflight behaved. */
+:where(.app-layout) *,
+:where(.app-layout) *::before,
+:where(.app-layout) *::after {
+    box-sizing: border-box;
+    border-width: 0;
+    border-style: solid;
+    border-color: currentColor;
+}
+
+:where(.app-layout) :where(h1, h2, h3, h4, h5, h6) {
+    margin: 0;
+    font-size: inherit;
+    font-weight: inherit;
+}
+
+:where(.app-layout) :where(p, hr, figure, blockquote, pre, dl, dd) {
+    margin: 0;
+}
+
+:where(.app-layout) :where(a) {
+    color: inherit;
+    text-decoration: inherit;
+}
+
+:where(.app-layout) :where(ul, ol) {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+:where(.app-layout) :where(button, input, select, textarea) {
+    font: inherit;
+    color: inherit;
+    margin: 0;
+    padding: 0;
+}
+
+:where(.app-layout) :where(button) {
+    background: transparent;
+    cursor: pointer;
+}
+
+:where(.app-layout) :where(img, svg, video, canvas) {
+    display: block;
+    vertical-align: middle;
+}
+
+:where(.app-layout) :where(img, video) {
+    max-width: 100%;
+    height: auto;
+}
+
+:where(.app-layout) :where(table) {
+    border-collapse: collapse;
+}
+
+:where(.app-layout) :where(hr) {
+    height: 0;
+    border-top-width: 1px;
+}
+
+/* Utility previously provided by Tailwind; toggled at runtime by
+   app-feedback.js (delete button) and available shell-wide. */
+.hidden {
+    display: none !important;
+}
+
 /* ========================================================
    ALERT BADGE COMPONENT — color + icon + label (never color
    alone). Driven by `data-level` so it never depends on an
@@ -2170,10 +2253,35 @@ body {
     font-weight: 500;
 }
 
+/* Replaces the Tailwind utilities the detail modal used before the
+   Play CDN was removed — values are the exact Tailwind equivalents,
+   so rendering is unchanged. */
+.modal-title-grow {
+    flex: 1;
+    padding-right: 1rem;          /* was: flex-1 pr-4 */
+}
+
+.detail-delete {                  /* was: text-zinc-500 hover:text-red-500 mr-3 */
+    color: #71717a;
+    margin-right: 0.75rem;        /* mr-3 */
+    transition: color 0.15s;
+}
+
+.detail-delete:hover {
+    color: #ef4444;
+}
+
+.section-heading {                /* was: text-base font-semibold text-zinc-100 mb-4 mt-5 */
+    font-size: 1rem;
+    font-weight: 600;
+    color: #f4f4f5;
+    margin: 1.25rem 0 1rem;       /* mt-5 / mb-4 */
+}
+
 .detail-meta {
     font-size: 0.85rem;
     color: #71717a;
-    margin-bottom: 16px;
+    margin-bottom: 1rem;          /* utility mb-4 used to win over 16px */
     display: flex;
     align-items: center;
     gap: 12px;
@@ -2194,7 +2302,7 @@ body {
     color: #d4d4d8;
     line-height: 1.7;
     white-space: pre-wrap;
-    margin-bottom: 20px;
+    margin-bottom: 1.25rem;       /* utility mb-5 used to win over 20px */
     font-size: 0.95rem;
 }
 
@@ -2202,7 +2310,7 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 20px;
+    margin-bottom: 1.5rem;        /* matches the removed mb-6 utility */
 }
 
 .detail-votes .vote-btn {
@@ -2236,7 +2344,7 @@ body {
 }
 
 .detail-comments {
-    margin-bottom: 20px;
+    margin-bottom: 1.25rem;       /* utility mb-5 used to win over 20px */
 }
 
 .comment-item {
@@ -2295,6 +2403,11 @@ body {
     display: flex;
     gap: 12px;
     align-items: flex-end;
+    margin-top: 1rem;             /* matches the removed mt-4 utility */
+}
+
+#comment-error {
+    margin-top: 0.75rem;          /* matches the removed mt-3 utility */
 }
 
 .comment-form textarea {

@@ -12,26 +12,13 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
         rel="stylesheet" media="print" onload="this.media='all'">
-    <link rel="stylesheet" href="{% static 'dashboard/style.css' %}?v=45">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        zinc: {
-                            850: '#1f1f23',
-                            950: '#09090b',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    <link rel="stylesheet" href="{% static 'dashboard/style.css' %}?v=46">
     {% block extra_head %}{% endblock %}
 </head>
 
-<body>
+<!-- .app-shell scopes the style.css reset that replaced the removed
+     dev-only Tailwind Play CDN (see APP-SHELL RESET in style.css). -->
+<body class="app-shell">
     <a href="#main-content" class="skip-link">Skip to main content</a>
     <div class="app-layout">
         <!-- Sidebar -->

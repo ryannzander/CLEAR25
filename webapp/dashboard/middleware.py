@@ -77,7 +77,7 @@ class SecurityHeadersMiddleware:
 
     DEFAULT_CSP = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com "
+        "script-src 'self' 'unsafe-inline' "
         "https://unpkg.com; "
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com "
         "https://unpkg.com; "
