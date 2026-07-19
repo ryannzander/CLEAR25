@@ -15,6 +15,9 @@ urlpatterns = [
     # ECCC model ingestion (isolated from alert engine): store + read
     path("api/refresh/eccc/", views.api_refresh_eccc),
     path("api/eccc/", views.api_eccc),
+    # Live wind-aware Toronto smoke forecast (isolated from alert engine): score + read
+    path("api/refresh/forecast/", views.api_refresh_forecast),
+    path("api/forecast/", views.api_forecast),
     # Plan / Ontario smoke-plume tracker (isolated from alert engine)
     path("plan/", views.plan_page, name="plan"),
     path("api/plan/refresh/", views.api_plan_refresh),

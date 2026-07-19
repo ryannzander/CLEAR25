@@ -65,6 +65,9 @@ from .eccc import api_refresh_eccc, api_eccc
 # Plan / Ontario smoke-plume tracker (isolated from the alert engine)
 from .plan import api_plan_refresh, api_plan_frames, plan_page, api_plan_fusion
 
+# Live wind-aware Toronto smoke forecast (read-only, isolated from the alert engine)
+from .forecast import api_refresh_forecast, api_forecast
+
 # Export all for `from dashboard.views import *`
 __all__ = [
     # Landing
@@ -119,4 +122,7 @@ __all__ = [
     "api_plan_frames",
     "plan_page",
     "api_plan_fusion",
+    # Live smoke forecast
+    "api_refresh_forecast",
+    "api_forecast",
 ]
