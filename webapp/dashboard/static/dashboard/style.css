@@ -254,6 +254,116 @@ body.app-shell {
     .action-btn.is-loading::after {
         animation-duration: 1.5s;
     }
+    .fc-bar-fill {
+        transition: none;
+    }
+}
+
+/* ============================================================
+   TORONTO SMOKE FORECAST CARD (UI Phase 4)
+   Replaces app-forecast.js's fully-inline-styled markup. Layout
+   lives here; only data-driven values (bar width %, probability
+   tone color) remain inline in the JS.
+   ============================================================ */
+.fc-card {
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 18px var(--space-5);
+    background: var(--surface);
+    margin: var(--space-1) 0 6px;
+}
+
+.fc-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+    margin-bottom: var(--space-3);
+}
+
+.fc-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.fc-tag {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #60a5fa;
+    background: rgba(96, 165, 250, 0.12);
+    border: 1px solid rgba(96, 165, 250, 0.3);
+    padding: 2px var(--space-2);
+    border-radius: var(--r-full);
+}
+
+.fc-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin: 7px 0;
+}
+
+.fc-label {
+    width: 82px;
+    flex: none;
+    font-size: var(--fs-sm);
+    color: var(--text-secondary);
+}
+
+.fc-track {
+    flex: 1;
+    height: 12px;
+    border-radius: var(--r-full);
+    background: rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+}
+
+.fc-bar-fill {
+    height: 100%;
+    border-radius: var(--r-full);
+    transition: width 0.5s;
+}
+
+.fc-pct {
+    width: 44px;
+    text-align: right;
+    font-size: var(--fs-base);
+    font-weight: 700;
+}
+
+.fc-note {
+    margin-top: 11px;
+    font-size: var(--fs-xs);
+    color: var(--text-tertiary);
+    line-height: var(--lh-normal);
+}
+
+.fc-warmup-text {
+    font-size: var(--fs-base);
+    color: var(--text-secondary);
+    line-height: var(--lh-normal);
+}
+
+.fc-warmup-text strong {
+    color: var(--text-primary);
+}
+
+.fc-warmup-track {
+    margin-top: 10px;
+    height: 8px;
+    border-radius: var(--r-full);
+    background: rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+}
+
+.fc-warmup-fill {
+    height: 100%;
+    background: #60a5fa;
+    border-radius: var(--r-full);
 }
 
 /* ========================================================
