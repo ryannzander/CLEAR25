@@ -680,7 +680,7 @@ body {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    color: #71717a;
+    color: var(--text-secondary);
     font-size: 13px;
     font-weight: 500;
     transition: all 0.15s ease;
@@ -807,7 +807,7 @@ body {
 
 .account-menu-email {
     font-size: 12px;
-    color: #71717a;
+    color: var(--text-tertiary);
 }
 
 .account-menu-divider {
@@ -821,7 +821,7 @@ body {
     gap: 10px;
     padding: 10px 16px;
     font-size: 13px;
-    color: #a1a1aa;
+    color: var(--text-secondary);
     text-decoration: none;
     transition: all 0.15s;
 }
@@ -906,7 +906,7 @@ body {
 .station-count {
     margin-left: auto;
     font-size: 13px;
-    color: #71717a;
+    color: var(--text-tertiary);
     font-weight: 500;
 }
 
@@ -1007,7 +1007,7 @@ body {
     display: block;
     font-size: 0.85rem;
     font-weight: 500;
-    color: #a1a1aa;
+    color: var(--text-secondary);
     margin-bottom: 6px;
 }
 
@@ -1052,13 +1052,13 @@ body {
 .auth-user {
     font-size: 13px;
     font-weight: 600;
-    color: #a1a1aa;
+    color: var(--text-secondary);
 }
 
 .auth-link {
     font-size: 14px;
     font-weight: 600;
-    color: #71717a;
+    color: var(--text-secondary);
     text-decoration: none;
     padding: 8px 18px;
     border-radius: 8px;
@@ -1134,7 +1134,7 @@ body {
     display: block;
     font-size: 12px;
     font-weight: 600;
-    color: #a1a1aa;
+    color: var(--text-secondary);
     margin-bottom: 6px;
 }
 
@@ -1180,7 +1180,7 @@ body {
     text-align: center;
     margin-top: 20px;
     font-size: 13px;
-    color: #71717a;
+    color: var(--text-tertiary);
 }
 
 .auth-footer a {
@@ -1252,7 +1252,7 @@ body {
 .progress-label {
     font-size: 12px;
     font-weight: 600;
-    color: #a1a1aa;
+    color: var(--text-secondary);
     margin-bottom: 8px;
 }
 
@@ -1290,7 +1290,7 @@ body {
 }
 
 .empty-text strong {
-    color: #a1a1aa;
+    color: var(--text-secondary);
 }
 
 /* ============================================================
@@ -1356,7 +1356,7 @@ body {
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #a1a1aa;
+    color: var(--text-secondary);
     margin-bottom: 6px;
 }
 
@@ -1385,7 +1385,7 @@ body {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.07em;
-    color: #71717a;
+    color: var(--text-secondary);
     margin-right: 4px;
 }
 
@@ -1397,7 +1397,7 @@ body {
 
 .city-card-detail {
     font-size: 12px;
-    color: #71717a;
+    color: var(--text-tertiary);
     margin-top: 4px;
     min-height: 16px;
 }
@@ -1436,7 +1436,7 @@ body {
     font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: #a1a1aa;
+    color: var(--text-secondary);
     margin-bottom: 8px;
 }
 
@@ -1450,7 +1450,7 @@ body {
 
 .banner-health {
     font-size: 14px;
-    color: #a1a1aa;
+    color: var(--text-secondary);
     margin-top: 8px;
     min-height: 20px;
 }
@@ -1475,7 +1475,7 @@ body {
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: #71717a;
+    color: var(--text-tertiary);
     margin-bottom: 4px;
 }
 
@@ -1514,7 +1514,7 @@ body {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: #71717a;
+    color: var(--text-tertiary);
 }
 
 .table-body {
@@ -1548,7 +1548,7 @@ body {
 .td-id {
     width: 90px;
     font-size: 11px;
-    color: #71717a;
+    color: var(--text-tertiary);
     font-family: 'JetBrains Mono', monospace;
 }
 
@@ -1644,7 +1644,7 @@ body {
 .row .td-lead {
     font-family: 'JetBrains Mono', monospace;
     font-size: 12px;
-    color: #a1a1aa;
+    color: var(--text-secondary);
 }
 
 .row .td-pm,
@@ -1746,7 +1746,7 @@ body {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #71717a;
+    color: var(--text-tertiary);
 }
 
 .legend-item {
@@ -1754,7 +1754,7 @@ body {
     align-items: center;
     gap: 6px;
     font-size: 12px;
-    color: #a1a1aa;
+    color: var(--text-secondary);
 }
 
 .legend-dot {
@@ -1820,7 +1820,7 @@ body {
 
 .popup-meta {
     font-size: 11px;
-    color: #71717a;
+    color: var(--text-tertiary);
     margin-bottom: 2px;
 }
 
@@ -1839,7 +1839,7 @@ body {
 }
 
 .popup-label {
-    color: #a1a1aa;
+    color: var(--text-secondary);
     font-size: 12px;
 }
 
@@ -1873,12 +1873,12 @@ body {
     border-radius: 8px;
     font-size: 13px;
     font-weight: 600;
-    color: #71717a;
+    color: var(--text-secondary);
     transition: all 0.15s;
 }
 
 .rnav:hover {
-    color: #a1a1aa;
+    color: var(--text-secondary);
     background: rgba(255, 255, 255, 0.08);
 }
 
@@ -1937,13 +1937,13 @@ body {
 
 .research-authors {
     font-size: 15px;
-    color: #a1a1aa;
+    color: var(--text-secondary);
     margin-bottom: 4px;
 }
 
 .research-period {
     font-size: 13px;
-    color: #71717a;
+    color: var(--text-tertiary);
     font-weight: 600;
 }
 
@@ -1964,7 +1964,7 @@ body {
 
 .research-card p {
     font-size: 14px;
-    color: #a1a1aa;
+    color: var(--text-secondary);
     line-height: 1.7;
     margin-bottom: 12px;
 }
@@ -2026,7 +2026,7 @@ body {
 .key-stat-label {
     font-size: 11px;
     font-weight: 600;
-    color: #71717a;
+    color: var(--text-tertiary);
     text-transform: uppercase;
     letter-spacing: 0.04em;
     margin-top: 4px;
@@ -2053,13 +2053,13 @@ body {
 .stat-highlight-label {
     font-size: 13px;
     font-weight: 600;
-    color: #a1a1aa;
+    color: var(--text-secondary);
     margin-top: 4px;
 }
 
 .stat-highlight-desc {
     font-size: 12px;
-    color: #71717a;
+    color: var(--text-tertiary);
     margin-top: 2px;
 }
 
@@ -2086,7 +2086,7 @@ body {
     position: relative;
     padding: 8px 0 8px 20px;
     font-size: 14px;
-    color: #a1a1aa;
+    color: var(--text-secondary);
     line-height: 1.6;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
@@ -2146,7 +2146,7 @@ body {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #71717a;
+    color: var(--text-tertiary);
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -2210,13 +2210,13 @@ body {
 .ref-list li {
     padding-left: 0;
     font-size: 13px;
-    color: #71717a;
+    color: var(--text-secondary);
 }
 
 /* Alert table */
 .alert-table td:last-child {
     font-size: 12px;
-    color: #a1a1aa;
+    color: var(--text-secondary);
     max-width: 400px;
 }
 
@@ -2285,7 +2285,7 @@ body {
 .api-docs .response-label {
     font-size: 11px;
     font-weight: 600;
-    color: #71717a;
+    color: var(--text-tertiary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin-bottom: 8px;
@@ -2335,7 +2335,7 @@ body {
 }
 
 .feedback-header p {
-    color: #a1a1aa;
+    color: var(--text-secondary);
     font-size: 0.9rem;
     line-height: 1.4;
 }
@@ -2351,7 +2351,7 @@ body {
 .sort-btn {
     background: transparent;
     border: none;
-    color: #71717a;
+    color: var(--text-secondary);
     font-size: 0.85rem;
     font-weight: 500;
     padding: 6px 14px;
@@ -2378,7 +2378,7 @@ body {
 
 .suggestions-empty {
     text-align: center;
-    color: #71717a;
+    color: var(--text-secondary);
     padding: 60px 24px;
     background: var(--surface, #0f0f10);
     border-radius: 12px;
@@ -2426,7 +2426,7 @@ body {
 
 .vote-btn:hover {
     background: rgba(255, 255, 255, 0.08);
-    color: #a1a1aa;
+    color: var(--text-secondary);
 }
 
 .vote-btn.voted-up {
@@ -2470,7 +2470,7 @@ body {
 
 .suggestion-meta {
     font-size: 0.8rem;
-    color: #71717a;
+    color: var(--text-tertiary);
     display: flex;
     flex-wrap: wrap;
     gap: 6px 16px;
@@ -2482,7 +2482,7 @@ body {
 }
 
 .suggestion-author {
-    color: #a1a1aa;
+    color: var(--text-secondary);
     font-weight: 500;
 }
 
@@ -2513,7 +2513,7 @@ body {
 
 .detail-meta {
     font-size: 0.85rem;
-    color: #71717a;
+    color: var(--text-tertiary);
     margin-bottom: 1rem;          /* utility mb-4 used to win over 16px */
     display: flex;
     align-items: center;
@@ -2527,7 +2527,7 @@ body {
 }
 
 #detail-author {
-    color: #a1a1aa;
+    color: var(--text-secondary);
     font-weight: 500;
 }
 
@@ -2609,7 +2609,7 @@ body {
 }
 
 .comment-author {
-    color: #a1a1aa;
+    color: var(--text-secondary);
     font-weight: 500;
 }
 
