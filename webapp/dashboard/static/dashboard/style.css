@@ -126,6 +126,39 @@
     box-shadow: 0 0 12px var(--alert-extreme-glow);
 }
 
+/* ========== Skip link (a11y) ========== */
+.skip-link {
+    position: absolute;
+    left: 8px;
+    top: -48px;
+    z-index: 10001;
+    padding: 10px 16px;
+    border-radius: 8px;
+    background: var(--brand);
+    color: var(--brand-text);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: top 0.15s ease;
+}
+
+.skip-link:focus {
+    top: 8px;
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+}
+
+/* ========== Toast container ========== */
+.toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
 /* ========== Global Animations ========== */
 @keyframes dashFadeIn {
     from {

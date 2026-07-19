@@ -26,19 +26,47 @@ const statsRow = document.getElementById("stats-row");
 const stationCount = document.getElementById("station-count");
 const mapStatus = document.getElementById("map-status");
 
-// Tab switching (sidebar)
-document.querySelectorAll(".sidebar-tab").forEach(t => {
-    t.addEventListener("click", () => {
-        document.querySelector(".sidebar-tab.tab-active")?.classList.remove("tab-active");
-        t.classList.add("tab-active");
-        document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("tab-visible"));
-        document.getElementById("tab-" + t.dataset.tab).classList.add("tab-visible");
-        if (t.dataset.tab === "map") {
-            if (stations.length === 0) loadStations().then(() => initMap());
-            else initMap();
-        }
+// Legacy hash deep-links (#tab-research/#tab-feedback/#tab-api/#tab-billing)
+// used to switch in-page tabs. Those views are now real routes — redirect so
+// old bookmarks/shared links keep working.
+(function redirectLegacyTabHashes() {
+    const routes = {
+        "#tab-research": "/research/",
+        "#tab-feedback": "/feedback/",
+        "#tab-api": "/developers/",
+        "#tab-billing": "/billing/",
+    };
+    const dest = routes[location.hash];
+    if (dest) location.replace(dest);
+})();
+
+// Dashboard has two views of the same live data — the cards+table and the
+// live map — toggled by URL hash (#map) so both are linkable and keyboard
+// reachable. This only runs on the dashboard page (the tab elements exist there).
+function showDashView(view) {
+    const dash = document.getElementById("tab-dashboard");
+    const mapTab = document.getElementById("tab-map");
+    if (!dash || !mapTab) return;
+    const showMap = view === "map";
+    dash.classList.toggle("tab-visible", !showMap);
+    mapTab.classList.toggle("tab-visible", showMap);
+    document.querySelectorAll(".sidebar-tab[data-nav]").forEach(a => {
+        const on = a.dataset.nav === (showMap ? "map" : "dashboard");
+        a.classList.toggle("tab-active", on);
+        if (on) a.setAttribute("aria-current", "page");
+        else a.removeAttribute("aria-current");
     });
-});
+    if (showMap) {
+        if (stations.length === 0) loadStations().then(() => initMap());
+        else initMap();
+    }
+}
+if (document.getElementById("tab-dashboard")) {
+    showDashView(location.hash === "#map" ? "map" : "dashboard");
+    window.addEventListener("hashchange", () => {
+        showDashView(location.hash === "#map" ? "map" : "dashboard");
+    });
+}
 
 // Research nav
 document.querySelectorAll(".rnav").forEach(btn => {
@@ -175,9 +203,14 @@ function showToast(message, type = "success") {
 async function init() {
     await loadStations();
     const hasLive = await loadLiveData();
-    if (!hasLive) {
+    if (!hasLive && statusEl) {
         statusEl.textContent = "No live data yet — run demo or wait for next refresh";
     }
-    initFeedbackBoard();
+    // Feedback board is its own route now; only init if its script is present.
+    if (window.initFeedbackBoard) initFeedbackBoard();
 }
-init();
+// Only run the live-data bootstrap on the dashboard page (where the status/
+// table DOM exists). Other routes share app.js for nav + account UI only.
+if (document.getElementById("status")) {
+    init();
+}

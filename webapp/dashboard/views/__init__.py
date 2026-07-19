@@ -7,6 +7,8 @@ Re-exports all views for backwards compatibility with urls.py.
 # Core views
 from .core import (
     index,
+    research_page,
+    feedback_page,
     api_stations,
     api_demo,
     api_live,
@@ -70,6 +72,8 @@ __all__ = [
     "privacy_page",
     # Core
     "index",
+    "research_page",
+    "feedback_page",
     "api_stations",
     "api_demo",
     "api_live",
