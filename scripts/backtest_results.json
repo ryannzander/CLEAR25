@@ -1,0 +1,126 @@
+{
+  "generated_for": "alert-fusion decision",
+  "horizons": {
+    "6": {
+      "theta_val_selected": 0.76,
+      "val": {
+        "episodes": 16,
+        "detected": 9,
+        "uncovered": 0,
+        "mean_lead_h": 3.3333333333333335,
+        "median_lead_h": 3.0,
+        "false_episodes": 17
+      },
+      "test": {
+        "episodes": 32,
+        "detected": 20,
+        "uncovered": 0,
+        "mean_lead_h": 4.15,
+        "median_lead_h": 5.0,
+        "false_episodes": 30
+      },
+      "persistence": {
+        "theta": 31.0,
+        "test": {
+          "episodes": 32,
+          "detected": 20,
+          "uncovered": 0,
+          "mean_lead_h": 1.6,
+          "median_lead_h": 1.0,
+          "false_episodes": 20
+        }
+      }
+    },
+    "12": {
+      "theta_val_selected": 0.8,
+      "val": {
+        "episodes": 16,
+        "detected": 4,
+        "uncovered": 0,
+        "mean_lead_h": 8.25,
+        "median_lead_h": 9.0,
+        "false_episodes": 7
+      },
+      "test": {
+        "episodes": 32,
+        "detected": 10,
+        "uncovered": 0,
+        "mean_lead_h": 8.8,
+        "median_lead_h": 10.5,
+        "false_episodes": 13
+      },
+      "persistence": {
+        "theta": 31.0,
+        "test": {
+          "episodes": 32,
+          "detected": 21,
+          "uncovered": 0,
+          "mean_lead_h": 4.809523809523809,
+          "median_lead_h": 2.0,
+          "false_episodes": 19
+        }
+      }
+    },
+    "24": {
+      "theta_val_selected": 0.42,
+      "val": {
+        "episodes": 16,
+        "detected": 8,
+        "uncovered": 0,
+        "mean_lead_h": 11.75,
+        "median_lead_h": 11.0,
+        "false_episodes": 24
+      },
+      "test": {
+        "episodes": 32,
+        "detected": 22,
+        "uncovered": 0,
+        "mean_lead_h": 19.363636363636363,
+        "median_lead_h": 24.0,
+        "false_episodes": 46
+      },
+      "persistence": {
+        "theta": 31.0,
+        "test": {
+          "episodes": 32,
+          "detected": 24,
+          "uncovered": 0,
+          "mean_lead_h": 11.625,
+          "median_lead_h": 9.0,
+          "false_episodes": 18
+        }
+      }
+    },
+    "48": {
+      "theta_val_selected": 0.46,
+      "val": {
+        "episodes": 16,
+        "detected": 6,
+        "uncovered": 0,
+        "mean_lead_h": 10.0,
+        "median_lead_h": 9.0,
+        "false_episodes": 55
+      },
+      "test": {
+        "episodes": 32,
+        "detected": 22,
+        "uncovered": 0,
+        "mean_lead_h": 36.95454545454545,
+        "median_lead_h": 43.5,
+        "false_episodes": 80
+      },
+      "persistence": {
+        "theta": 31.0,
+        "test": {
+          "episodes": 32,
+          "detected": 24,
+          "uncovered": 0,
+          "mean_lead_h": 19.166666666666668,
+          "median_lead_h": 11.5,
+          "false_episodes": 18
+        }
+      }
+    }
+  },
+  "test_span_days": 2100.2
+}
