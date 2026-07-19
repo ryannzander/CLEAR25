@@ -19,7 +19,7 @@ ALERT_LEVELS = [
      "health": "Sensitive groups (children, elderly, respiratory conditions) should reduce outdoor activity."},
     {"name": "HIGH",      "min": 60,  "max": 80,    "hex": "#f97316", "text_color": "black",
      "health": "General population affected. Reduce prolonged outdoor exertion. Use N95/KN95 mask outdoors."},
-    {"name": "VERY HIGH", "min": 80,  "max": 120,   "hex": "#ef4444", "text_color": "white",
+    {"name": "VERY HIGH", "min": 80,  "max": 120,   "hex": "#dc2626", "text_color": "white",
      "health": "Significant risk for all. Avoid outdoor exertion. Keep doors and windows closed."},
     {"name": "EXTREME",   "min": 120, "max": 1e9,   "hex": "#7f1d1d", "text_color": "white",
      "health": "Emergency conditions. Stay indoors. Close windows. Run HEPA filter. No indoor pollution sources."},

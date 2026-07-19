@@ -261,12 +261,12 @@
                 <div id="map-container" class="map-container"></div>
                 <div class="map-legend">
                     <span class="legend-title">Alert Levels:</span>
-                    <span class="legend-item"><span class="legend-dot" style="background:#22c55e"></span>Low</span>
-                    <span class="legend-item"><span class="legend-dot" style="background:#eab308"></span>Moderate</span>
-                    <span class="legend-item"><span class="legend-dot" style="background:#f97316"></span>High</span>
-                    <span class="legend-item"><span class="legend-dot" style="background:#ef4444"></span>Very
+                    <span class="legend-item"><span class="legend-dot" style="background:var(--alert-low-bg)"></span>Low</span>
+                    <span class="legend-item"><span class="legend-dot" style="background:var(--alert-moderate-bg)"></span>Moderate</span>
+                    <span class="legend-item"><span class="legend-dot" style="background:var(--alert-high-bg)"></span>High</span>
+                    <span class="legend-item"><span class="legend-dot" style="background:var(--alert-veryhigh-bg)"></span>Very
                         High</span>
-                    <span class="legend-item"><span class="legend-dot" style="background:#7f1d1d"></span>Extreme</span>
+                    <span class="legend-item"><span class="legend-dot" style="background:var(--alert-extreme-bg)"></span>Extreme</span>
                     <span class="legend-title" style="margin-left:8px;">Markers:</span>
                     <span class="legend-item"><span class="legend-dot"
                             style="background:#fff;border:2px solid #71717a;"></span>City</span>
@@ -534,7 +534,7 @@
                                             <td>Ottawa (341 km NE)</td>
                                             <td><strong>156 µg/m³</strong></td>
                                             <td><span class="badge"
-                                                    style="background:#7f1d1d;color:white">EXTREME</span></td>
+                                                    style="background:var(--alert-extreme-bg);color:white">EXTREME</span></td>
                                         </tr>
                                         <tr>
                                             <td>June 6</td>
@@ -542,7 +542,7 @@
                                             <td>Cornwall (387 km ENE)</td>
                                             <td><strong>160 µg/m³</strong></td>
                                             <td><span class="badge"
-                                                    style="background:#7f1d1d;color:white">EXTREME</span></td>
+                                                    style="background:var(--alert-extreme-bg);color:white">EXTREME</span></td>
                                         </tr>
                                         <tr class="total-row">
                                             <td>June 28</td>
@@ -550,7 +550,7 @@
                                             <td>Toronto (Peak)</td>
                                             <td><strong>241 µg/m³</strong></td>
                                             <td><span class="badge"
-                                                    style="background:#7f1d1d;color:white">EXTREME</span></td>
+                                                    style="background:var(--alert-extreme-bg);color:white">EXTREME</span></td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -631,14 +631,14 @@
                                     <tbody>
                                         <tr>
                                             <td><span class="badge"
-                                                    style="background:#22c55e;color:black;font-size:12px;padding:5px 14px;">LOW</span>
+                                                    style="background:var(--alert-low-bg);color:black;font-size:12px;padding:5px 14px;">LOW</span>
                                             </td>
                                             <td>0–20 µg/m³</td>
                                             <td>No significant risk. No action required.</td>
                                         </tr>
                                         <tr>
                                             <td><span class="badge"
-                                                    style="background:#eab308;color:black;font-size:12px;padding:5px 14px;">MODERATE</span>
+                                                    style="background:var(--alert-moderate-bg);color:black;font-size:12px;padding:5px 14px;">MODERATE</span>
                                             </td>
                                             <td>20–60 µg/m³</td>
                                             <td>Sensitive groups (children, elderly, respiratory conditions) should
@@ -646,7 +646,7 @@
                                         </tr>
                                         <tr>
                                             <td><span class="badge"
-                                                    style="background:#f97316;color:black;font-size:12px;padding:5px 14px;">HIGH</span>
+                                                    style="background:var(--alert-high-bg);color:black;font-size:12px;padding:5px 14px;">HIGH</span>
                                             </td>
                                             <td>60–80 µg/m³</td>
                                             <td>General population affected. Reduce prolonged outdoor exertion. Use
@@ -654,7 +654,7 @@
                                         </tr>
                                         <tr>
                                             <td><span class="badge"
-                                                    style="background:#ef4444;color:white;font-size:12px;padding:5px 14px;">VERY
+                                                    style="background:var(--alert-veryhigh-bg);color:white;font-size:12px;padding:5px 14px;">VERY
                                                     HIGH</span></td>
                                             <td>80–120 µg/m³</td>
                                             <td>Significant risk for all. Avoid outdoor exertion. Keep doors and windows
@@ -662,7 +662,7 @@
                                         </tr>
                                         <tr>
                                             <td><span class="badge"
-                                                    style="background:#7f1d1d;color:white;font-size:12px;padding:5px 14px;">EXTREME</span>
+                                                    style="background:var(--alert-extreme-bg);color:white;font-size:12px;padding:5px 14px;">EXTREME</span>
                                             </td>
                                             <td>&gt;120 µg/m³</td>
                                             <td>Emergency conditions. Stay indoors. Close windows. Run HEPA filter. No
@@ -971,7 +971,7 @@
                             <tbody>
                                 <tr>
                                     <td><span
-                                            style="display:inline-block;padding:4px 10px;border-radius:4px;background:#22c55e;color:#000;font-weight:600;font-size:12px;">1</span>
+                                            style="display:inline-block;padding:4px 10px;border-radius:4px;background:var(--alert-low-bg);color:#000;font-weight:600;font-size:12px;">1</span>
                                     </td>
                                     <td>LOW</td>
                                     <td>0–20 µg/m³</td>
@@ -979,7 +979,7 @@
                                 </tr>
                                 <tr>
                                     <td><span
-                                            style="display:inline-block;padding:4px 10px;border-radius:4px;background:#eab308;color:#000;font-weight:600;font-size:12px;">2</span>
+                                            style="display:inline-block;padding:4px 10px;border-radius:4px;background:var(--alert-moderate-bg);color:#000;font-weight:600;font-size:12px;">2</span>
                                     </td>
                                     <td>MODERATE</td>
                                     <td>20–60 µg/m³</td>
@@ -987,7 +987,7 @@
                                 </tr>
                                 <tr>
                                     <td><span
-                                            style="display:inline-block;padding:4px 10px;border-radius:4px;background:#f97316;color:#000;font-weight:600;font-size:12px;">3</span>
+                                            style="display:inline-block;padding:4px 10px;border-radius:4px;background:var(--alert-high-bg);color:#000;font-weight:600;font-size:12px;">3</span>
                                     </td>
                                     <td>HIGH</td>
                                     <td>60–80 µg/m³</td>
@@ -995,7 +995,7 @@
                                 </tr>
                                 <tr>
                                     <td><span
-                                            style="display:inline-block;padding:4px 10px;border-radius:4px;background:#ef4444;color:#fff;font-weight:600;font-size:12px;">4</span>
+                                            style="display:inline-block;padding:4px 10px;border-radius:4px;background:var(--alert-veryhigh-bg);color:#fff;font-weight:600;font-size:12px;">4</span>
                                     </td>
                                     <td>VERY HIGH</td>
                                     <td>80–120 µg/m³</td>
@@ -1003,7 +1003,7 @@
                                 </tr>
                                 <tr>
                                     <td><span
-                                            style="display:inline-block;padding:4px 10px;border-radius:4px;background:#7f1d1d;color:#fff;font-weight:600;font-size:12px;">5</span>
+                                            style="display:inline-block;padding:4px 10px;border-radius:4px;background:var(--alert-extreme-bg);color:#fff;font-weight:600;font-size:12px;">5</span>
                                     </td>
                                     <td>EXTREME</td>
                                     <td>&gt;120 µg/m³</td>
@@ -1196,7 +1196,7 @@
                         </div>
                         <div class="modal-body" style="padding:20px;text-align:center;">
                             <div
-                                style="width:48px;height:48px;background:#22c55e20;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                                style="width:48px;height:48px;background:var(--alert-low-bg)20;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22c55e"
                                     stroke-width="2">
                                     <polyline points="20 6 9 17 4 12" />
@@ -1526,10 +1526,11 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="{% static 'dashboard/app-csrf.js' %}?v=1"></script>
+    <script src="{% static 'dashboard/alert-tokens.js' %}?v=1"></script>
     <script src="{% static 'dashboard/app.js' %}?v=37"></script>
-    <script src="{% static 'dashboard/app-render.js' %}?v=37"></script>
+    <script src="{% static 'dashboard/app-render.js' %}?v=38"></script>
     <script src="{% static 'dashboard/app-fusion.js' %}?v=2"></script>
-    <script src="{% static 'dashboard/app-map.js' %}?v=39"></script>
+    <script src="{% static 'dashboard/app-map.js' %}?v=40"></script>
     <script src="{% static 'dashboard/app-feedback.js' %}?v=37"></script>
     <script src="{% static 'dashboard/app-feedback-actions.js' %}?v=37"></script>
     <script src="{% static 'dashboard/app-keys.js' %}?v=37"></script>

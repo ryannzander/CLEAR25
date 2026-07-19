@@ -54,16 +54,18 @@ function getCityAlertInfo(results, cityName) {
 
     const alert = lastCityAlerts && lastCityAlerts[cityName];
     if (alert) {
+        const c = alertColor(alert.level_name);
         return {
-            color: alert.level_hex, level: alert.level_name,
-            predicted: alert.predicted_pm25, hex: alert.level_hex,
-            textColor: alert.level_text_color,
+            color: c, level: alert.level_name,
+            predicted: alert.predicted_pm25, hex: c,
+            textColor: alertInk(alert.level_name),
             lead: cityResults[0].lead, station: cityResults[0].station,
             count: cityResults.length, isAlert: alert.alert, rule: alert.rule,
         };
     }
     const worst = cityResults[0];
-    return { color: worst.level_hex, level: worst.level_name, predicted: worst.predicted, hex: worst.level_hex, textColor: worst.level_text_color, lead: worst.lead, station: worst.station, count: cityResults.length };
+    const wc = alertColor(worst.level_name);
+    return { color: wc, level: worst.level_name, predicted: worst.predicted, hex: wc, textColor: alertInk(worst.level_name), lead: worst.lead, station: worst.station, count: cityResults.length };
 }
 
 function updateMapMarkers(results) {
@@ -113,7 +115,7 @@ function updateMapMarkers(results) {
         if (hasData) {
             popupContent += `
                 <div class="popup-row"><span class="popup-label">Predicted PM2.5</span><span class="popup-val" style="color:${alert.hex};font-size:16px;">${alert.predicted.toFixed(1)} µg/m³</span></div>
-                <div class="popup-row"><span class="popup-label">Alert Level</span><span class="popup-val"><span class="badge" style="background:${alert.hex};color:${alert.textColor};font-size:9px;padding:2px 8px">${alert.level}</span></span></div>
+                <div class="popup-row"><span class="popup-label">Alert Level</span><span class="popup-val">${alertBadge(alert.level, { small: true })}</span></div>
                 <div class="popup-row"><span class="popup-label">Earliest Warning</span><span class="popup-val">${alert.lead || "—"}</span></div>
                 <div class="popup-row"><span class="popup-label">Stations</span><span class="popup-val">${alert.count} reporting</span></div>
             `;
@@ -139,14 +141,14 @@ function updateMapMarkers(results) {
         let shouldPulse = false;
 
         if (r) {
-            color = r.level_hex;
+            color = alertColor(r.level_name);
             size = 12;
             shouldPulse = r.level_name === "EXTREME" || r.level_name === "VERY HIGH";
             popupExtra = `
                 <div class="popup-divider"></div>
                 <div class="popup-row"><span class="popup-label">PM2.5</span><span class="popup-val">${r.pm25.toFixed(1)} µg/m³</span></div>
-                <div class="popup-row"><span class="popup-label">Predicted</span><span class="popup-val" style="color:${r.level_hex}">${r.predicted.toFixed(1)} µg/m³</span></div>
-                <div class="popup-row"><span class="popup-label">Level</span><span class="popup-val"><span class="badge" style="background:${r.level_hex};color:${r.level_text_color};font-size:9px;padding:2px 8px">${r.level_name}</span></span></div>
+                <div class="popup-row"><span class="popup-label">Predicted</span><span class="popup-val" style="color:${color}">${r.predicted.toFixed(1)} µg/m³</span></div>
+                <div class="popup-row"><span class="popup-label">Level</span><span class="popup-val">${alertBadge(r.level_name, { small: true })}</span></div>
                 <div class="popup-row"><span class="popup-label">Lead Time</span><span class="popup-val">${r.lead}</span></div>
             `;
         }
@@ -173,7 +175,7 @@ function updateMapMarkers(results) {
         if (r && citiesInfo[city]) {
             const ci = citiesInfo[city];
             const line = L.polyline([[st.lat, st.lon], [ci.lat, ci.lon]], {
-                color: r.level_hex, weight: 1.5, opacity: 0.25, dashArray: "4 6",
+                color: alertColor(r.level_name), weight: 1.5, opacity: 0.25, dashArray: "4 6",
             }).addTo(map);
             mapMarkers.push(line);
         }

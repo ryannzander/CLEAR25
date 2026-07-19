@@ -23,7 +23,7 @@ function renderTable(results) {
         const lead = hasData ? r.lead : "";
         let badge = "";
         if (hasData) {
-            badge = `<span class="badge" style="background:${r.level_hex};color:${r.level_text_color}">${r.level_name}</span>`;
+            badge = alertBadge(r.level_name, { small: true });
         }
 
         html += `<div class="row${hasData ? "" : " no-data"}">
@@ -76,24 +76,26 @@ function updateCityCards(results, cityAlerts) {
 
         const alert = cityAlerts && cityAlerts[city];
         if (alert) {
-            card.style.setProperty("--card-color", alert.level_hex);
-            card.style.borderColor = alert.level_hex + "44";
+            const c = alertColor(alert.level_name);
+            card.style.setProperty("--card-color", c);
+            card.style.borderColor = c + "44";
             if (alert.alert) {
                 const ruleLabel = alert.rule === "rule1" ? "Single station ≥55" : "Dual station sustained";
                 levelEl.textContent = `${alert.level_name}  ·  ${alert.predicted_pm25} µg/m³`;
-                levelEl.style.color = alert.level_hex;
+                levelEl.style.color = c;
                 detailEl.textContent = `${ruleLabel} · ${cityResults.length} stations`;
             } else {
                 levelEl.textContent = `No Alert  ·  ${alert.predicted_pm25} µg/m³`;
-                levelEl.style.color = alert.level_hex;
+                levelEl.style.color = c;
                 detailEl.textContent = `${cityResults.length} stations reporting`;
             }
         } else {
             const worst = cityResults[0];
-            card.style.setProperty("--card-color", worst.level_hex);
-            card.style.borderColor = worst.level_hex + "44";
+            const c = alertColor(worst.level_name);
+            card.style.setProperty("--card-color", c);
+            card.style.borderColor = c + "44";
             levelEl.textContent = `${worst.level_name}  ·  ${worst.predicted.toFixed(1)} µg/m³`;
-            levelEl.style.color = worst.level_hex;
+            levelEl.style.color = c;
             detailEl.textContent = `via ${worst.station} · ${cityResults.length} stations`;
         }
     });
@@ -102,7 +104,7 @@ function updateCityCards(results, cityAlerts) {
         statsRow.style.display = "grid";
         const worst = results[0];
         document.getElementById("stat-worst").textContent = worst.predicted.toFixed(1);
-        document.getElementById("stat-worst").style.color = worst.level_hex;
+        document.getElementById("stat-worst").style.color = alertColor(worst.level_name);
         document.getElementById("stat-reporting").textContent = results.length;
         const tier1 = results.filter(r => r.tier === 1);
         document.getElementById("stat-lead").textContent = tier1.length > 0 ? tier1[0].lead : results[0].lead;
@@ -119,8 +121,8 @@ function updateAccentColor(results) {
         return;
     }
     const worst = results[0];
-    root.style.setProperty("--accent-color", worst.level_hex);
-    root.style.setProperty("--accent-text", worst.level_text_color);
+    root.style.setProperty("--accent-color", alertColor(worst.level_name));
+    root.style.setProperty("--accent-text", alertInk(worst.level_name));
 }
 
 function handleResults(results, label, cityAlerts) {
