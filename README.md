@@ -2,10 +2,10 @@
 
 <p align="center">
   <strong>A PM2.5 wildfire smoke early warning system</strong><br>
-  Using air quality monitoring stations 100–600+ km away to provide <strong>6–48 hours of advance warning</strong> before dangerous smoke arrives in major Canadian cities.
+  Using air quality monitoring stations 100–600+ km away to provide <strong>up to 87 hours of advance warning (24.7 h average)</strong> before dangerous smoke arrives in major Canadian cities.
 </p>
 
-**Source of truth:** [CLEAR_Methodology_ScienceFair Ver#1](data/LAPTOP%20TSF%202026/01.%20Summary%20Documents/CLEAR_Methodology_ScienceFair%20Ver%231.pdf)
+**Source of truth:** Bui & Zander (2026), *Before the Sky Turns Orange: The C.L.E.A.R. System (Canadian Lead-Time Early Air Response)*
 
 **Authors:** Hugo Bui & Ryan Zander
 
@@ -50,28 +50,30 @@ PM2.5_city = slope × PM2.5_station + intercept
 
 When a remote station's PM2.5 reading exceeds a computed threshold, a colour-coded health alert is triggered **hours before** the smoke reaches the city.
 
-### Alert Levels (per methodology Section 3)
+### Alert Levels (per Bui & Zander, 2026, Table 2)
 
 | Level | PM2.5 (µg/m³) | Color | Action |
 |-------|---------------|-------|--------|
-| **LOW** | 0–20 | Green | No precautions needed |
-| **MODERATE** | 21–60 | Yellow | Sensitive groups reduce outdoor activity |
+| **LOW** | < 20 | Green | No smoke-specific precautions needed |
+| **MODERATE** | 20–60 | Yellow | Sensitive groups reduce strenuous outdoor activity |
 | **HIGH** | 61–80 | Orange | Reduce exertion, wear N95, close windows, run HEPA |
 | **VERY HIGH** | 81–120 | Red | Avoid all outdoor activity |
 | **EXTREME** | > 120 | Dark red | Stay indoors, close windows, run HEPA, no indoor pollution sources |
 
-### Validation (per methodology)
+### Validation (2024 out-of-sample, per Bui & Zander, 2026)
 
 | Metric | Value |
 |--------|-------|
-| **Accuracy** | 90.9% |
+| **Accuracy** | 87.5% |
 | **Sensitivity** | 100% (zero missed events) |
-| **Mean lead time** | 15.7 hours |
+| **Specificity** | 66.7% |
+| **Mean lead time** | 24.7 hours |
 | **Maximum lead time** | 87 hours |
-| **Study period** | 2003–2023, wildfire season (May–September) |
+| **Validation set** | 2024 wildfire season (out-of-sample); 8 events — 5 TP / 2 TN / 1 FP / 0 FN |
+| **Development set** | 2003–2023, wildfire season (May–September); 479 stations analyzed (348 NAPS + 131 U.S. EPA), 56 operational after screening |
 | **Data volume** | 36M+ hourly observations from NAPS and U.S. EPA networks |
 
-### Station Selection Criteria (methodology Section 2.3)
+### Station Selection Criteria (per Bui & Zander, 2026)
 
 - **R ≥ 0.30**, P < 0.001, N ≥ 100 observations
 - Toronto reference: NAPS 60430 (primary), 60410 (secondary); highest-station approach
@@ -303,7 +305,7 @@ flowchart TB
 
 ## Three-Rule Detection System
 
-Source: CLEAR_Methodology_ScienceFair Ver#1 (Sections 4–6)
+Source: Bui & Zander (2026), *Before the Sky Turns Orange* (Methods)
 
 ### Rule Decision Flowchart
 
@@ -689,4 +691,4 @@ The app prefers `WAQI_API_TOKEN` env var over `config.json`.
 
 - **Authors:** Hugo Bui & Ryan Zander
 - **Institution:** University of Toronto Schools
-- **Methodology:** CLEAR_Methodology_ScienceFair Ver#1
+- **Paper (source of truth):** Bui & Zander (2026), *Before the Sky Turns Orange: The C.L.E.A.R. System*

@@ -300,14 +300,14 @@
                             <h1 class="research-h1">Before the Sky Turns Orange</h1>
                             <p class="research-subtitle">The C.L.E.A.R. System: Canadian Lead-Time Early Air Response
                             </p>
-                            <p class="research-period">Providing 6–48 Hours of Advance Warning for Wildfire Smoke</p>
-                            <p class="research-period" style="font-size:12px;color:#71717a;margin-top:8px;">Source: CLEAR_Methodology_ScienceFair Ver#1</p>
+                            <p class="research-period">Providing up to 87 Hours (24.7 h average) of Advance Warning for Wildfire Smoke</p>
+                            <p class="research-period" style="font-size:12px;color:#71717a;margin-top:8px;">Source: Bui &amp; Zander (2026), &ldquo;Before the Sky Turns Orange&rdquo;</p>
                         </div>
                         <div class="research-card">
                             <h2>Project Summary</h2>
                             <p>C.L.E.A.R. is a wildfire PM2.5 early warning system for <strong>Toronto, Edmonton,
                                     Montréal, and Vancouver</strong> that repurposes existing NAPS air quality stations
-                                located 100–600+ km away to provide <strong>6–48+ hours of advance warning</strong>
+                                located 100–600+ km away to provide <strong>up to 87 hours (24.7 h average) of advance warning</strong>
                                 before dangerous smoke arrives.</p>
                             <div class="key-stats">
                                 <div class="key-stat">
@@ -315,8 +315,8 @@
                                     <div class="key-stat-label">Hourly Observations</div>
                                 </div>
                                 <div class="key-stat">
-                                    <div class="key-stat-value">162</div>
-                                    <div class="key-stat-label">Active Stations</div>
+                                    <div class="key-stat-value">479</div>
+                                    <div class="key-stat-label">Stations Analyzed</div>
                                 </div>
                                 <div class="key-stat">
                                     <div class="key-stat-value">4 Cities</div>
@@ -325,15 +325,15 @@
                             </div>
                             <div class="key-stats" style="margin-top:12px;">
                                 <div class="key-stat">
-                                    <div class="key-stat-value">90.9%</div>
-                                    <div class="key-stat-label">Accuracy</div>
+                                    <div class="key-stat-value">87.5%</div>
+                                    <div class="key-stat-label">Accuracy (2024)</div>
                                 </div>
                                 <div class="key-stat">
                                     <div class="key-stat-value">100%</div>
                                     <div class="key-stat-label">Sensitivity (0 missed)</div>
                                 </div>
                                 <div class="key-stat">
-                                    <div class="key-stat-value">15.7h</div>
+                                    <div class="key-stat-value">24.7h</div>
                                     <div class="key-stat-label">Mean Lead Time</div>
                                 </div>
                             </div>
@@ -352,8 +352,8 @@
                             <h2>Purpose</h2>
                             <p>Develop an early warning system that uses <strong>existing NAPS and U.S. EPA monitoring
                                     infrastructure</strong> — stations located 100–600+ km upstream — to detect
-                                approaching wildfire smoke plumes and issue colour-coded health alerts <strong>6–48
-                                    hours in advance</strong>.</p>
+                                approaching wildfire smoke plumes and issue colour-coded health alerts <strong>up to 87
+                                    hours in advance (24.7 h average)</strong>.</p>
                             <p>The system targets four major Canadian cities: Toronto, Edmonton, Montréal, and
                                 Vancouver, covering diverse geographic and smoke exposure patterns.</p>
                         </div>
@@ -363,7 +363,7 @@
                     <div id="sec-methodology" class="research-section">
                         <div class="research-card">
                             <h2>Three-Rule Detection System</h2>
-                            <p>C.L.E.A.R. uses a validated three-rule detection methodology per <strong>CLEAR_Methodology_ScienceFair Ver#1</strong>:</p>
+                            <p>C.L.E.A.R. organizes its 56-station operational network into three detection rules (Bui &amp; Zander, 2026):</p>
                             <div class="method-grid">
                                 <div class="method-item">
                                     <h3>Rule 1: Regional Alert</h3>
@@ -388,9 +388,9 @@
                         <div class="research-card">
                             <h2>Data Sources &amp; Analysis</h2>
                             <ul class="method-list">
-                                <li><strong>Station selection:</strong> R ≥ 0.30, p &lt; 0.001, N ≥ 100 (methodology Section 2.3)</li>
+                                <li><strong>Station selection:</strong> R ≥ 0.30, p &lt; 0.001, N ≥ 100 (inclusion criteria per Bui &amp; Zander, 2026)</li>
                                 <li><strong>Toronto reference:</strong> NAPS 60430 (primary), 60410 (secondary); highest-station approach</li>
-                                <li><strong>NAPS Network:</strong> 309 Canadian + 131 U.S. EPA stations; 36M+ hourly observations</li>
+                                <li><strong>NAPS Network:</strong> 348 Canadian NAPS + 131 U.S. EPA stations analyzed (56 operational after statistical screening); 36M+ hourly observations</li>
                                 <li><strong>U.S. EPA AQS:</strong> Border stations in NY, PA, VT, WA, OR for
                                     cross-border smoke</li>
                                 <li><strong>Study period:</strong> 2003–2023 (21 years of wildfire seasons)</li>
@@ -407,8 +407,44 @@
                     <!-- Results -->
                     <div id="sec-results" class="research-section">
                         <div class="research-card">
-                            <h2>Three-Rule Validation Results (2003–2023)</h2>
-                            <p>Each rule was validated independently against 21 years of historical data:</p>
+                            <h2>Independent Validation — 2024 Out-of-Sample</h2>
+                            <p>The finalized 56-station network was tested on the 2024 wildfire season — events not used
+                                during model development (Bui &amp; Zander, 2026):</p>
+                            <div class="key-stats">
+                                <div class="key-stat">
+                                    <div class="key-stat-value">87.5%</div>
+                                    <div class="key-stat-label">Accuracy</div>
+                                </div>
+                                <div class="key-stat">
+                                    <div class="key-stat-value">100%</div>
+                                    <div class="key-stat-label">Sensitivity (0 missed)</div>
+                                </div>
+                                <div class="key-stat">
+                                    <div class="key-stat-value">66.7%</div>
+                                    <div class="key-stat-label">Specificity</div>
+                                </div>
+                            </div>
+                            <div class="key-stats" style="margin-top:12px;">
+                                <div class="key-stat">
+                                    <div class="key-stat-value">24.7h</div>
+                                    <div class="key-stat-label">Average Lead Time</div>
+                                </div>
+                                <div class="key-stat">
+                                    <div class="key-stat-value">87h</div>
+                                    <div class="key-stat-label">Maximum Lead Time</div>
+                                </div>
+                                <div class="key-stat">
+                                    <div class="key-stat-value">5·2·1·0</div>
+                                    <div class="key-stat-label">TP · TN · FP · FN</div>
+                                </div>
+                            </div>
+                            <p style="margin-top:12px;color:#a1a1aa;font-size:13px;">8 independent 2024 wildfire smoke
+                                episodes (5 true positives, 2 true negatives, 1 false positive, 0 false negatives). The
+                                system detected every hazardous smoke event that reached Toronto.</p>
+                        </div>
+                        <div class="research-card">
+                            <h2>Three-Rule Detection — 2003–2023 Development Breakdown</h2>
+                            <p>Each rule's performance across 21 years of historical development data (2003–2023):</p>
                             <div class="research-table-wrap">
                                 <table class="research-table">
                                     <thead>
@@ -534,7 +570,7 @@
                         </div>
                         <div class="research-card">
                             <h2>Methodology Citation</h2>
-                            <p>All detection rules, thresholds, and validation metrics are from <strong>CLEAR_Methodology_ScienceFair Ver#1</strong> (data/LAPTOP TSF 2026/01. Summary Documents/). The methodology is the authoritative source of truth for this system.</p>
+                            <p>All detection rules, thresholds, and validation metrics follow the C.L.E.A.R. research paper — <strong>Bui &amp; Zander (2026), &ldquo;Before the Sky Turns Orange: The C.L.E.A.R. System.&rdquo;</strong> The paper is the authoritative source of truth for this system.</p>
                         </div>
                         <div class="research-card">
                             <h2>AI Platform Validation</h2>
@@ -648,8 +684,8 @@
                                 </div>
                                 <div class="conclusion-item">
                                     <h3>Proven Reliability</h3>
-                                    <p>97.8% precision with only 2 false positives across 21 years of validation.
-                                        Three-rule system provides robust detection with minimal false alarms.</p>
+                                    <p>100% sensitivity with zero missed events in the 2024 out-of-sample validation
+                                        (87.5% accuracy, 66.7% specificity). The three-rule system provides robust detection with minimal false alarms.</p>
                                 </div>
                                 <div class="conclusion-item">
                                     <h3>Actionable Results</h3>
