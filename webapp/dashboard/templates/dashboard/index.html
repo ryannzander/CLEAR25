@@ -16,6 +16,7 @@
                         <div class="city-card-content">
                             <div class="city-card-name">{{ city }}</div>
                             <div class="city-card-level">Waiting for data</div>
+                            <div class="city-card-pm"></div>
                             <div class="city-card-detail"></div>
                             <div class="city-card-fusion" id="fusion-{{ city }}"
                                  style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;"></div>
@@ -64,7 +65,7 @@
                         <span class="th th-dist">Distance</span>
                         <span class="th th-dir">Dir</span>
                         <span class="th th-tier">Tier</span>
-                        <span class="th th-pm">PM2.5</span>
+                        <span class="th th-pm">Live PM2.5</span>
                         <span class="th th-pred">Predicted</span>
                         <span class="th th-level">Level</span>
                         <span class="th th-lead">Lead Time</span>
@@ -116,7 +117,7 @@
 {% endblock %}
 {% block scripts %}
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="{% static 'dashboard/app-render.js' %}?v=38"></script>
+    <script src="{% static 'dashboard/app-render.js' %}?v=39"></script>
     <script src="{% static 'dashboard/app-fusion.js' %}?v=2"></script>
     <script src="{% static 'dashboard/app-map.js' %}?v=40"></script>
 {% endblock %}

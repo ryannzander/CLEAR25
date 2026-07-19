@@ -53,13 +53,16 @@ function updateCityCards(results, cityAlerts) {
         const card = document.getElementById("card-" + city);
         if (!card) return;
         const levelEl = card.querySelector(".city-card-level");
+        const pmEl = card.querySelector(".city-card-pm");
         const detailEl = card.querySelector(".city-card-detail");
 
         if (!results || results.length === 0) {
             card.style.setProperty("--card-color", "#fff");
             card.style.borderColor = "#27272a";
+            levelEl.innerHTML = "";
             levelEl.textContent = "Waiting for data";
-            levelEl.style.color = "#fafafa";
+            levelEl.style.color = "#71717a";
+            if (pmEl) { pmEl.textContent = ""; }
             detailEl.textContent = "";
             return;
         }
@@ -68,35 +71,44 @@ function updateCityCards(results, cityAlerts) {
         if (cityResults.length === 0) {
             card.style.setProperty("--card-color", "#fff");
             card.style.borderColor = "#27272a";
+            levelEl.innerHTML = "";
             levelEl.textContent = "No data";
             levelEl.style.color = "#71717a";
+            if (pmEl) { pmEl.textContent = ""; }
             detailEl.textContent = "";
             return;
         }
+
+        const tier1City = cityResults.filter(r => r.tier === 1);
+        const leadTime = tier1City.length > 0 ? tier1City[0].lead : cityResults[0].lead;
 
         const alert = cityAlerts && cityAlerts[city];
         if (alert) {
             const c = alertColor(alert.level_name);
             card.style.setProperty("--card-color", c);
             card.style.borderColor = c + "44";
+            levelEl.innerHTML = alertBadge(alert.level_name);
+            levelEl.style.color = "";
+            if (pmEl) {
+                pmEl.innerHTML = `<span class="city-card-pm__label">Predicted</span> <span class="city-card-pm__val" style="color:${c}">${alert.predicted_pm25} µg/m³</span>`;
+            }
             if (alert.alert) {
-                const ruleLabel = alert.rule === "rule1" ? "Single station ≥55" : "Dual station sustained";
-                levelEl.textContent = `${alert.level_name}  ·  ${alert.predicted_pm25} µg/m³`;
-                levelEl.style.color = c;
-                detailEl.textContent = `${ruleLabel} · ${cityResults.length} stations`;
+                const ruleLabel = alert.rule === "rule1" ? "Rule 1" : "Rule 2";
+                detailEl.textContent = `${ruleLabel} · ${leadTime ? leadTime + " lead · " : ""}${cityResults.length} stations`;
             } else {
-                levelEl.textContent = `No Alert  ·  ${alert.predicted_pm25} µg/m³`;
-                levelEl.style.color = c;
-                detailEl.textContent = `${cityResults.length} stations reporting`;
+                detailEl.textContent = `${cityResults.length} stations · ${leadTime ? leadTime + " lead" : "no alert"}`;
             }
         } else {
             const worst = cityResults[0];
             const c = alertColor(worst.level_name);
             card.style.setProperty("--card-color", c);
             card.style.borderColor = c + "44";
-            levelEl.textContent = `${worst.level_name}  ·  ${worst.predicted.toFixed(1)} µg/m³`;
-            levelEl.style.color = c;
-            detailEl.textContent = `via ${worst.station} · ${cityResults.length} stations`;
+            levelEl.innerHTML = alertBadge(worst.level_name);
+            levelEl.style.color = "";
+            if (pmEl) {
+                pmEl.innerHTML = `<span class="city-card-pm__label">Predicted</span> <span class="city-card-pm__val" style="color:${c}">${worst.predicted.toFixed(1)} µg/m³</span>`;
+            }
+            detailEl.textContent = `${cityResults.length} stations · ${leadTime ? leadTime + " lead" : "via " + worst.station}`;
         }
     });
 

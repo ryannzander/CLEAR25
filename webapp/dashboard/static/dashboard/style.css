@@ -1050,6 +1050,33 @@ body {
     letter-spacing: -0.02em;
     color: #fff;
     transition: color 0.3s;
+    margin-top: 4px;
+    min-height: 22px;
+    display: flex;
+    align-items: center;
+}
+
+.city-card-pm {
+    margin-top: 6px;
+    min-height: 18px;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.3;
+}
+
+.city-card-pm__label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #71717a;
+    margin-right: 4px;
+}
+
+.city-card-pm__val {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
 }
 
 .city-card-detail {
