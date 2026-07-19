@@ -49,6 +49,321 @@
     --alert-none-bg: #3f3f46;
     --alert-none-ink: #e4e4e7;
     --alert-none-glow: transparent;
+
+    /* ========================================================
+       FOUNDATION TOKENS (UI Phase 4) — single source of truth
+       for text roles, spacing, type, radii, shadows and focus.
+       Adopt in new/edited rules; existing rules migrate as they
+       are touched. Breakpoint convention (media queries cannot
+       read custom properties): 640px phone · 768px tablet ·
+       1024px small desktop.
+       ======================================================== */
+    /* Text roles — replaces the ad-hoc 6-gray soup. All pass
+       WCAG AA for their intended size on --bg and --surface. */
+    --text-primary: #fafafa;      /* headings, values            */
+    --text-secondary: #a1a1aa;    /* body, labels                */
+    --text-tertiary: #8b8b93;     /* captions; ≥12px only        */
+    /* #71717a is retired for text under 18px (≈3.9:1 on --bg). */
+
+    /* Spacing — 4px base scale. */
+    --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px;
+    --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-12: 48px;
+
+    /* Type scale (px; matches the dominant existing sizes). */
+    --fs-xs: 11px; --fs-sm: 12px; --fs-base: 13px; --fs-md: 14px;
+    --fs-lg: 16px; --fs-xl: 18px; --fs-2xl: 22px; --fs-3xl: 28px;
+    --fs-4xl: 36px;
+    --lh-tight: 1.25; --lh-normal: 1.5; --lh-relaxed: 1.65;
+
+    /* Radii — collapses the 15 ad-hoc values to 4 (+50% circles). */
+    --r-sm: 6px; --r-md: 10px; --r-lg: 16px; --r-full: 999px;
+
+    /* Shadows — replaces the four near-identical one-offs. */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
+    --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.45);
+    --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.55);
+
+    /* Focus ring — brand double-ring, visible on any surface. */
+    --focus-ring: 0 0 0 2px var(--bg), 0 0 0 4px var(--brand);
+
+    /* Icon sizes — locks in the existing 18px-nav / 16px-menu
+       convention. */
+    --icon-nav: 18px; --icon-menu: 16px;
+}
+
+/* ============================================================
+   APP-SHELL RESET — replaces Tailwind Preflight.
+   The dev-only Tailwind Play CDN used to inject a global reset
+   on base_app pages (dashboard / research / feedback). The CDN
+   is removed; this reproduces the reset behaviours those pages
+   actually render with. SCOPED to body.app-shell / .app-layout
+   so billing / settings / login (which load style.css but never
+   loaded Tailwind) keep rendering exactly as before.
+   ============================================================ */
+body.app-shell {
+    margin: 0;
+}
+
+/* All reset selectors are wrapped in :where() so they carry ZERO
+   specificity — any authored rule (even a bare class) overrides the
+   reset, exactly as Tailwind's element-selector Preflight behaved. */
+:where(.app-layout) *,
+:where(.app-layout) *::before,
+:where(.app-layout) *::after {
+    box-sizing: border-box;
+    border-width: 0;
+    border-style: solid;
+    border-color: currentColor;
+}
+
+:where(.app-layout) :where(h1, h2, h3, h4, h5, h6) {
+    margin: 0;
+    font-size: inherit;
+    font-weight: inherit;
+}
+
+:where(.app-layout) :where(p, hr, figure, blockquote, pre, dl, dd) {
+    margin: 0;
+}
+
+:where(.app-layout) :where(a) {
+    color: inherit;
+    text-decoration: inherit;
+}
+
+:where(.app-layout) :where(ul, ol) {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+:where(.app-layout) :where(button, input, select, textarea) {
+    font: inherit;
+    color: inherit;
+    margin: 0;
+    padding: 0;
+}
+
+:where(.app-layout) :where(button) {
+    background: transparent;
+    cursor: pointer;
+}
+
+:where(.app-layout) :where(img, svg, video, canvas) {
+    display: block;
+    vertical-align: middle;
+}
+
+:where(.app-layout) :where(img, video) {
+    max-width: 100%;
+    height: auto;
+}
+
+:where(.app-layout) :where(table) {
+    border-collapse: collapse;
+}
+
+:where(.app-layout) :where(hr) {
+    height: 0;
+    border-top-width: 1px;
+}
+
+/* Utility previously provided by Tailwind; toggled at runtime by
+   app-feedback.js (delete button) and available shell-wide. */
+.hidden {
+    display: none !important;
+}
+
+/* ============================================================
+   KEYBOARD FOCUS (UI Phase 4, fixes audit C2)
+   Both .sidebar-tab and .action-btn open with `all: unset`,
+   which destroys the native outline — and the stylesheet had a
+   single :focus-visible rule. This layer gives every interactive
+   element a visible brand ring on keyboard focus only (mouse
+   clicks stay ring-free via :focus-visible semantics).
+   ============================================================ */
+:where(a, button, [role="button"], input, select, textarea, summary,
+       [tabindex]):focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+    border-radius: var(--r-sm);
+}
+
+/* Beat the `all: unset` components and preserve their own radii. */
+.sidebar-tab:focus-visible,
+.action-btn:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+}
+
+.action-btn:focus-visible {
+    border-radius: 10px;          /* its own radius, not --r-sm */
+}
+
+/* Inputs/textareas keep their authored border radius under the ring. */
+:where(input, select, textarea):focus-visible {
+    border-radius: inherit;
+}
+
+/* ============================================================
+   BUTTON STATES (UI Phase 4, fixes audit M2)
+   .action-btn had hover only — no press, disabled, or loading
+   affordance anywhere in the app.
+   ============================================================ */
+.action-btn:active:not(:disabled):not(.is-loading) {
+    transform: translateY(1px);
+}
+
+.action-btn:disabled,
+.action-btn[aria-disabled="true"] {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.action-btn.is-loading {
+    position: relative;
+    color: transparent;
+    pointer-events: none;
+}
+
+.action-btn.is-loading::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    animation: btn-spin 0.6s linear infinite;
+}
+
+@keyframes btn-spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .action-btn {
+        transition: none;
+    }
+    .action-btn:active:not(:disabled):not(.is-loading) {
+        transform: none;
+    }
+    .action-btn.is-loading::after {
+        animation-duration: 1.5s;
+    }
+    .fc-bar-fill {
+        transition: none;
+    }
+}
+
+/* ============================================================
+   TORONTO SMOKE FORECAST CARD (UI Phase 4)
+   Replaces app-forecast.js's fully-inline-styled markup. Layout
+   lives here; only data-driven values (bar width %, probability
+   tone color) remain inline in the JS.
+   ============================================================ */
+.fc-card {
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 18px var(--space-5);
+    background: var(--surface);
+    margin: var(--space-1) 0 6px;
+}
+
+.fc-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+    margin-bottom: var(--space-3);
+}
+
+.fc-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.fc-tag {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #60a5fa;
+    background: rgba(96, 165, 250, 0.12);
+    border: 1px solid rgba(96, 165, 250, 0.3);
+    padding: 2px var(--space-2);
+    border-radius: var(--r-full);
+}
+
+.fc-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin: 7px 0;
+}
+
+.fc-label {
+    width: 82px;
+    flex: none;
+    font-size: var(--fs-sm);
+    color: var(--text-secondary);
+}
+
+.fc-track {
+    flex: 1;
+    height: 12px;
+    border-radius: var(--r-full);
+    background: rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+}
+
+.fc-bar-fill {
+    height: 100%;
+    border-radius: var(--r-full);
+    transition: width 0.5s;
+}
+
+.fc-pct {
+    width: 44px;
+    text-align: right;
+    font-size: var(--fs-base);
+    font-weight: 700;
+}
+
+.fc-note {
+    margin-top: 11px;
+    font-size: var(--fs-xs);
+    color: var(--text-tertiary);
+    line-height: var(--lh-normal);
+}
+
+.fc-warmup-text {
+    font-size: var(--fs-base);
+    color: var(--text-secondary);
+    line-height: var(--lh-normal);
+}
+
+.fc-warmup-text strong {
+    color: var(--text-primary);
+}
+
+.fc-warmup-track {
+    margin-top: 10px;
+    height: 8px;
+    border-radius: var(--r-full);
+    background: rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+}
+
+.fc-warmup-fill {
+    height: 100%;
+    background: #60a5fa;
+    border-radius: var(--r-full);
 }
 
 /* ========================================================
@@ -292,7 +607,7 @@ body {
     align-items: center;
     gap: 10px;
     padding: 0 10px;
-    color: #71717a;
+    color: var(--text-secondary);  /* was #71717a — below AA on --bg */
     font-size: 13px;
     font-weight: 500;
     transition: all 0.15s ease;
@@ -346,7 +661,7 @@ body {
     align-items: center;
     gap: 10px;
     padding: 0 10px;
-    color: #71717a;
+    color: var(--text-secondary);  /* was #71717a — below AA on --bg */
     font-size: 13px;
     font-weight: 500;
     transition: all 0.15s ease;
@@ -544,7 +859,8 @@ body {
     border-radius: 10px;
     font-size: 13px;
     font-weight: 600;
-    transition: all 0.15s;
+    transition: background 0.15s, color 0.15s, border-color 0.15s,
+        box-shadow 0.15s, transform 0.08s;
 }
 
 .action-primary {
@@ -2170,10 +2486,35 @@ body {
     font-weight: 500;
 }
 
+/* Replaces the Tailwind utilities the detail modal used before the
+   Play CDN was removed — values are the exact Tailwind equivalents,
+   so rendering is unchanged. */
+.modal-title-grow {
+    flex: 1;
+    padding-right: 1rem;          /* was: flex-1 pr-4 */
+}
+
+.detail-delete {                  /* was: text-zinc-500 hover:text-red-500 mr-3 */
+    color: #71717a;
+    margin-right: 0.75rem;        /* mr-3 */
+    transition: color 0.15s;
+}
+
+.detail-delete:hover {
+    color: #ef4444;
+}
+
+.section-heading {                /* was: text-base font-semibold text-zinc-100 mb-4 mt-5 */
+    font-size: 1rem;
+    font-weight: 600;
+    color: #f4f4f5;
+    margin: 1.25rem 0 1rem;       /* mt-5 / mb-4 */
+}
+
 .detail-meta {
     font-size: 0.85rem;
     color: #71717a;
-    margin-bottom: 16px;
+    margin-bottom: 1rem;          /* utility mb-4 used to win over 16px */
     display: flex;
     align-items: center;
     gap: 12px;
@@ -2194,7 +2535,7 @@ body {
     color: #d4d4d8;
     line-height: 1.7;
     white-space: pre-wrap;
-    margin-bottom: 20px;
+    margin-bottom: 1.25rem;       /* utility mb-5 used to win over 20px */
     font-size: 0.95rem;
 }
 
@@ -2202,7 +2543,7 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 20px;
+    margin-bottom: 1.5rem;        /* matches the removed mb-6 utility */
 }
 
 .detail-votes .vote-btn {
@@ -2236,7 +2577,7 @@ body {
 }
 
 .detail-comments {
-    margin-bottom: 20px;
+    margin-bottom: 1.25rem;       /* utility mb-5 used to win over 20px */
 }
 
 .comment-item {
@@ -2295,6 +2636,11 @@ body {
     display: flex;
     gap: 12px;
     align-items: flex-end;
+    margin-top: 1rem;             /* matches the removed mt-4 utility */
+}
+
+#comment-error {
+    margin-top: 0.75rem;          /* matches the removed mt-3 utility */
 }
 
 .comment-form textarea {
