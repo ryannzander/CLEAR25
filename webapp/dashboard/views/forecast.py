@@ -22,13 +22,24 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from ..models import CachedResult
-from ..services import smoke_forecast as sf
 from .utils import timing_safe_token_compare
 
 logger = logging.getLogger(__name__)
 
 FORECAST_KEY = "smoke_forecast"      # <= 20 chars (CachedResult.key max_length)
 BUFFER_KEY = "smoke_fc_buffer"       # rolling window of raw feature rows
+
+
+def _scorer():
+    """Import the numpy-free scorer LAZILY. Isolation guarantee: if the service (or the
+    model asset) is broken, only the forecast endpoints degrade to 503 — the import can
+    never run at app-boot time and take the whole site down."""
+    try:
+        from ..services import smoke_forecast as sf
+        return sf
+    except Exception:               # pragma: no cover - defensive
+        logger.exception("smoke_forecast import failed")
+        return None
 
 
 def _toronto_wind_now():
@@ -57,6 +68,9 @@ def api_refresh_forecast(request):
     if not cron_secret or not timing_safe_token_compare(auth_header, expected):
         return JsonResponse({"error": "Unauthorized"}, status=401)
 
+    sf = _scorer()
+    if sf is None:
+        return JsonResponse({"error": "Forecast scorer unavailable"}, status=503)
     model = sf.load_model()
     if not model:
         return JsonResponse({"error": "No model asset deployed"}, status=503)
