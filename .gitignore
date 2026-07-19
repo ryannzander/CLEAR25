@@ -54,6 +54,13 @@ AGENTS.mds
 # NAPS download for testing (not committed)
 naps_2023/
 
+# NAPS multi-year hourly pull (scripts/gen_naps_hourly.py; large local training data)
+naps_hourly/
+
+# Open-Meteo wind assets (scripts/gen_wind_hourly.py output; local build artifact,
+# regenerate with: python scripts/gen_wind_hourly.py --asset <pm-asset>)
+wind_hourly/
+
 # Smoke collector output (Pi runtime data; keep the folder)
 smoke_pi/web/data/*
 !smoke_pi/web/data/.gitkeep
