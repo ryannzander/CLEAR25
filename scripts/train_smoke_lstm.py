@@ -87,13 +87,15 @@ def hourly_features(tor_med, sec_mean, t0):
 
 
 def standardize_train(Feat, train_mask):
+    """Return (Z, mu, sd). mu/sd are fit on the train mask only and returned so the
+    same transform can be re-applied to live windows at deploy time (export path)."""
     with np.errstate(invalid="ignore"):
         mu = np.nanmean(Feat[train_mask], axis=0)
         sd = np.nanstd(Feat[train_mask], axis=0)
     mu = np.where(np.isfinite(mu), mu, 0.0)
     sd = np.where(np.isfinite(sd) & (sd > 0), sd, 1.0)
     Z = (np.where(np.isnan(Feat), mu, Feat) - mu) / sd
-    return np.clip(np.nan_to_num(Z, nan=0.0), -8, 8)
+    return np.clip(np.nan_to_num(Z, nan=0.0), -8, 8), mu, sd
 
 
 def make_windows(tor_med, Feat_std, Stat, window, horizon):
@@ -188,12 +190,29 @@ def main(argv=None):
     t0 = parse_t0(d)
     print(f"asset: {Path(args.asset).name}  t0={d.get('t0')}  n_steps={d['n_steps']:,}  "
           f"stations={len(d['stations'])}")
+    try:
+        train_model(d, t0, args, device)
+    except ValueError as e:
+        print(f"!! {e}"); return 1
+    return 0
+
+
+def train_model(d, t0, args, device):
+    """Build features + windows, split chronologically, train the LSTM with early
+    stopping on val ROC-AUC, then return the trained model plus everything needed to
+    DEPLOY it (standardization mu/sd, feature order, a reference window+prob). Shared by
+    main() and scripts/export_smoke_model.py so the deployed weights come from the exact
+    same training code path (no drift). Prints the same report main() always did.
+
+    Assumes the caller has already seeded torch/numpy (main does) so training is
+    reproducible. Raises ValueError if a chronological split has no positive events."""
     tor_med, sec_mean, n_tor, n_other, sec_counts = build_series(d, args.tor_radius, args.min_tor)
     n = len(tor_med)
     print(f"Toronto stations (<= {args.tor_radius:.0f} km): {n_tor}   other: {n_other}   "
           f"Toronto-covered hours: {np.isfinite(tor_med).sum():,}")
 
     Feat, Stat = hourly_features(tor_med, sec_mean, t0)
+    feat_names = list(SECTORS) + ["toronto_med", "hod_sin", "hod_cos"]
 
     # Optional wind: append causal per-hour wind features so the LSTM sees wind
     # (speed / direction / upwind-PM flux) evolve across the whole input window.
@@ -203,13 +222,14 @@ def main(argv=None):
         wspd, wdir = series_for(w, t0, n, TOR_LAT, TOR_LON)
         Wf, wnames = build_features(wspd, wdir, sec_mean)
         Feat = np.concatenate([Feat, Wf], axis=1)
+        feat_names += list(wnames)
         print(f"wind: {Path(args.wind).name} — +{len(wnames)} features "
               f"({np.isfinite(wspd).mean()*100:.0f}% hrs covered): {wnames}")
 
     # Chronological hour split: 60% train / 15% val / 25% test.
     h1, h2 = int(n * 0.60), int(n * 0.75)
     train_mask = np.zeros(n, bool); train_mask[:h1] = True
-    Feat_std = standardize_train(Feat, train_mask)
+    Feat_std, mu, sd = standardize_train(Feat, train_mask)
 
     X, S, y, t = make_windows(tor_med, Feat_std, Stat, args.window, args.horizon)
     tr = t < h1
@@ -222,7 +242,7 @@ def main(argv=None):
         print(f"  {name:5}: {m.sum():6,} samples  pos={int(y[m].sum()):4} "
               f"({y[m].mean()*100:4.1f}%)  {span}")
     if y[tr].sum() == 0 or y[va].sum() == 0 or y[te].sum() == 0:
-        print("!! a split has no positives — adjust window/horizon."); return 1
+        raise ValueError("a split has no positives — adjust window/horizon")
 
     def loader(mask, shuffle):
         return DataLoader(TensorDataset(torch.from_numpy(X[mask]),
@@ -270,13 +290,23 @@ def main(argv=None):
     # standardized col 8 = last-window-step Toronto value ranks identically).
     tor_now = X[te][:, -1, len(SECTORS)]  # standardized Toronto median @ t
     base = yte.mean()
+    test_roc, test_pr = roc_auc(yte, pte), pr_auc(yte, pte)
     print("\n================  TEST-SET RESULTS  ================")
     print(f"{'model':26} {'ROC-AUC':>8} {'PR-AUC':>8}")
     print(f"{'Persistence (Toronto now)':26} {roc_auc(yte, tor_now):8.3f} {pr_auc(yte, tor_now):8.3f}")
-    print(f"{'LSTM (this model)':26} {roc_auc(yte, pte):8.3f} {pr_auc(yte, pte):8.3f}")
+    print(f"{'LSTM (this model)':26} {test_roc:8.3f} {test_pr:8.3f}")
     print(f"\ntest base rate = {base*100:.1f}%   best val AUC = {best_auc:.3f}")
     print("PR-AUC (vs base rate) is the honest metric on a rare-event problem.")
-    return 0
+
+    return {
+        "model": model, "mu": mu, "sd": sd, "feat_names": feat_names,
+        "static_names": ["mon_sin", "mon_cos"], "window": args.window, "hidden": args.hidden,
+        "elevated": float(ELEVATED), "tor_radius": float(args.tor_radius), "min_tor": int(args.min_tor),
+        "best_auc": float(best_auc), "test_roc": float(test_roc), "test_pr": float(test_pr),
+        # a reference (standardized window, static, prob) so a numpy re-implementation of
+        # the forward pass can be verified to match torch exactly.
+        "ref_X": X[te][0].tolist(), "ref_S": S[te][0].tolist(), "ref_prob": float(pte[0]),
+    }
 
 
 if __name__ == "__main__":
