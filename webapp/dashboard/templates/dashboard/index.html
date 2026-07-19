@@ -307,7 +307,7 @@
                             <h2>Project Summary</h2>
                             <p>C.L.E.A.R. is a wildfire PM2.5 early warning system for <strong>Toronto, Edmonton,
                                     Montréal, and Vancouver</strong> that repurposes existing NAPS air quality stations
-                                located 100–600+ km away to provide <strong>up to 87 hours (24.7 h average) of advance warning</strong>
+                                located 100–650 km away to provide <strong>up to 87 hours (24.7 h average) of advance warning</strong>
                                 before dangerous smoke arrives.</p>
                             <div class="key-stats">
                                 <div class="key-stat">
@@ -351,7 +351,7 @@
                         <div class="research-card">
                             <h2>Purpose</h2>
                             <p>Develop an early warning system that uses <strong>existing NAPS and U.S. EPA monitoring
-                                    infrastructure</strong> — stations located 100–600+ km upstream — to detect
+                                    infrastructure</strong> — stations located 100–650 km upstream — to detect
                                 approaching wildfire smoke plumes and issue colour-coded health alerts <strong>up to 87
                                     hours in advance (24.7 h average)</strong>.</p>
                             <p>The system targets four major Canadian cities: Toronto, Edmonton, Montréal, and
@@ -380,7 +380,7 @@
                                 <div class="method-item">
                                     <h3>Rule 3: Quebec Upstream</h3>
                                     <p><strong>Trigger:</strong> Same as Rule 1 (station &gt;40 µg/m³)</p>
-                                    <p>Quebec fires 500–1,400 km NE. Montreal, Ottawa, Quebec City, Cornwall, etc.
+                                    <p>Québec fires 500–1,400 km NE. Montréal, Ottawa, Quebec City, Cornwall, etc.
                                         Eastern monitoring network.</p>
                                 </div>
                             </div>
@@ -443,59 +443,74 @@
                                 system detected every hazardous smoke event that reached Toronto.</p>
                         </div>
                         <div class="research-card">
-                            <h2>Three-Rule Detection — 2003–2023 Development Breakdown</h2>
-                            <p>Each rule's performance across 21 years of historical development data (2003–2023):</p>
+                            <h2>Three-Rule Detection — 2003–2023 Development</h2>
+                            <p>The three rules provide 360° coverage, each detecting wildfire smoke approaching Toronto
+                                from a different direction and distance band:</p>
                             <div class="research-table-wrap">
                                 <table class="research-table">
                                     <thead>
                                         <tr>
                                             <th>Detection Rule</th>
                                             <th>Coverage</th>
-                                            <th>True Pos.</th>
-                                            <th>False Pos.</th>
-                                            <th>Precision</th>
-                                            <th>Mean Lead Time</th>
+                                            <th>Direction detected</th>
+                                            <th>Role</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr>
                                             <td><strong>Rule 1:</strong> Regional</td>
-                                            <td>100–600 km</td>
-                                            <td>High</td>
-                                            <td>Low</td>
-                                            <td class="highlight-green">High</td>
-                                            <td>12–48 hrs</td>
+                                            <td>100–650 km</td>
+                                            <td>Central Ontario, Ottawa Valley &amp; Québec</td>
+                                            <td>Primary detector — earliest, most reliable warnings</td>
                                         </tr>
                                         <tr>
                                             <td><strong>Rule 2:</strong> NW Sequential</td>
-                                            <td>1000–1800 km</td>
-                                            <td>33</td>
-                                            <td>0</td>
-                                            <td class="highlight-green">100%</td>
-                                            <td>15.3 hrs</td>
+                                            <td>1,000–1,800 km</td>
+                                            <td>Northwestern Ontario (via Thunder Bay)</td>
+                                            <td>Two-stage trigger-and-confirm for distant NW fires</td>
                                         </tr>
                                         <tr>
                                             <td><strong>Rule 3:</strong> NE Corridor</td>
-                                            <td>500–1400 km</td>
-                                            <td>55</td>
-                                            <td>2</td>
-                                            <td class="highlight-green">96.5%</td>
-                                            <td>11.7 hrs</td>
-                                        </tr>
-                                        <tr class="total-row">
-                                            <td><strong>Combined System</strong></td>
-                                            <td>All directions</td>
-                                            <td><strong>26 TP</strong></td>
-                                            <td><strong>3 FP</strong></td>
-                                            <td class="highlight-green"><strong>90.9%</strong></td>
-                                            <td><strong>15.7 hrs mean</strong></td>
+                                            <td>500–1,400 km</td>
+                                            <td>Northeastern Québec corridor</td>
+                                            <td>Upstream Québec detection — mirrors Rule 1</td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
-                            <p style="margin-top:12px;color:#a1a1aa;font-size:13px;">Rule 2 achieved 100% precision with
-                                zero false positives. Rule 3's false positives were from non-fire regional haze events.
-                            </p>
+                            <p style="margin-top:16px;font-weight:600;color:#e4e4e7;">Combined system performance
+                                (2003–2023, 33 wildfire events)</p>
+                            <div class="key-stats">
+                                <div class="key-stat">
+                                    <div class="key-stat-value">90.9%</div>
+                                    <div class="key-stat-label">Accuracy</div>
+                                </div>
+                                <div class="key-stat">
+                                    <div class="key-stat-value">89.7%</div>
+                                    <div class="key-stat-label">Precision</div>
+                                </div>
+                                <div class="key-stat">
+                                    <div class="key-stat-value">100%</div>
+                                    <div class="key-stat-label">Sensitivity (0 missed)</div>
+                                </div>
+                            </div>
+                            <div class="key-stats" style="margin-top:12px;">
+                                <div class="key-stat">
+                                    <div class="key-stat-value">15.7h</div>
+                                    <div class="key-stat-label">Average Lead Time</div>
+                                </div>
+                                <div class="key-stat">
+                                    <div class="key-stat-value">87h</div>
+                                    <div class="key-stat-label">Maximum Lead Time</div>
+                                </div>
+                                <div class="key-stat">
+                                    <div class="key-stat-value">26·4·3·0</div>
+                                    <div class="key-stat-label">TP · TN · FP · FN</div>
+                                </div>
+                            </div>
+                            <p style="margin-top:12px;color:#a1a1aa;font-size:13px;">Accuracy = (26 TP + 4 TN) ÷ 33
+                                events. The three false positives were non-fire regional haze events; no smoke event that
+                                reached Toronto was missed (100% sensitivity).</p>
                         </div>
                         <div class="research-card">
                             <h2>Real-World Example — Toronto, June 2023</h2>
