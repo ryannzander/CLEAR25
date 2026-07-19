@@ -12,7 +12,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
         rel="stylesheet" media="print" onload="this.media='all'">
-    <link rel="stylesheet" href="{% static 'dashboard/style.css' %}?v=46">
+    <link rel="stylesheet" href="{% static 'dashboard/style.css' %}?v=47">
     {% block extra_head %}{% endblock %}
 </head>
 
@@ -84,24 +84,6 @@
                         </svg>
                         <span>Feedback</span>
                     </a>
-                    <a href="/developers/" class="sidebar-tab{% if active_nav == 'api' %} tab-active{% endif %}"
-                        {% if active_nav == 'api' %}aria-current="page"{% endif %}>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" aria-hidden="true">
-                            <path d="M16 18l6-6-6-6" />
-                            <path d="M8 6l-6 6 6 6" />
-                        </svg>
-                        <span>API</span>
-                    </a>
-                    <a href="/billing/" class="sidebar-tab{% if active_nav == 'billing' %} tab-active{% endif %}"
-                        {% if active_nav == 'billing' %}aria-current="page"{% endif %}>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" aria-hidden="true">
-                            <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
-                            <line x1="1" y1="10" x2="23" y2="10" />
-                        </svg>
-                        <span>Billing</span>
-                    </a>
                 </div>
             </nav>
             <div class="sidebar-bottom">
@@ -109,8 +91,7 @@
                 <div class="account-dropdown account-dropdown-up">
                     <button class="sidebar-account" id="account-toggle"
                         title="{{ user.get_full_name|default:user.email }}">
-                        <span class="account-avatar">{{ user.first_name|slice:":1"|default:user.email|slice:":1"|upper
-                            }}</span>
+                        <span class="account-avatar">{{ user.first_name|slice:":1"|default:user.email|slice:":1"|upper }}</span>
                     </button>
                     <div class="account-menu" id="account-menu">
                         <div class="account-menu-header">

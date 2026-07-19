@@ -271,7 +271,8 @@ body.app-shell {
     border-radius: var(--r-lg);
     padding: 18px var(--space-5);
     background: var(--surface);
-    margin: var(--space-1) 0 6px;
+    /* clear separation below the city cards (user feedback) */
+    margin: var(--space-6) 0 var(--space-2);
 }
 
 .fc-head {
@@ -1219,6 +1220,19 @@ body {
     transition: background 0.2s;
 }
 
+/* .google-btn is used as <button> on the allauth confirm page (no app-shell
+   reset there) and as <a> on login.html — cover both. */
+button.google-btn {
+    cursor: pointer;
+}
+
+.auth-note {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-bottom: 24px;
+    line-height: 1.5;
+}
+
 .google-btn:hover {
     background: #f0f0f0;
 }
@@ -1307,7 +1321,7 @@ body {
 .city-cards {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
+    gap: var(--space-4);
     margin-top: 0;
 }
 
@@ -1315,9 +1329,9 @@ body {
     position: relative;
     overflow: hidden;
     border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     background: var(--surface, #0f0f10);
-    padding: 20px;
+    padding: 24px 22px;
     transition: border-color 0.4s, transform 0.3s;
     animation: dashFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
@@ -1359,16 +1373,16 @@ body {
 }
 
 .city-card-name {
-    font-size: 11px;
+    font-size: var(--fs-sm);
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--text-secondary);
-    margin-bottom: 6px;
+    color: var(--text-primary);
+    margin-bottom: 8px;
 }
 
 .city-card-level {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 800;
     letter-spacing: -0.02em;
     color: #fff;
@@ -1380,9 +1394,9 @@ body {
 }
 
 .city-card-pm {
-    margin-top: 6px;
+    margin-top: 8px;
     min-height: 18px;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 500;
     line-height: 1.3;
 }

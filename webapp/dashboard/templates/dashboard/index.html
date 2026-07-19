@@ -1,128 +1,186 @@
-{% extends "dashboard/base_app.html" %}
-{% load static %}
+{% extends "dashboard/base_app.html" %} {% load static %}
 {% block title %}CLEAR25 — Dashboard{% endblock %}
 {% block extra_head %}
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" media="print"
-        onload="this.media='all'">
-{% endblock %}
-{% block main %}
-            <div id="tab-dashboard" class="tab-content tab-visible">
-                <!-- Alert Banner -->
-                <!-- City Alert Cards -->
-                <div class="city-cards" id="city-cards">
-                    {% for city in cities %}
-                    <div class="city-card" id="card-{{ city }}">
-                        <div class="city-card-glow"></div>
-                        <div class="city-card-content">
-                            <div class="city-card-name">{{ city }}</div>
-                            <div class="city-card-level">Waiting for data</div>
-                            <div class="city-card-pm"></div>
-                            <div class="city-card-detail"></div>
-                            <div class="city-card-fusion" id="fusion-{{ city }}"
-                                 style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;"></div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  media="print"
+  onload="this.media = 'all'"
+/>
+{% endblock %} {% block main %}
+<div id="tab-dashboard" class="tab-content tab-visible">
+  <!-- Alert Banner -->
+  <!-- City Alert Cards -->
+  <div class="city-cards" id="city-cards">
+    {% for city in cities %}
+    <div class="city-card" id="card-{{ city }}">
+      <div class="city-card-glow"></div>
+      <div class="city-card-content">
+        <div class="city-card-name">{{ city }}</div>
+        <div class="city-card-level">Waiting for data</div>
+        <div class="city-card-pm"></div>
+        <div class="city-card-detail"></div>
+        <div
+          class="city-card-fusion"
+          id="fusion-{{ city }}"
+          style="margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap"
+        ></div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
 
-                <!-- Toronto Smoke Forecast — read-only, wind-aware model. NOT an alert.
+  <!-- Toronto Smoke Forecast — read-only, wind-aware model. NOT an alert.
                      Populated by app-forecast.js from /api/forecast/; hidden until data. -->
-                <div id="smoke-forecast" class="forecast-card" style="display:none;"></div>
+  <div id="smoke-forecast" class="forecast-card" style="display: none"></div>
 
-                <!-- Action Bar -->
-                <div class="actions">
-                    <button id="btn-demo" class="action-btn action-ghost" onclick="runDemo()">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <polygon points="5 3 19 12 5 21 5 3" />
-                        </svg>
-                        Run Demo
-                    </button>
-                    <div id="station-count" class="station-count"></div>
-                </div>
+  <!-- Action Bar -->
+  <div class="actions">
+    <button id="btn-demo" class="action-btn action-ghost" onclick="runDemo()">
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <polygon points="5 3 19 12 5 21 5 3" />
+      </svg>
+      Run Demo
+    </button>
+    <div id="station-count" class="station-count"></div>
+  </div>
 
-                <!-- Stats Cards -->
-                <div class="stats-row" id="stats-row" style="display:none;">
-                    <div class="stat-card">
-                        <div class="stat-label">Worst Predicted</div>
-                        <div class="stat-value" id="stat-worst">—</div>
-                        <div class="stat-unit">µg/m³</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Stations Reporting</div>
-                        <div class="stat-value" id="stat-reporting">—</div>
-                        <div class="stat-unit">of <span id="stat-total">0</span></div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Earliest Warning</div>
-                        <div class="stat-value" id="stat-lead">—</div>
-                        <div class="stat-unit">lead time</div>
-                    </div>
-                </div>
+  <!-- Stats Cards -->
+  <div class="stats-row" id="stats-row" style="display: none">
+    <div class="stat-card">
+      <div class="stat-label">Worst Predicted</div>
+      <div class="stat-value" id="stat-worst">—</div>
+      <div class="stat-unit">µg/m³</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Stations Reporting</div>
+      <div class="stat-value" id="stat-reporting">—</div>
+      <div class="stat-unit">of <span id="stat-total">0</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Earliest Warning</div>
+      <div class="stat-value" id="stat-lead">—</div>
+      <div class="stat-unit">lead time</div>
+    </div>
+  </div>
 
-                <!-- Table -->
-                <div class="table-card">
-                    <div class="table-head">
-                        <span class="th th-city">City</span>
-                        <span class="th th-id">ID</span>
-                        <span class="th th-station">Station</span>
-                        <span class="th th-dist">Distance</span>
-                        <span class="th th-dir">Dir</span>
-                        <span class="th th-tier">Tier</span>
-                        <span class="th th-pm">Live PM2.5</span>
-                        <span class="th th-pred">Predicted</span>
-                        <span class="th th-level">Level</span>
-                        <span class="th th-lead">Lead Time</span>
-                    </div>
-                    <div id="table-body" class="table-body">
-                        <div class="empty-state">
-                            <div class="empty-icon">📡</div>
-                            <div class="empty-text">Loading live data... or click <strong>Run Demo</strong></div>
-                        </div>
-                    </div>
-                </div>
+  <!-- Table -->
+  <div class="table-card">
+    <div class="table-head">
+      <span class="th th-city">City</span>
+      <span class="th th-id">ID</span>
+      <span class="th th-station">Station</span>
+      <span class="th th-dist">Distance</span>
+      <span class="th th-dir">Dir</span>
+      <span class="th th-tier">Tier</span>
+      <span class="th th-pm">Current</span>
+      <span class="th th-pred">Predicted</span>
+      <span class="th th-level">Level</span>
+      <span class="th th-lead">Lead Time</span>
+    </div>
+    <div id="table-body" class="table-body">
+      <div class="empty-state">
+        <div class="empty-icon">📡</div>
+        <div class="empty-text">
+          Loading live data... or click <strong>Run Demo</strong>
+        </div>
+      </div>
+    </div>
+  </div>
 
-                <!-- Status -->
-                <div class="footer">
-                    <div id="status" class="status">Ready</div>
-                </div>
-            </div>
+  <!-- Status -->
+  <div class="footer">
+    <div id="status" class="status">Ready</div>
+  </div>
+</div>
 
-            <div id="tab-map" class="tab-content">
-                <div class="map-controls">
-                    <button class="action-btn action-ghost" onclick="mapRunDemo()">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <polygon points="5 3 19 12 5 21 5 3" />
-                        </svg>
-                        Run Demo
-                    </button>
-                    <div id="map-status" class="station-count">Live data updates automatically every 30 minutes</div>
-                </div>
-                <div id="map-container" class="map-container"></div>
-                <div class="map-legend">
-                    <span class="legend-title">Alert Levels:</span>
-                    <span class="legend-item"><span class="legend-dot" style="background:var(--alert-low-bg)"></span>Low</span>
-                    <span class="legend-item"><span class="legend-dot" style="background:var(--alert-moderate-bg)"></span>Moderate</span>
-                    <span class="legend-item"><span class="legend-dot" style="background:var(--alert-high-bg)"></span>High</span>
-                    <span class="legend-item"><span class="legend-dot" style="background:var(--alert-veryhigh-bg)"></span>Very
-                        High</span>
-                    <span class="legend-item"><span class="legend-dot" style="background:var(--alert-extreme-bg)"></span>Extreme</span>
-                    <span class="legend-title" style="margin-left:8px;">Markers:</span>
-                    <span class="legend-item"><span class="legend-dot"
-                            style="background:#fff;border:2px solid #71717a;"></span>City</span>
-                    <span class="legend-item"><span class="legend-dot"
-                            style="background:transparent;border:2px solid #E65C50;box-shadow:inset 0 0 4px #E65C5044;"></span>City
-                        Bubble</span>
-                    <span class="legend-item"><span class="legend-dot legend-dot-empty"></span>No Data</span>
-                </div>
-            </div>
+<div id="tab-map" class="tab-content">
+  <div class="map-controls">
+    <button class="action-btn action-ghost" onclick="mapRunDemo()">
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <polygon points="5 3 19 12 5 21 5 3" />
+      </svg>
+      Run Demo
+    </button>
+    <div id="map-status" class="station-count">
+      Live data updates automatically every 30 minutes
+    </div>
+  </div>
+  <div id="map-container" class="map-container"></div>
+  <div class="map-legend">
+    <span class="legend-title">Alert Levels:</span>
+    <span class="legend-item"
+      ><span class="legend-dot" style="background: var(--alert-low-bg)"></span
+      >Low</span
+    >
+    <span class="legend-item"
+      ><span
+        class="legend-dot"
+        style="background: var(--alert-moderate-bg)"
+      ></span
+      >Moderate</span
+    >
+    <span class="legend-item"
+      ><span class="legend-dot" style="background: var(--alert-high-bg)"></span
+      >High</span
+    >
+    <span class="legend-item"
+      ><span
+        class="legend-dot"
+        style="background: var(--alert-veryhigh-bg)"
+      ></span
+      >Very High</span
+    >
+    <span class="legend-item"
+      ><span
+        class="legend-dot"
+        style="background: var(--alert-extreme-bg)"
+      ></span
+      >Extreme</span
+    >
+    <span class="legend-title" style="margin-left: 8px">Markers:</span>
+    <span class="legend-item"
+      ><span
+        class="legend-dot"
+        style="background: #fff; border: 2px solid #71717a"
+      ></span
+      >City</span
+    >
+    <span class="legend-item"
+      ><span
+        class="legend-dot"
+        style="
+          background: transparent;
+          border: 2px solid #e65c50;
+          box-shadow: inset 0 0 4px #e65c5044;
+        "
+      ></span
+      >City Bubble</span
+    >
+    <span class="legend-item"
+      ><span class="legend-dot legend-dot-empty"></span>No Data</span
+    >
+  </div>
+</div>
 
-{% endblock %}
-{% block scripts %}
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="{% static 'dashboard/app-render.js' %}?v=39"></script>
-    <script src="{% static 'dashboard/app-fusion.js' %}?v=2"></script>
-    <script src="{% static 'dashboard/app-forecast.js' %}?v=2"></script>
-    <script src="{% static 'dashboard/app-map.js' %}?v=40"></script>
+{% endblock %} {% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{% static 'dashboard/app-render.js' %}?v=39"></script>
+<script src="{% static 'dashboard/app-fusion.js' %}?v=2"></script>
+<script src="{% static 'dashboard/app-forecast.js' %}?v=2"></script>
+<script src="{% static 'dashboard/app-map.js' %}?v=40"></script>
 {% endblock %}
