@@ -190,7 +190,7 @@
             left: 0;
             right: 0;
             z-index: 100;
-            background: rgba(10, 10, 10, 0.72);
+            background: rgba(20, 20, 20, 0.72);  /* matches --bg #141414 */
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border-bottom: 1px solid transparent;
@@ -198,7 +198,7 @@
         }
 
         .nav.scrolled {
-            background: rgba(10, 10, 10, 0.92);
+            background: rgba(20, 20, 20, 0.92);
             border-color: var(--border-soft);
         }
 
@@ -611,7 +611,7 @@
             font-weight: 500;
         }
 
-        /* ========== Coverage section (globe + columns) ========== */
+        /* ========== Coverage section ========== */
         .coverage {
             padding: 130px 0 110px;
         }
@@ -663,50 +663,6 @@
             border-bottom: 1.5px solid;
             border-right: 1.5px solid;
             border-bottom-right-radius: 4px;
-        }
-
-        .globe-wrap {
-            display: flex;
-            justify-content: center;
-            padding: 30px 0 0;
-            position: relative;
-        }
-
-        .globe {
-            position: relative;
-            width: min(440px, 78vw);
-            height: min(330px, 58vw);
-        }
-
-        .globe svg {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-
-        .globe-marker {
-            position: absolute;
-            top: 24%;
-            right: 26%;
-            width: 46px;
-            height: 46px;
-            border-radius: 50%;
-            border: 1px solid rgba(246, 130, 31, 0.6);
-            background: rgba(246, 130, 31, 0.12);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--orange);
-            box-shadow: 0 0 24px rgba(246, 130, 31, 0.35);
-        }
-
-        .globe-marker svg {
-            width: 20px;
-            height: 20px;
-        }
-
-        .globe-marker {
-            animation: markerPulse 2.6s ease-in-out infinite;
         }
 
         @keyframes markerPulse {
@@ -1068,16 +1024,6 @@
             background: var(--bg-soft);
             overflow: hidden;
             transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .rule-card::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, var(--orange), transparent);
         }
 
         .rule-card:hover {
@@ -1701,72 +1647,6 @@
             <span class="corner bl"></span>
             <span class="corner br"></span>
 
-            <div class="globe-wrap">
-                <div class="globe">
-                    <svg viewBox="0 0 600 460" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-                        <defs>
-                            <pattern id="globe-dots" width="13" height="13" patternUnits="userSpaceOnUse">
-                                <circle cx="2" cy="2" r="1.15" fill="#f6821f" fill-opacity="0.55" />
-                            </pattern>
-                            <radialGradient id="globe-fade" cx="50%" cy="42%" r="60%">
-                                <stop offset="0%" stop-color="#fff" stop-opacity="1" />
-                                <stop offset="62%" stop-color="#fff" stop-opacity="0.85" />
-                                <stop offset="100%" stop-color="#fff" stop-opacity="0" />
-                            </radialGradient>
-                            <mask id="globe-mask">
-                                <circle cx="300" cy="230" r="225" fill="url(#globe-fade)" />
-                            </mask>
-                            <clipPath id="sphere-clip">
-                                <circle cx="300" cy="230" r="225" />
-                            </clipPath>
-                            <radialGradient id="sweep-grad" cx="300" cy="230" r="225"
-                                gradientUnits="userSpaceOnUse">
-                                <stop offset="0" stop-color="#f6821f" stop-opacity="0.5" />
-                                <stop offset="100%" stop-color="#f6821f" stop-opacity="0" />
-                            </radialGradient>
-                        </defs>
-                        <!-- dotted sphere -->
-                        <g mask="url(#globe-mask)">
-                            <rect x="75" y="5" width="450" height="450" fill="url(#globe-dots)" />
-                        </g>
-                        <!-- longitude / latitude grid -->
-                        <g fill="none" stroke="#f6821f" stroke-opacity="0.18" stroke-width="1">
-                            <circle cx="300" cy="230" r="225" stroke-opacity="0.28" />
-                            <ellipse cx="300" cy="230" rx="225" ry="75" />
-                            <ellipse cx="300" cy="230" rx="225" ry="150" />
-                            <ellipse cx="300" cy="230" rx="75" ry="225" />
-                            <ellipse cx="300" cy="230" rx="150" ry="225" />
-                            <line x1="300" y1="5" x2="300" y2="455" />
-                            <line x1="75" y1="230" x2="525" y2="230" />
-                        </g>
-                        <!-- rotating radar sweep -->
-                        <g clip-path="url(#sphere-clip)">
-                            <g>
-                                <path d="M300 230 L300 5 A225 225 0 0 1 472 85 Z" fill="url(#sweep-grad)" />
-                                <line x1="300" y1="230" x2="300" y2="5" stroke="#ff9d4d" stroke-width="2"
-                                    stroke-opacity="0.7" />
-                                <animateTransform attributeName="transform" attributeType="XML" type="rotate"
-                                    from="0 300 230" to="360 300 230" dur="8s" repeatCount="indefinite" />
-                            </g>
-                        </g>
-                        <!-- orbit ring + travelling blip (detected smoke) -->
-                        <circle cx="300" cy="230" r="200" fill="none" stroke="#f6821f" stroke-opacity="0.22"
-                            stroke-width="1" stroke-dasharray="3 7" />
-                        <g>
-                            <circle cx="300" cy="30" r="11" fill="none" stroke="#ff9d4d" stroke-opacity="0.4" />
-                            <circle cx="300" cy="30" r="6" fill="#ff9d4d" />
-                            <animateTransform attributeName="transform" attributeType="XML" type="rotate"
-                                from="0 300 230" to="360 300 230" dur="14s" repeatCount="indefinite" />
-                        </g>
-                    </svg>
-                    <div class="globe-marker" title="Monitoring station">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                            <path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z" />
-                            <circle cx="12" cy="10" r="3" />
-                        </svg>
-                    </div>
-                </div>
-            </div>
 
             <div class="cov-cols">
                 <div class="cov-col">
@@ -2131,7 +2011,7 @@
                 <a href="/privacy/" class="footer-link">Privacy</a>
             </div>
             <div class="footer-credit">
-                Bui &amp; Zander (2026), &ldquo;Before the Sky Turns Orange&rdquo; &middot; PSHS-MC Science Fair 2025
+                CLEAR
             </div>
         </div>
     </footer>
