@@ -1603,13 +1603,13 @@
                 <a href="#coverage" class="nav-link">Coverage</a>
                 <a href="#detection" class="nav-link">Detection</a>
                 <a href="#cities" class="nav-link">Cities</a>
-                <a href="/dashboard/#tab-research" class="nav-link">Research</a>
+                <a href="/research/" class="nav-link">Research</a>
             </div>
             <div class="nav-right">
                 <a href="/dashboard/" class="nav-live">
                     <span class="dot"></span> Live network
                 </a>
-                <a href="/dashboard/#tab-feedback" class="nav-btn">Feedback</a>
+                <a href="/feedback/" class="nav-btn">Feedback</a>
                 <a href="/dashboard/" class="nav-btn nav-btn-primary">Open Dashboard</a>
                 <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1625,8 +1625,8 @@
         <a href="#coverage">Coverage</a>
         <a href="#detection">Detection</a>
         <a href="#cities">Cities</a>
-        <a href="/dashboard/#tab-research">Research</a>
-        <a href="/dashboard/#tab-feedback">Feedback</a>
+        <a href="/research/">Research</a>
+        <a href="/feedback/">Feedback</a>
         <a href="/dashboard/">Open Dashboard</a>
     </div>
 
@@ -1648,7 +1648,7 @@
                         </svg>
                         Open Dashboard
                     </a>
-                    <a href="/dashboard/#tab-research" class="btn-ghost">View Research</a>
+                    <a href="/research/" class="btn-ghost">View Research</a>
                 </div>
             </div>
         </div>
@@ -1659,20 +1659,20 @@
         <div class="stats-grid">
             <div class="stat-item">
                 <div class="stat-value"><span class="accent count" data-target="87.5" data-decimals="1"
-                        data-suffix="%">0%</span></div>
+                        data-suffix="%">87.5%</span></div>
                 <div class="stat-label">Detection Accuracy (2024 out-of-sample)</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value"><span class="count" data-target="100" data-suffix="%">0%</span></div>
+                <div class="stat-value"><span class="count" data-target="100" data-suffix="%">100%</span></div>
                 <div class="stat-label">Events Detected · 0 missed</div>
             </div>
             <div class="stat-item">
                 <div class="stat-value"><span class="count" data-target="24.7" data-decimals="1"
-                        data-suffix="h">0h</span></div>
+                        data-suffix="h">24.7h</span></div>
                 <div class="stat-label">Average Lead Time</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value"><span class="count" data-target="87" data-suffix="h">0h</span></div>
+                <div class="stat-value"><span class="count" data-target="87" data-suffix="h">87h</span></div>
                 <div class="stat-label">Maximum Lead Time</div>
             </div>
         </div>
@@ -1769,7 +1769,7 @@
                         </svg>
                     </div>
                     <h3>Detect upstream</h3>
-                    <p>Monitoring stations 100–600+ km away detect smoke plumes hours before they reach major cities.</p>
+                    <p>Monitoring stations 100–650 km away detect smoke plumes hours before they reach major cities.</p>
                 </div>
                 <div class="cov-col">
                     <div class="cov-icon">
@@ -1799,19 +1799,19 @@
     <section class="section scale">
         <div class="scale-grid">
             <div class="scale-item reveal">
-                <div class="scale-value"><span class="count" data-target="36" data-suffix="M+">0</span></div>
+                <div class="scale-value"><span class="count" data-target="36" data-suffix="M+">36M+</span></div>
                 <div class="scale-label">Hourly PM2.5 measurements</div>
             </div>
             <div class="scale-item reveal reveal-delay-1">
-                <div class="scale-value"><span class="count" data-target="479">0</span></div>
+                <div class="scale-value"><span class="count" data-target="479">479</span></div>
                 <div class="scale-label">Stations analyzed<br>348 NAPS + 131 U.S. EPA</div>
             </div>
             <div class="scale-item reveal reveal-delay-2">
-                <div class="scale-value"><span class="count" data-target="21">0</span></div>
+                <div class="scale-value"><span class="count" data-target="21">21</span></div>
                 <div class="scale-label">Wildfire seasons<br>2003–2023</div>
             </div>
             <div class="scale-item reveal reveal-delay-3">
-                <div class="scale-value"><span class="count" data-target="8">0</span></div>
+                <div class="scale-value"><span class="count" data-target="8">8</span></div>
                 <div class="scale-label">2024 out-of-sample events</div>
             </div>
         </div>
@@ -1838,7 +1838,7 @@
                 <div class="corridor-node-label">Upstream<br>station</div>
             </div>
             <div class="corridor-track">
-                <span class="track-dist">smoke travels 100–600+ km</span>
+                <span class="track-dist">smoke travels 100–650 km</span>
                 <span class="smoke-dot"></span>
             </div>
             <div class="corridor-node city">
@@ -1902,7 +1902,7 @@
                 </defs>
                 <!-- alert-level bands -->
                 <rect x="50" y="30" width="750" height="134.6" fill="#7f1d1d" opacity="0.12" />
-                <rect x="50" y="164.6" width="750" height="38.5" fill="#ef4444" opacity="0.07" />
+                <rect x="50" y="164.6" width="750" height="38.5" fill="#dc2626" opacity="0.07" />
                 <rect x="50" y="203.1" width="750" height="19.2" fill="#f97316" opacity="0.07" />
                 <rect x="50" y="222.3" width="750" height="38.5" fill="#eab308" opacity="0.06" />
                 <rect x="50" y="260.8" width="750" height="19.2" fill="#22c55e" opacity="0.06" />
@@ -1992,7 +1992,7 @@
         </div>
         <div class="tiers">
             <div class="tier reveal">
-                <div class="tier-bar" style="background:#22c55e"></div>
+                <div class="tier-bar" style="background:var(--alert-low-bg)"></div>
                 <div class="tier-body">
                     <div class="tier-name" style="color:#22c55e">LOW</div>
                     <div class="tier-range">0–20 µg/m³</div>
@@ -2000,7 +2000,7 @@
                 </div>
             </div>
             <div class="tier reveal reveal-delay-1">
-                <div class="tier-bar" style="background:#eab308"></div>
+                <div class="tier-bar" style="background:var(--alert-moderate-bg)"></div>
                 <div class="tier-body">
                     <div class="tier-name" style="color:#eab308">MODERATE</div>
                     <div class="tier-range">20–60 µg/m³</div>
@@ -2008,7 +2008,7 @@
                 </div>
             </div>
             <div class="tier reveal reveal-delay-2">
-                <div class="tier-bar" style="background:#f97316"></div>
+                <div class="tier-bar" style="background:var(--alert-high-bg)"></div>
                 <div class="tier-body">
                     <div class="tier-name" style="color:#f97316">HIGH</div>
                     <div class="tier-range">60–80 µg/m³</div>
@@ -2016,15 +2016,15 @@
                 </div>
             </div>
             <div class="tier reveal reveal-delay-3">
-                <div class="tier-bar" style="background:#ef4444"></div>
+                <div class="tier-bar" style="background:var(--alert-veryhigh-bg)"></div>
                 <div class="tier-body">
-                    <div class="tier-name" style="color:#ef4444">VERY HIGH</div>
+                    <div class="tier-name" style="color:#dc2626">VERY HIGH</div>
                     <div class="tier-range">80–120 µg/m³</div>
                     <div class="tier-action">Significant risk for all. Avoid outdoor exertion; keep windows closed.</div>
                 </div>
             </div>
             <div class="tier reveal reveal-delay-3">
-                <div class="tier-bar" style="background:#7f1d1d"></div>
+                <div class="tier-bar" style="background:var(--alert-extreme-bg)"></div>
                 <div class="tier-body">
                     <div class="tier-name" style="color:#fca5a5">EXTREME</div>
                     <div class="tier-range">&gt; 120 µg/m³</div>
@@ -2051,7 +2051,7 @@
                 </div>
                 <div class="bf-bottom">
                     <div class="bf-stat"><span class="count" data-target="87.5" data-decimals="1"
-                            data-suffix="%">0%</span></div>
+                            data-suffix="%">87.5%</span></div>
                     <p class="bf-desc">Detection accuracy across the 2024 out-of-sample wildfire season (8 events) — with zero missed events
                         (100% sensitivity).</p>
                 </div>
@@ -2118,8 +2118,8 @@
             </div>
             <div class="footer-links">
                 <a href="/dashboard/" class="footer-link">Dashboard</a>
-                <a href="/dashboard/#tab-research" class="footer-link">Research</a>
-                <a href="/dashboard/#tab-feedback" class="footer-link">Feedback</a>
+                <a href="/research/" class="footer-link">Research</a>
+                <a href="/feedback/" class="footer-link">Feedback</a>
                 <a href="/privacy/" class="footer-link">Privacy</a>
             </div>
             <div class="footer-credit">

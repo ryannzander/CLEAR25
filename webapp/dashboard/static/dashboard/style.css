@@ -21,6 +21,142 @@
     --surface: #0f0f10;
     --border-soft: rgba(255, 255, 255, 0.06);
     --border: rgba(255, 255, 255, 0.10);
+
+    /* ========================================================
+       ALERT LEVEL TOKENS — the 5-level scale is the product's
+       identity. One source of truth for every surface (cards,
+       table, map, badges, docs). Each level pairs a background
+       (`*-bg`), an AA-contrast ink for text ON that background
+       (`*-ink`), and a glow. VERY HIGH uses #dc2626 (not
+       #ef4444) so white ink clears WCAG AA (4.83:1). Bands and
+       thresholds are unchanged — this is presentation only.
+       ======================================================== */
+    --alert-low-bg: #22c55e;
+    --alert-low-ink: #000000;
+    --alert-low-glow: rgba(34, 197, 94, 0.25);
+    --alert-moderate-bg: #eab308;
+    --alert-moderate-ink: #000000;
+    --alert-moderate-glow: rgba(234, 179, 8, 0.25);
+    --alert-high-bg: #f97316;
+    --alert-high-ink: #000000;
+    --alert-high-glow: rgba(249, 115, 22, 0.25);
+    --alert-veryhigh-bg: #dc2626;
+    --alert-veryhigh-ink: #ffffff;
+    --alert-veryhigh-glow: rgba(220, 38, 38, 0.30);
+    --alert-extreme-bg: #7f1d1d;
+    --alert-extreme-ink: #ffffff;
+    --alert-extreme-glow: rgba(127, 29, 29, 0.35);
+    --alert-none-bg: #3f3f46;
+    --alert-none-ink: #e4e4e7;
+    --alert-none-glow: transparent;
+}
+
+/* ========================================================
+   ALERT BADGE COMPONENT — color + icon + label (never color
+   alone). Driven by `data-level` so it never depends on an
+   inline hex string. Usage: build with alertBadge() in
+   alert-tokens.js, or hand-write:
+     <span class="alert-badge" data-level="high">
+       <svg class="alert-badge__icon">…</svg>
+       <span class="alert-badge__label">HIGH</span>
+     </span>
+   ======================================================== */
+.alert-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    line-height: 1;
+    background: var(--alert-none-bg);
+    color: var(--alert-none-ink);
+    transition: box-shadow 0.3s;
+}
+
+.alert-badge__icon {
+    width: 11px;
+    height: 11px;
+    flex: 0 0 auto;
+    display: block;
+}
+
+.alert-badge--sm {
+    font-size: 9px;
+    padding: 2px 7px;
+    gap: 4px;
+}
+
+.alert-badge--sm .alert-badge__icon {
+    width: 9px;
+    height: 9px;
+}
+
+.alert-badge[data-level="low"] {
+    background: var(--alert-low-bg);
+    color: var(--alert-low-ink);
+    box-shadow: 0 0 12px var(--alert-low-glow);
+}
+
+.alert-badge[data-level="moderate"] {
+    background: var(--alert-moderate-bg);
+    color: var(--alert-moderate-ink);
+    box-shadow: 0 0 12px var(--alert-moderate-glow);
+}
+
+.alert-badge[data-level="high"] {
+    background: var(--alert-high-bg);
+    color: var(--alert-high-ink);
+    box-shadow: 0 0 12px var(--alert-high-glow);
+}
+
+.alert-badge[data-level="veryhigh"] {
+    background: var(--alert-veryhigh-bg);
+    color: var(--alert-veryhigh-ink);
+    box-shadow: 0 0 12px var(--alert-veryhigh-glow);
+}
+
+.alert-badge[data-level="extreme"] {
+    background: var(--alert-extreme-bg);
+    color: var(--alert-extreme-ink);
+    box-shadow: 0 0 12px var(--alert-extreme-glow);
+}
+
+/* ========== Skip link (a11y) ========== */
+.skip-link {
+    position: absolute;
+    left: 8px;
+    top: -48px;
+    z-index: 10001;
+    padding: 10px 16px;
+    border-radius: 8px;
+    background: var(--brand);
+    color: var(--brand-text);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: top 0.15s ease;
+}
+
+.skip-link:focus {
+    top: 8px;
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+}
+
+/* ========== Toast container ========== */
+.toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
 }
 
 /* ========== Global Animations ========== */
@@ -2155,25 +2291,28 @@ body {
    GLOBAL POLISH — Badge glows, loading skeleton
    ============================================================ */
 
-/* Badge glow shadows */
+/* Legacy .badge glow — kept for any inline-hex badges still in
+   flight. New code uses .alert-badge[data-level] (see token block
+   near the top of this file), which carries its own glow. */
 .badge[style*="#22c55e"] {
-    box-shadow: 0 0 12px rgba(34, 197, 94, 0.25);
+    box-shadow: 0 0 12px var(--alert-low-glow);
 }
 
 .badge[style*="#eab308"] {
-    box-shadow: 0 0 12px rgba(234, 179, 8, 0.25);
+    box-shadow: 0 0 12px var(--alert-moderate-glow);
 }
 
 .badge[style*="#f97316"] {
-    box-shadow: 0 0 12px rgba(249, 115, 22, 0.25);
+    box-shadow: 0 0 12px var(--alert-high-glow);
 }
 
+.badge[style*="#dc2626"],
 .badge[style*="#ef4444"] {
-    box-shadow: 0 0 12px rgba(239, 68, 68, 0.25);
+    box-shadow: 0 0 12px var(--alert-veryhigh-glow);
 }
 
 .badge[style*="#7f1d1d"] {
-    box-shadow: 0 0 12px rgba(127, 29, 29, 0.35);
+    box-shadow: 0 0 12px var(--alert-extreme-glow);
 }
 
 /* Loading skeleton shimmer */

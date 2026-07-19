@@ -5,6 +5,8 @@ urlpatterns = [
     path("", views.landing_page, name="landing"),
     path("privacy/", views.privacy_page, name="privacy"),
     path("dashboard/", views.index, name="dashboard"),
+    path("research/", views.research_page, name="research"),
+    path("feedback/", views.feedback_page, name="feedback"),
     path("health/", views.health_check, name="health"),  # Health check for monitoring
     path("api/stations/", views.api_stations),
     path("api/demo/", views.api_demo),

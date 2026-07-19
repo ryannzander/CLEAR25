@@ -39,7 +39,20 @@ def index(request):
         "cities": cities,
         "current_plan": current_plan,
         "plan_expires": plan_expires,
+        "active_nav": "dashboard",
     })
+
+
+@ensure_csrf_cookie
+def research_page(request):
+    """Render the research / methodology write-up as its own route."""
+    return render(request, "dashboard/research.html", {"active_nav": "research"})
+
+
+@ensure_csrf_cookie
+def feedback_page(request):
+    """Render the community feedback board as its own route."""
+    return render(request, "dashboard/feedback.html", {"active_nav": "feedback"})
 
 
 @cache_page(60 * 5)  # Cache for 5 minutes
