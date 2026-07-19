@@ -23,7 +23,7 @@
                             <p class="research-subtitle">The C.L.E.A.R. System: Canadian Lead-Time Early Air Response
                             </p>
                             <p class="research-period">Providing up to 87 Hours (24.7 h average) of Advance Warning for Wildfire Smoke</p>
-                            <p class="research-period" style="font-size:12px;color:#71717a;margin-top:8px;">Source: Bui &amp; Zander (2026), &ldquo;Before the Sky Turns Orange&rdquo;</p>
+                            <p class="research-source">Source: Bui &amp; Zander (2026), &ldquo;Before the Sky Turns Orange&rdquo;</p>
                         </div>
                         <div class="research-card">
                             <h2>Project Summary</h2>
@@ -45,7 +45,7 @@
                                     <div class="key-stat-label">Covered</div>
                                 </div>
                             </div>
-                            <div class="key-stats" style="margin-top:12px;">
+                            <div class="key-stats key-stats--spaced">
                                 <div class="key-stat">
                                     <div class="key-stat-value">87.5%</div>
                                     <div class="key-stat-label">Accuracy (2024)</div>
@@ -146,7 +146,7 @@
                                     <div class="key-stat-label">Specificity</div>
                                 </div>
                             </div>
-                            <div class="key-stats" style="margin-top:12px;">
+                            <div class="key-stats key-stats--spaced">
                                 <div class="key-stat">
                                     <div class="key-stat-value">24.7h</div>
                                     <div class="key-stat-label">Average Lead Time</div>
@@ -160,7 +160,7 @@
                                     <div class="key-stat-label">TP · TN · FP · FN</div>
                                 </div>
                             </div>
-                            <p style="margin-top:12px;color:#a1a1aa;font-size:13px;">8 independent 2024 wildfire smoke
+                            <p class="research-note">8 independent 2024 wildfire smoke
                                 episodes (5 true positives, 2 true negatives, 1 false positive, 0 false negatives). The
                                 system detected every hazardous smoke event that reached Toronto.</p>
                         </div>
@@ -200,7 +200,7 @@
                                     </tbody>
                                 </table>
                             </div>
-                            <p style="margin-top:16px;font-weight:600;color:#e4e4e7;">Combined system performance
+                            <p class="research-lead">Combined system performance
                                 (2003–2023, 33 wildfire events)</p>
                             <div class="key-stats">
                                 <div class="key-stat">
@@ -216,7 +216,7 @@
                                     <div class="key-stat-label">Sensitivity (0 missed)</div>
                                 </div>
                             </div>
-                            <div class="key-stats" style="margin-top:12px;">
+                            <div class="key-stats key-stats--spaced">
                                 <div class="key-stat">
                                     <div class="key-stat-value">15.7h</div>
                                     <div class="key-stat-label">Average Lead Time</div>
@@ -230,7 +230,7 @@
                                     <div class="key-stat-label">TP · TN · FP · FN</div>
                                 </div>
                             </div>
-                            <p style="margin-top:12px;color:#a1a1aa;font-size:13px;">Accuracy = (26 TP + 4 TN) ÷ 33
+                            <p class="research-note">Accuracy = (26 TP + 4 TN) ÷ 33
                                 events. The three false positives were non-fire regional haze events; no smoke event that
                                 reached Toronto was missed (100% sensitivity).</p>
                         </div>
@@ -255,29 +255,26 @@
                                             <td>Rule 3 (NE Corridor)</td>
                                             <td>Ottawa (341 km NE)</td>
                                             <td><strong>156 µg/m³</strong></td>
-                                            <td><span class="badge"
-                                                    style="background:var(--alert-extreme-bg);color:white">EXTREME</span></td>
+                                            <td><span class="alert-badge" data-level="extreme">EXTREME</span></td>
                                         </tr>
                                         <tr>
                                             <td>June 6</td>
                                             <td>Rule 1 (Regional)</td>
                                             <td>Cornwall (387 km ENE)</td>
                                             <td><strong>160 µg/m³</strong></td>
-                                            <td><span class="badge"
-                                                    style="background:var(--alert-extreme-bg);color:white">EXTREME</span></td>
+                                            <td><span class="alert-badge" data-level="extreme">EXTREME</span></td>
                                         </tr>
                                         <tr class="total-row">
                                             <td>June 28</td>
                                             <td>—</td>
                                             <td>Toronto (Peak)</td>
                                             <td><strong>241 µg/m³</strong></td>
-                                            <td><span class="badge"
-                                                    style="background:var(--alert-extreme-bg);color:white">EXTREME</span></td>
+                                            <td><span class="alert-badge" data-level="extreme">EXTREME</span></td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
-                            <p style="margin-top:12px;color:#a1a1aa;font-size:13px;">Seven major Quebec fires burned
+                            <p class="research-note">Seven major Quebec fires burned
                                 simultaneously, producing record-breaking smoke across Eastern Canada.</p>
                         </div>
                     </div>
@@ -313,21 +310,21 @@
                             <h2>AI Platform Validation</h2>
                             <p>Regression analyses were independently replicated across <strong>four AI
                                     platforms</strong> to ensure mathematical accuracy:</p>
-                            <div class="key-stats" style="grid-template-columns: repeat(4, 1fr);">
+                            <div class="key-stats key-stats--4">
                                 <div class="key-stat">
-                                    <div class="key-stat-value" style="font-size:16px;">Claude</div>
+                                    <div class="key-stat-value key-stat-value--name">Claude</div>
                                     <div class="key-stat-label">Anthropic</div>
                                 </div>
                                 <div class="key-stat">
-                                    <div class="key-stat-value" style="font-size:16px;">ChatGPT</div>
+                                    <div class="key-stat-value key-stat-value--name">ChatGPT</div>
                                     <div class="key-stat-label">OpenAI</div>
                                 </div>
                                 <div class="key-stat">
-                                    <div class="key-stat-value" style="font-size:16px;">Gemini</div>
+                                    <div class="key-stat-value key-stat-value--name">Gemini</div>
                                     <div class="key-stat-label">Google</div>
                                 </div>
                                 <div class="key-stat">
-                                    <div class="key-stat-value" style="font-size:16px;">Julius AI</div>
+                                    <div class="key-stat-value key-stat-value--name">Julius AI</div>
                                     <div class="key-stat-label">Data Analysis</div>
                                 </div>
                             </div>
@@ -352,39 +349,33 @@
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td><span class="badge"
-                                                    style="background:var(--alert-low-bg);color:black;font-size:12px;padding:5px 14px;">LOW</span>
+                                            <td><span class="alert-badge alert-badge--lg" data-level="low">LOW</span>
                                             </td>
                                             <td>0–20 µg/m³</td>
                                             <td>No significant risk. No action required.</td>
                                         </tr>
                                         <tr>
-                                            <td><span class="badge"
-                                                    style="background:var(--alert-moderate-bg);color:black;font-size:12px;padding:5px 14px;">MODERATE</span>
+                                            <td><span class="alert-badge alert-badge--lg" data-level="moderate">MODERATE</span>
                                             </td>
                                             <td>20–60 µg/m³</td>
                                             <td>Sensitive groups (children, elderly, respiratory conditions) should
                                                 reduce outdoor activity.</td>
                                         </tr>
                                         <tr>
-                                            <td><span class="badge"
-                                                    style="background:var(--alert-high-bg);color:black;font-size:12px;padding:5px 14px;">HIGH</span>
+                                            <td><span class="alert-badge alert-badge--lg" data-level="high">HIGH</span>
                                             </td>
                                             <td>60–80 µg/m³</td>
                                             <td>General population affected. Reduce prolonged outdoor exertion. Use
                                                 N95/KN95 mask outdoors.</td>
                                         </tr>
                                         <tr>
-                                            <td><span class="badge"
-                                                    style="background:var(--alert-veryhigh-bg);color:white;font-size:12px;padding:5px 14px;">VERY
-                                                    HIGH</span></td>
+                                            <td><span class="alert-badge alert-badge--lg" data-level="veryhigh">VERY HIGH</span></td>
                                             <td>80–120 µg/m³</td>
                                             <td>Significant risk for all. Avoid outdoor exertion. Keep doors and windows
                                                 closed.</td>
                                         </tr>
                                         <tr>
-                                            <td><span class="badge"
-                                                    style="background:var(--alert-extreme-bg);color:white;font-size:12px;padding:5px 14px;">EXTREME</span>
+                                            <td><span class="alert-badge alert-badge--lg" data-level="extreme">EXTREME</span>
                                             </td>
                                             <td>&gt;120 µg/m³</td>
                                             <td>Emergency conditions. Stay indoors. Close windows. Run HEPA filter. No

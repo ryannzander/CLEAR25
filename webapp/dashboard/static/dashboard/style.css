@@ -56,7 +56,8 @@
        Adopt in new/edited rules; existing rules migrate as they
        are touched. Breakpoint convention (media queries cannot
        read custom properties): 640px phone · 768px tablet ·
-       1024px small desktop.
+       1024px small desktop, plus two intentional xs sub-tiers
+       (500px card stacking, 400px data-column trim).
        ======================================================== */
     /* Text roles — replaces the ad-hoc 6-gray soup. All pass
        WCAG AA for their intended size on --bg and --surface. */
@@ -400,6 +401,12 @@ body.app-shell {
     display: block;
 }
 
+/* Larger badge for the research alert-band legend. */
+.alert-badge--lg {
+    font-size: var(--fs-sm);
+    padding: 5px 14px;
+}
+
 .alert-badge--sm {
     font-size: 9px;
     padding: 2px 7px;
@@ -680,7 +687,7 @@ body {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    color: #71717a;
+    color: var(--text-secondary);
     font-size: 13px;
     font-weight: 500;
     transition: all 0.15s ease;
@@ -807,7 +814,7 @@ body {
 
 .account-menu-email {
     font-size: 12px;
-    color: #71717a;
+    color: var(--text-tertiary);
 }
 
 .account-menu-divider {
@@ -821,7 +828,7 @@ body {
     gap: 10px;
     padding: 10px 16px;
     font-size: 13px;
-    color: #a1a1aa;
+    color: var(--text-secondary);
     text-decoration: none;
     transition: all 0.15s;
 }
@@ -906,7 +913,7 @@ body {
 .station-count {
     margin-left: auto;
     font-size: 13px;
-    color: #71717a;
+    color: var(--text-tertiary);
     font-weight: 500;
 }
 
@@ -1007,7 +1014,7 @@ body {
     display: block;
     font-size: 0.85rem;
     font-weight: 500;
-    color: #a1a1aa;
+    color: var(--text-secondary);
     margin-bottom: 6px;
 }
 
@@ -1052,13 +1059,13 @@ body {
 .auth-user {
     font-size: 13px;
     font-weight: 600;
-    color: #a1a1aa;
+    color: var(--text-secondary);
 }
 
 .auth-link {
     font-size: 14px;
     font-weight: 600;
-    color: #71717a;
+    color: var(--text-secondary);
     text-decoration: none;
     padding: 8px 18px;
     border-radius: 8px;
@@ -1134,7 +1141,7 @@ body {
     display: block;
     font-size: 12px;
     font-weight: 600;
-    color: #a1a1aa;
+    color: var(--text-secondary);
     margin-bottom: 6px;
 }
 
@@ -1180,7 +1187,7 @@ body {
     text-align: center;
     margin-top: 20px;
     font-size: 13px;
-    color: #71717a;
+    color: var(--text-tertiary);
 }
 
 .auth-footer a {
@@ -1252,7 +1259,7 @@ body {
 .progress-label {
     font-size: 12px;
     font-weight: 600;
-    color: #a1a1aa;
+    color: var(--text-secondary);
     margin-bottom: 8px;
 }
 
@@ -1290,7 +1297,7 @@ body {
 }
 
 .empty-text strong {
-    color: #a1a1aa;
+    color: var(--text-secondary);
 }
 
 /* ============================================================
@@ -1356,7 +1363,7 @@ body {
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #a1a1aa;
+    color: var(--text-secondary);
     margin-bottom: 6px;
 }
 
@@ -1385,7 +1392,7 @@ body {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.07em;
-    color: #71717a;
+    color: var(--text-secondary);
     margin-right: 4px;
 }
 
@@ -1397,7 +1404,7 @@ body {
 
 .city-card-detail {
     font-size: 12px;
-    color: #71717a;
+    color: var(--text-tertiary);
     margin-top: 4px;
     min-height: 16px;
 }
@@ -1436,7 +1443,7 @@ body {
     font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: #a1a1aa;
+    color: var(--text-secondary);
     margin-bottom: 8px;
 }
 
@@ -1450,7 +1457,7 @@ body {
 
 .banner-health {
     font-size: 14px;
-    color: #a1a1aa;
+    color: var(--text-secondary);
     margin-top: 8px;
     min-height: 20px;
 }
@@ -1475,7 +1482,7 @@ body {
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: #71717a;
+    color: var(--text-tertiary);
     margin-bottom: 4px;
 }
 
@@ -1514,7 +1521,7 @@ body {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: #71717a;
+    color: var(--text-tertiary);
 }
 
 .table-body {
@@ -1548,7 +1555,7 @@ body {
 .td-id {
     width: 90px;
     font-size: 11px;
-    color: #71717a;
+    color: var(--text-tertiary);
     font-family: 'JetBrains Mono', monospace;
 }
 
@@ -1644,7 +1651,7 @@ body {
 .row .td-lead {
     font-family: 'JetBrains Mono', monospace;
     font-size: 12px;
-    color: #a1a1aa;
+    color: var(--text-secondary);
 }
 
 .row .td-pm,
@@ -1746,7 +1753,7 @@ body {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #71717a;
+    color: var(--text-tertiary);
 }
 
 .legend-item {
@@ -1754,7 +1761,7 @@ body {
     align-items: center;
     gap: 6px;
     font-size: 12px;
-    color: #a1a1aa;
+    color: var(--text-secondary);
 }
 
 .legend-dot {
@@ -1820,7 +1827,7 @@ body {
 
 .popup-meta {
     font-size: 11px;
-    color: #71717a;
+    color: var(--text-tertiary);
     margin-bottom: 2px;
 }
 
@@ -1839,7 +1846,7 @@ body {
 }
 
 .popup-label {
-    color: #a1a1aa;
+    color: var(--text-secondary);
     font-size: 12px;
 }
 
@@ -1873,12 +1880,12 @@ body {
     border-radius: 8px;
     font-size: 13px;
     font-weight: 600;
-    color: #71717a;
+    color: var(--text-secondary);
     transition: all 0.15s;
 }
 
 .rnav:hover {
-    color: #a1a1aa;
+    color: var(--text-secondary);
     background: rgba(255, 255, 255, 0.08);
 }
 
@@ -1937,13 +1944,52 @@ body {
 
 .research-authors {
     font-size: 15px;
-    color: #a1a1aa;
+    color: var(--text-secondary);
     margin-bottom: 4px;
+}
+
+/* The three text components double up with a .research-card-scoped
+   selector (0-2-0) because `.research-card p` (0-1-1, later in the
+   file) would otherwise override them — the inline styles they
+   replaced always won as inline. */
+.research-card .research-source,
+.research-source {          /* source attribution under the page title */
+    font-size: var(--fs-sm);
+    color: var(--text-tertiary);
+    margin-top: 8px;
+}
+
+.research-card .research-note,
+.research-note {            /* explanatory paragraph under tables/stat grids */
+    margin-top: 12px;
+    color: var(--text-secondary);
+    font-size: var(--fs-base);
+}
+
+.research-card .research-lead,
+.research-lead {            /* emphasized lead-in line */
+    margin-top: 16px;
+    font-weight: 600;
+    color: #e4e4e7;
+}
+
+/* BEM double-class so the modifiers beat the .key-stats base rule
+   (defined later) at any position. */
+.key-stats.key-stats--spaced {
+    margin-top: 12px;
+}
+
+.key-stats.key-stats--4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.key-stat-value--name {     /* tool names in the AI-comparison grid */
+    font-size: var(--fs-lg);
 }
 
 .research-period {
     font-size: 13px;
-    color: #71717a;
+    color: var(--text-tertiary);
     font-weight: 600;
 }
 
@@ -1964,7 +2010,7 @@ body {
 
 .research-card p {
     font-size: 14px;
-    color: #a1a1aa;
+    color: var(--text-secondary);
     line-height: 1.7;
     margin-bottom: 12px;
 }
@@ -2026,7 +2072,7 @@ body {
 .key-stat-label {
     font-size: 11px;
     font-weight: 600;
-    color: #71717a;
+    color: var(--text-tertiary);
     text-transform: uppercase;
     letter-spacing: 0.04em;
     margin-top: 4px;
@@ -2053,13 +2099,13 @@ body {
 .stat-highlight-label {
     font-size: 13px;
     font-weight: 600;
-    color: #a1a1aa;
+    color: var(--text-secondary);
     margin-top: 4px;
 }
 
 .stat-highlight-desc {
     font-size: 12px;
-    color: #71717a;
+    color: var(--text-tertiary);
     margin-top: 2px;
 }
 
@@ -2086,7 +2132,7 @@ body {
     position: relative;
     padding: 8px 0 8px 20px;
     font-size: 14px;
-    color: #a1a1aa;
+    color: var(--text-secondary);
     line-height: 1.6;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
@@ -2146,7 +2192,7 @@ body {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #71717a;
+    color: var(--text-tertiary);
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -2210,13 +2256,13 @@ body {
 .ref-list li {
     padding-left: 0;
     font-size: 13px;
-    color: #71717a;
+    color: var(--text-secondary);
 }
 
 /* Alert table */
 .alert-table td:last-child {
     font-size: 12px;
-    color: #a1a1aa;
+    color: var(--text-secondary);
     max-width: 400px;
 }
 
@@ -2285,7 +2331,7 @@ body {
 .api-docs .response-label {
     font-size: 11px;
     font-weight: 600;
-    color: #71717a;
+    color: var(--text-tertiary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin-bottom: 8px;
@@ -2335,7 +2381,7 @@ body {
 }
 
 .feedback-header p {
-    color: #a1a1aa;
+    color: var(--text-secondary);
     font-size: 0.9rem;
     line-height: 1.4;
 }
@@ -2351,7 +2397,7 @@ body {
 .sort-btn {
     background: transparent;
     border: none;
-    color: #71717a;
+    color: var(--text-secondary);
     font-size: 0.85rem;
     font-weight: 500;
     padding: 6px 14px;
@@ -2378,7 +2424,7 @@ body {
 
 .suggestions-empty {
     text-align: center;
-    color: #71717a;
+    color: var(--text-secondary);
     padding: 60px 24px;
     background: var(--surface, #0f0f10);
     border-radius: 12px;
@@ -2426,7 +2472,7 @@ body {
 
 .vote-btn:hover {
     background: rgba(255, 255, 255, 0.08);
-    color: #a1a1aa;
+    color: var(--text-secondary);
 }
 
 .vote-btn.voted-up {
@@ -2470,7 +2516,7 @@ body {
 
 .suggestion-meta {
     font-size: 0.8rem;
-    color: #71717a;
+    color: var(--text-tertiary);
     display: flex;
     flex-wrap: wrap;
     gap: 6px 16px;
@@ -2482,7 +2528,7 @@ body {
 }
 
 .suggestion-author {
-    color: #a1a1aa;
+    color: var(--text-secondary);
     font-weight: 500;
 }
 
@@ -2513,7 +2559,7 @@ body {
 
 .detail-meta {
     font-size: 0.85rem;
-    color: #71717a;
+    color: var(--text-tertiary);
     margin-bottom: 1rem;          /* utility mb-4 used to win over 16px */
     display: flex;
     align-items: center;
@@ -2527,7 +2573,7 @@ body {
 }
 
 #detail-author {
-    color: #a1a1aa;
+    color: var(--text-secondary);
     font-weight: 500;
 }
 
@@ -2609,7 +2655,7 @@ body {
 }
 
 .comment-author {
-    color: #a1a1aa;
+    color: var(--text-secondary);
     font-weight: 500;
 }
 
@@ -2740,20 +2786,12 @@ body {
    ============================================================ */
 
 /* ---- City Cards ---- */
-@media (max-width: 900px) {
+/* ---- 1024px — small desktop (was two 900px blocks) ---- */
+@media (max-width: 1024px) {
     .city-cards {
         grid-template-columns: repeat(2, 1fr);
     }
-}
 
-@media (max-width: 500px) {
-    .city-cards {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* ---- 900px Breakpoint ---- */
-@media (max-width: 900px) {
     .key-stats,
     .method-grid {
         grid-template-columns: 1fr;
@@ -2769,6 +2807,14 @@ body {
 
     .research-card {
         padding: 20px 16px;
+    }
+}
+
+/* xs sub-tier (intentional, below the 640 phone tier): single-column
+   city cards on small phones. */
+@media (max-width: 500px) {
+    .city-cards {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -2957,6 +3003,9 @@ body {
 }
 
 /* ---- 400px Breakpoint ---- */
+/* xs sub-tier: tighten card gap + drop the distance column on very
+   small phones (kept deliberately - merging up would hide data at
+   401-640px). */
 @media (max-width: 400px) {
     .city-cards {
         gap: 8px;
@@ -2968,8 +3017,16 @@ body {
     }
 }
 
-/* ---- Feedback Board Responsive ---- */
-@media (max-width: 600px) {
+/* Phone tier: the AI-comparison grid folds 4 -> 2x2 (its old inline
+   style forced 4 columns at every width). */
+@media (max-width: 640px) {
+    .key-stats.key-stats--4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* ---- Feedback Board Responsive (phone tier) ---- */
+@media (max-width: 640px) {
     .feedback-header {
         flex-direction: column;
     }
