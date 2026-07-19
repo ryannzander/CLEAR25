@@ -401,6 +401,12 @@ body.app-shell {
     display: block;
 }
 
+/* Larger badge for the research alert-band legend. */
+.alert-badge--lg {
+    font-size: var(--fs-sm);
+    padding: 5px 14px;
+}
+
 .alert-badge--sm {
     font-size: 9px;
     padding: 2px 7px;
@@ -1942,6 +1948,45 @@ body {
     margin-bottom: 4px;
 }
 
+/* The three text components double up with a .research-card-scoped
+   selector (0-2-0) because `.research-card p` (0-1-1, later in the
+   file) would otherwise override them — the inline styles they
+   replaced always won as inline. */
+.research-card .research-source,
+.research-source {          /* source attribution under the page title */
+    font-size: var(--fs-sm);
+    color: var(--text-tertiary);
+    margin-top: 8px;
+}
+
+.research-card .research-note,
+.research-note {            /* explanatory paragraph under tables/stat grids */
+    margin-top: 12px;
+    color: var(--text-secondary);
+    font-size: var(--fs-base);
+}
+
+.research-card .research-lead,
+.research-lead {            /* emphasized lead-in line */
+    margin-top: 16px;
+    font-weight: 600;
+    color: #e4e4e7;
+}
+
+/* BEM double-class so the modifiers beat the .key-stats base rule
+   (defined later) at any position. */
+.key-stats.key-stats--spaced {
+    margin-top: 12px;
+}
+
+.key-stats.key-stats--4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.key-stat-value--name {     /* tool names in the AI-comparison grid */
+    font-size: var(--fs-lg);
+}
+
 .research-period {
     font-size: 13px;
     color: var(--text-tertiary);
@@ -2969,6 +3014,14 @@ body {
     .th-dist,
     .td-dist {
         display: none;
+    }
+}
+
+/* Phone tier: the AI-comparison grid folds 4 -> 2x2 (its old inline
+   style forced 4 columns at every width). */
+@media (max-width: 640px) {
+    .key-stats.key-stats--4 {
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 
