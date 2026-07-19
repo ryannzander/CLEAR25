@@ -32,12 +32,20 @@
             --orange-glow: #ffce8f;
             --text: #ffffff;
             --text-dim: rgba(255, 255, 255, 0.62);
-            --text-faint: rgba(255, 255, 255, 0.42);
+            --text-faint: rgba(255, 255, 255, 0.55);  /* was 0.42 (~2.9:1, below AA); 0.55 ~ 4.6:1 */
             --border: rgba(255, 255, 255, 0.11);
             --border-soft: rgba(255, 255, 255, 0.07);
             --frame: 1340px;
             --content: 1120px;
             --gutter: 22px;
+        }
+
+        /* Keyboard focus (the page previously had no focus styles at all).
+           Ring only on keyboard focus; mouse clicks stay clean. */
+        :focus-visible {
+            outline: 2px solid var(--orange);
+            outline-offset: 3px;
+            border-radius: 4px;
         }
 
         body {
