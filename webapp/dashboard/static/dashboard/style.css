@@ -49,6 +49,46 @@
     --alert-none-bg: #3f3f46;
     --alert-none-ink: #e4e4e7;
     --alert-none-glow: transparent;
+
+    /* ========================================================
+       FOUNDATION TOKENS (UI Phase 4) — single source of truth
+       for text roles, spacing, type, radii, shadows and focus.
+       Adopt in new/edited rules; existing rules migrate as they
+       are touched. Breakpoint convention (media queries cannot
+       read custom properties): 640px phone · 768px tablet ·
+       1024px small desktop.
+       ======================================================== */
+    /* Text roles — replaces the ad-hoc 6-gray soup. All pass
+       WCAG AA for their intended size on --bg and --surface. */
+    --text-primary: #fafafa;      /* headings, values            */
+    --text-secondary: #a1a1aa;    /* body, labels                */
+    --text-tertiary: #8b8b93;     /* captions; ≥12px only        */
+    /* #71717a is retired for text under 18px (≈3.9:1 on --bg). */
+
+    /* Spacing — 4px base scale. */
+    --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px;
+    --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-12: 48px;
+
+    /* Type scale (px; matches the dominant existing sizes). */
+    --fs-xs: 11px; --fs-sm: 12px; --fs-base: 13px; --fs-md: 14px;
+    --fs-lg: 16px; --fs-xl: 18px; --fs-2xl: 22px; --fs-3xl: 28px;
+    --fs-4xl: 36px;
+    --lh-tight: 1.25; --lh-normal: 1.5; --lh-relaxed: 1.65;
+
+    /* Radii — collapses the 15 ad-hoc values to 4 (+50% circles). */
+    --r-sm: 6px; --r-md: 10px; --r-lg: 16px; --r-full: 999px;
+
+    /* Shadows — replaces the four near-identical one-offs. */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
+    --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.45);
+    --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.55);
+
+    /* Focus ring — brand double-ring, visible on any surface. */
+    --focus-ring: 0 0 0 2px var(--bg), 0 0 0 4px var(--brand);
+
+    /* Icon sizes — locks in the existing 18px-nav / 16px-menu
+       convention. */
+    --icon-nav: 18px; --icon-menu: 16px;
 }
 
 /* ============================================================
@@ -132,6 +172,88 @@ body.app-shell {
    app-feedback.js (delete button) and available shell-wide. */
 .hidden {
     display: none !important;
+}
+
+/* ============================================================
+   KEYBOARD FOCUS (UI Phase 4, fixes audit C2)
+   Both .sidebar-tab and .action-btn open with `all: unset`,
+   which destroys the native outline — and the stylesheet had a
+   single :focus-visible rule. This layer gives every interactive
+   element a visible brand ring on keyboard focus only (mouse
+   clicks stay ring-free via :focus-visible semantics).
+   ============================================================ */
+:where(a, button, [role="button"], input, select, textarea, summary,
+       [tabindex]):focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+    border-radius: var(--r-sm);
+}
+
+/* Beat the `all: unset` components and preserve their own radii. */
+.sidebar-tab:focus-visible,
+.action-btn:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+}
+
+.action-btn:focus-visible {
+    border-radius: 10px;          /* its own radius, not --r-sm */
+}
+
+/* Inputs/textareas keep their authored border radius under the ring. */
+:where(input, select, textarea):focus-visible {
+    border-radius: inherit;
+}
+
+/* ============================================================
+   BUTTON STATES (UI Phase 4, fixes audit M2)
+   .action-btn had hover only — no press, disabled, or loading
+   affordance anywhere in the app.
+   ============================================================ */
+.action-btn:active:not(:disabled):not(.is-loading) {
+    transform: translateY(1px);
+}
+
+.action-btn:disabled,
+.action-btn[aria-disabled="true"] {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.action-btn.is-loading {
+    position: relative;
+    color: transparent;
+    pointer-events: none;
+}
+
+.action-btn.is-loading::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    animation: btn-spin 0.6s linear infinite;
+}
+
+@keyframes btn-spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .action-btn {
+        transition: none;
+    }
+    .action-btn:active:not(:disabled):not(.is-loading) {
+        transform: none;
+    }
+    .action-btn.is-loading::after {
+        animation-duration: 1.5s;
+    }
 }
 
 /* ========================================================
@@ -375,7 +497,7 @@ body {
     align-items: center;
     gap: 10px;
     padding: 0 10px;
-    color: #71717a;
+    color: var(--text-secondary);  /* was #71717a — below AA on --bg */
     font-size: 13px;
     font-weight: 500;
     transition: all 0.15s ease;
@@ -429,7 +551,7 @@ body {
     align-items: center;
     gap: 10px;
     padding: 0 10px;
-    color: #71717a;
+    color: var(--text-secondary);  /* was #71717a — below AA on --bg */
     font-size: 13px;
     font-weight: 500;
     transition: all 0.15s ease;
@@ -627,7 +749,8 @@ body {
     border-radius: 10px;
     font-size: 13px;
     font-weight: 600;
-    transition: all 0.15s;
+    transition: background 0.15s, color 0.15s, border-color 0.15s,
+        box-shadow 0.15s, transform 0.08s;
 }
 
 .action-primary {
