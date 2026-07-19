@@ -151,38 +151,6 @@
             }
         }
 
-        /* ========== Dashed margin guides (Cloudflare signature) ========== */
-        .guides {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            pointer-events: none;
-        }
-
-        .guides::before,
-        .guides::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 0;
-            border-left: 1px dashed var(--border-soft);
-        }
-
-        .guides::before {
-            left: max(var(--gutter), calc((100% - var(--frame)) / 2));
-        }
-
-        .guides::after {
-            right: max(var(--gutter), calc((100% - var(--frame)) / 2));
-        }
-
-        @media (max-width: 760px) {
-            .guides {
-                display: none;
-            }
-        }
-
         /* ========== Navigation ========== */
         .nav {
             position: fixed;
@@ -1543,8 +1511,6 @@
 </head>
 
 <body>
-    <!-- Dashed margin guides -->
-    <div class="guides" aria-hidden="true"></div>
 
     <!-- Navigation -->
     <nav class="nav" id="main-nav">
