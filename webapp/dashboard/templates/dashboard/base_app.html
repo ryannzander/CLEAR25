@@ -109,8 +109,7 @@
                 <div class="account-dropdown account-dropdown-up">
                     <button class="sidebar-account" id="account-toggle"
                         title="{{ user.get_full_name|default:user.email }}">
-                        <span class="account-avatar">{{ user.first_name|slice:":1"|default:user.email|slice:":1"|upper
-                            }}</span>
+                        <span class="account-avatar">{{ user.first_name|slice:":1"|default:user.email|slice:":1"|upper }}</span>
                     </button>
                     <div class="account-menu" id="account-menu">
                         <div class="account-menu-header">
