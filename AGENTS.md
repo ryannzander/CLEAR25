@@ -4,7 +4,7 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 
 ## Project Overview
 
-**C.L.E.A.R. (Canadian Lead-time Early Air Response)** — A PM2.5 wildfire smoke early warning system that uses air quality monitoring stations 100–600+ km away to provide 6–48 hours of advance warning before dangerous smoke arrives in Toronto, Montreal, Edmonton, and Vancouver.
+**C.L.E.A.R. (Canadian Lead-time Early Air Response)** — A PM2.5 wildfire smoke early warning system that uses air quality monitoring stations 100–600+ km away to provide up to 87 hours of advance warning (24.7 h average) before dangerous smoke arrives in Toronto, Montreal, Edmonton, and Vancouver.
 
 Live site: https://clear25.xyz
 

@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CLEAR25 — Wildfire Smoke Early Warning System</title>
     <meta name="description"
-        content="6-48 hours of advance warning before dangerous wildfire smoke arrives. Protecting Toronto, Edmonton, Montréal, and Vancouver.">
+        content="Up to 87 hours of advance warning (24.7 h average) before dangerous wildfire smoke arrives. Protecting Toronto, Edmonton, Montréal, and Vancouver.">
     <link rel="icon" type="image/svg+xml" href="{% static 'dashboard/favicon.svg' %}?v=3">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1636,8 +1636,8 @@
             <div class="hero-content">
                 <h1 class="hero-title">Clear air starts<br>with early warning.</h1>
                 <p class="hero-subtitle">
-                    Providing 6–48 hours of advance warning before dangerous wildfire smoke arrives in your city.
-                    Powered by a network of 440 monitoring stations across Canada and the U.S.
+                    Providing up to 87 hours of advance warning (24.7 h average) before dangerous wildfire smoke arrives in your city.
+                    Powered by a 56-station operational network drawn from 479 stations analyzed across Canada and the U.S.
                 </p>
                 <div class="hero-actions">
                     <a href="/dashboard/" class="btn-light">
@@ -1658,16 +1658,16 @@
     <div class="stats-row">
         <div class="stats-grid">
             <div class="stat-item">
-                <div class="stat-value"><span class="accent count" data-target="90.9" data-decimals="1"
+                <div class="stat-value"><span class="accent count" data-target="87.5" data-decimals="1"
                         data-suffix="%">0%</span></div>
-                <div class="stat-label">Detection Accuracy (2003–2023)</div>
+                <div class="stat-label">Detection Accuracy (2024 out-of-sample)</div>
             </div>
             <div class="stat-item">
                 <div class="stat-value"><span class="count" data-target="100" data-suffix="%">0%</span></div>
                 <div class="stat-label">Events Detected · 0 missed</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value"><span class="count" data-target="15.7" data-decimals="1"
+                <div class="stat-value"><span class="count" data-target="24.7" data-decimals="1"
                         data-suffix="h">0h</span></div>
                 <div class="stat-label">Average Lead Time</div>
             </div>
@@ -1803,16 +1803,16 @@
                 <div class="scale-label">Hourly PM2.5 measurements</div>
             </div>
             <div class="scale-item reveal reveal-delay-1">
-                <div class="scale-value"><span class="count" data-target="440">0</span></div>
-                <div class="scale-label">Monitoring stations<br>309 NAPS + 131 U.S. EPA</div>
+                <div class="scale-value"><span class="count" data-target="479">0</span></div>
+                <div class="scale-label">Stations analyzed<br>348 NAPS + 131 U.S. EPA</div>
             </div>
             <div class="scale-item reveal reveal-delay-2">
                 <div class="scale-value"><span class="count" data-target="21">0</span></div>
                 <div class="scale-label">Wildfire seasons<br>2003–2023</div>
             </div>
             <div class="scale-item reveal reveal-delay-3">
-                <div class="scale-value"><span class="count" data-target="33">0</span></div>
-                <div class="scale-label">Wildfire events validated</div>
+                <div class="scale-value"><span class="count" data-target="8">0</span></div>
+                <div class="scale-label">2024 out-of-sample events</div>
             </div>
         </div>
     </section>
@@ -1979,7 +1979,7 @@
                 </div>
             </div>
         </div>
-        <p class="example-note">Source: CLEAR_Methodology_ScienceFair Ver#1 — Toronto, June 2023 Québec wildfire event.</p>
+        <p class="example-note">Source: Bui &amp; Zander (2026), &ldquo;Before the Sky Turns Orange&rdquo; — Toronto, June 2023 Québec wildfire event.</p>
     </section>
 
     <!-- Alert levels (tiers) -->
@@ -2039,20 +2039,20 @@
         <div class="section-header reveal">
             <h2 class="section-title">Four target cities</h2>
             <p class="section-subtitle">
-                The C.L.E.A.R. methodology covers four major Canadian cities. Toronto is fully validated against 21
-                years of historical wildfire-smoke events.
+                The C.L.E.A.R. methodology covers four major Canadian cities. Toronto is independently validated on the
+                2024 out-of-sample wildfire season.
             </p>
         </div>
 
         <div class="bento-grid">
             <div class="bento-card bento-feature reveal">
                 <div class="bf-top">
-                    <span class="bf-tag">Toronto · 2003–2023</span>
+                    <span class="bf-tag">Toronto · 2024 out-of-sample</span>
                 </div>
                 <div class="bf-bottom">
-                    <div class="bf-stat"><span class="count" data-target="90.9" data-decimals="1"
+                    <div class="bf-stat"><span class="count" data-target="87.5" data-decimals="1"
                             data-suffix="%">0%</span></div>
-                    <p class="bf-desc">Detection accuracy across 33 validated wildfire events — with zero missed events
+                    <p class="bf-desc">Detection accuracy across the 2024 out-of-sample wildfire season (8 events) — with zero missed events
                         (100% sensitivity).</p>
                 </div>
             </div>
@@ -2123,7 +2123,7 @@
                 <a href="/privacy/" class="footer-link">Privacy</a>
             </div>
             <div class="footer-credit">
-                CLEAR_Methodology_ScienceFair Ver#1 &middot; PSHS-MC Science Fair 2025
+                Bui &amp; Zander (2026), &ldquo;Before the Sky Turns Orange&rdquo; &middot; PSHS-MC Science Fair 2025
             </div>
         </div>
     </footer>
