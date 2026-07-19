@@ -19,6 +19,10 @@ function initMap() {
         }).addTo(map);
         updateMapMarkers(lastResults);
         map.invalidateSize();
+        loadPurpleAirLayer();
+        // re-read every 15 min — cheap DB read; the paid PurpleAir call is
+        // made at most hourly by the cost-guarded cron, not by clients.
+        setInterval(loadPurpleAirLayer, 15 * 60 * 1000);
     });
 }
 
@@ -204,4 +208,65 @@ async function mapRunDemo() {
     } catch (e) {
         mapStatus.textContent = `Error: ${e}`;
     }
+}
+
+/* ============================================================
+   PurpleAir community-sensor layer (always on)
+   One cleaned snapshot from /api/plan/frames/?latest=1 (fed hourly by the
+   cost-guarded /api/plan/refresh/ cron). EPA/Barkjohn-corrected PM2.5, drawn
+   as small canvas dots beneath the CLEAR station markers. READ-ONLY — never
+   feeds the alert engine; purely a visual context layer.
+   ============================================================ */
+let paRenderer = null;
+let paLayer = null;
+
+// Display-only banding — canonical alert bands (paper Table 2):
+// Low <20 · Moderate 20–60 · High 61–80 · Very High 81–120 · Extreme >120.
+function paLevelName(pm) {
+    if (pm > 120) return "EXTREME";
+    if (pm > 80) return "VERY HIGH";
+    if (pm > 60) return "HIGH";
+    if (pm >= 20) return "MODERATE";
+    return "LOW";
+}
+
+function loadPurpleAirLayer() {
+    if (!map) return;
+    fetch("/api/plan/frames/?latest=1")
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+            const frame = d && d.frames && d.frames[d.frames.length - 1];
+            if (!frame || !frame.points || !frame.points.length) return;
+            if (!paRenderer) paRenderer = L.canvas({ padding: 0.3 });
+            const group = L.layerGroup();
+            frame.points.forEach((pt) => {
+                if (pt.lat == null || pt.lon == null || pt.pm == null) return;
+                const color = AlertTokens.alertColor(paLevelName(pt.pm));
+                L.circleMarker([pt.lat, pt.lon], {
+                    renderer: paRenderer,
+                    radius: 3,
+                    stroke: false,
+                    fillColor: color,
+                    fillOpacity: 0.7,
+                    interactive: true,
+                })
+                    .bindTooltip(
+                        `PurpleAir sensor · ${pt.pm} µg/m³ (EPA-corrected)`,
+                        { direction: "top", opacity: 0.9 }
+                    )
+                    .addTo(group);
+            });
+            if (paLayer) map.removeLayer(paLayer);
+            paLayer = group.addTo(map);
+            const status = document.getElementById("map-status");
+            if (status) {
+                const when = new Date(frame.captured_at);
+                const hh = String(when.getHours()).padStart(2, "0");
+                const mm = String(when.getMinutes()).padStart(2, "0");
+                status.textContent =
+                    `Live data updates automatically every 30 minutes · ` +
+                    `${frame.points.length} PurpleAir sensors (updated ${hh}:${mm})`;
+            }
+        })
+        .catch(() => { /* best-effort layer; never break the map */ });
 }
