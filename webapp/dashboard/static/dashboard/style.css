@@ -56,7 +56,8 @@
        Adopt in new/edited rules; existing rules migrate as they
        are touched. Breakpoint convention (media queries cannot
        read custom properties): 640px phone · 768px tablet ·
-       1024px small desktop.
+       1024px small desktop, plus two intentional xs sub-tiers
+       (500px card stacking, 400px data-column trim).
        ======================================================== */
     /* Text roles — replaces the ad-hoc 6-gray soup. All pass
        WCAG AA for their intended size on --bg and --surface. */
@@ -2740,20 +2741,12 @@ body {
    ============================================================ */
 
 /* ---- City Cards ---- */
-@media (max-width: 900px) {
+/* ---- 1024px — small desktop (was two 900px blocks) ---- */
+@media (max-width: 1024px) {
     .city-cards {
         grid-template-columns: repeat(2, 1fr);
     }
-}
 
-@media (max-width: 500px) {
-    .city-cards {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* ---- 900px Breakpoint ---- */
-@media (max-width: 900px) {
     .key-stats,
     .method-grid {
         grid-template-columns: 1fr;
@@ -2769,6 +2762,14 @@ body {
 
     .research-card {
         padding: 20px 16px;
+    }
+}
+
+/* xs sub-tier (intentional, below the 640 phone tier): single-column
+   city cards on small phones. */
+@media (max-width: 500px) {
+    .city-cards {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -2957,6 +2958,9 @@ body {
 }
 
 /* ---- 400px Breakpoint ---- */
+/* xs sub-tier: tighten card gap + drop the distance column on very
+   small phones (kept deliberately - merging up would hide data at
+   401-640px). */
 @media (max-width: 400px) {
     .city-cards {
         gap: 8px;
@@ -2968,8 +2972,8 @@ body {
     }
 }
 
-/* ---- Feedback Board Responsive ---- */
-@media (max-width: 600px) {
+/* ---- Feedback Board Responsive (phone tier) ---- */
+@media (max-width: 640px) {
     .feedback-header {
         flex-direction: column;
     }
