@@ -57,11 +57,15 @@ def _toronto_wind_now():
 
 
 @csrf_exempt
-@require_http_methods(["POST"])
+@require_http_methods(["GET", "POST"])
 def api_refresh_forecast(request):
     """Cron endpoint: append the current hour's feature row to the rolling buffer and
     (re)score the forecast. CRON_SECRET-gated; CSRF-exempt (caller is an external cron,
-    consistent with the other secret-gated ingest endpoints)."""
+    consistent with the other secret-gated ingest endpoints).
+
+    Accepts GET as well as POST because external cron services (cron-job.org /
+    UptimeRobot) default to GET — same as api_plan_refresh. The CRON_SECRET bearer
+    header is still required, so a bare GET (crawler/prefetch) gets 401, not a trigger."""
     cron_secret = os.environ.get("CRON_SECRET", "")
     auth_header = request.headers.get("Authorization", "")
     expected = f"Bearer {cron_secret}" if cron_secret else ""
