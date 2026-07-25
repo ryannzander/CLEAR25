@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CLEAR · 2024–2025 Smoke-Plume Replay</title>
+    <title>CLEAR · 2021–2025 Smoke-Plume Replay</title>
     <link rel="icon" type="image/svg+xml" href="{% static 'dashboard/favicon.svg' %}?v=3">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -83,23 +83,20 @@
     <div class="topbar">
         <a class="back" href="/dashboard/">← Dashboard</a>
         <div>
-            <h1>CLEAR · <span>2024–2025 Smoke-Plume Replay</span></h1>
-            <div class="sub">PurpleAir PM2.5 · hourly · Ontario &amp; Québec · 2024–2025</div>
+            <h1>CLEAR · <span>2021–2025 Smoke-Plume Replay</span></h1>
+            <div class="sub">PurpleAir PM2.5 · EPA-corrected · hourly · Great Lakes, Northeast &amp; ON/QC</div>
         </div>
         <span class="pill" id="status-pill">loading…</span>
     </div>
 
     <div class="legend">
-        <div class="lt">PM2.5 µg/m³ (corrected)</div>
+        <div class="lt">PM2.5 µg/m³ · EPA-corrected</div>
         <div class="bar"></div>
         <div class="ticks"><span>0</span><span>12</span><span>35</span><span>55</span><span>150</span><span>250+</span></div>
     </div>
 
     <div class="panel" id="panel">
-        <div class="layerseg" style="display:none;">
-            <button class="seg active" id="mode-observed"><span class="dot obs"></span>Observed · PurpleAir</button>
-            <button class="seg" id="mode-model"><span class="dot mdl"></span>Model · ECCC RDAQA</button>
-        </div>
+        <div class="layerseg" id="years" aria-label="Year"></div>
         <div class="row" id="transport">
             <button class="play" id="play" title="Play / pause">▶</button>
             <div class="timewrap">
@@ -112,9 +109,9 @@
         </div>
         <div class="meta">
             <span>Hour <b id="frame-idx">0</b>/<b id="frame-total">0</b></span>
-            <span><b id="sensor-count">0</b> sensors</span>
-            <span>Span <b id="age">—</b></span>
-            <label class="toggle" style="display:none;"><input type="checkbox" id="show-sensors"> show sensors</label>
+            <span><b id="sensor-count">0</b> sensors reporting</span>
+            <span>Year <b id="age">—</b></span>
+            <label class="toggle"><input type="checkbox" id="show-sensors" checked> show sensors</label>
         </div>
     </div>
 
@@ -122,12 +119,12 @@
         <div class="card">
             <div class="spinner" id="ov-spin"></div>
             <h2 id="ov-title">Loading plume data…</h2>
-            <p id="ov-body">Decompressing the 2024–2025 hourly PurpleAir dataset.</p>
+            <p id="ov-body">Reading the plume manifest.</p>
         </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="{% static 'dashboard/provinces-boundary.js' %}?v=1"></script>
-    <script src="{% static 'dashboard/app-plan.js' %}?v=8"></script>
+    <script src="{% static 'dashboard/app-plan.js' %}?v=11"></script>
 </body>
 </html>

@@ -1,27 +1,32 @@
 /* ============================================================
-   CLEAR · Ontario Smoke-Plume Tracker
+   CLEAR · 2021–2025 Smoke-Plume Replay
    Animated IDW-interpolated PM2.5 surface over a Leaflet basemap.
 
-   Pipeline: GET /api/plan/frames/ -> for the displayed frame, inverse-distance-
-   weight the cleaned sensor points onto a coarse grid -> paint the grid to an
-   offscreen canvas -> show it as a Leaflet imageOverlay stretched to the bbox
-   (the browser bilinearly smooths it). Frames are interpolated on demand and
-   their canvases cached, so scrubbing/playback is instant after first paint.
+   Data: the finalized, EPA/Barkjohn humidity-corrected PurpleAir record,
+   compiled by scripts/gen_plume_finalized.py into one gzip asset per year plus
+   a small manifest. Everything is a static file — no live API, no cost, no key.
+
+   Pipeline: fetch plume_index.json -> fetch the selected year's plume_<Y>.json.gz
+   -> decompress client-side (DecompressionStream) -> counting-sort every reading
+   into per-hour buckets backed by typed arrays -> for the displayed hour,
+   inverse-distance-weight the sensor points onto a grid, paint that grid to an
+   offscreen canvas, and show it as a Leaflet imageOverlay stretched to the bbox
+   (the browser bilinearly smooths it). Sensor dots are drawn on top.
    ============================================================ */
 (function () {
     "use strict";
 
     // ---- Config ---------------------------------------------------------
-    var GRID_COLS = 200;          // interpolation resolution (stretched + smoothed by Leaflet)
-    var GRID_ROWS = 150;
-    var IDW_POWER = 2;            // inverse-distance exponent (for the value / colour)
+    var GRID_CELLS = 34000;       // ~ total interpolation cells; split by bbox aspect
+    var IDW_POWER = 2;            // inverse-distance exponent
     var CUTOFF_DEG = 1.2;         // sensors beyond this (deg, lat-corrected) don't contribute
+    var COVERAGE_SIGMA = 0.55;    // deg; width of each sensor's coverage kernel
+    var COVERAGE_GAIN = 1.6;      // how fast overlapping kernels saturate to opaque
     var MAX_ALPHA = 0.82;
     var PLAY_MS = 100;            // ms per frame during playback (hourly frames)
-    // Static 2024–2025 HOURLY dataset (compiled by scripts/gen_plume_2024_2025.py).
-    // Gzip-committed and decompressed client-side (DecompressionStream). No live
-    // API, no cost. Bump the ?v= when the .gz is regenerated.
-    var PLUME_DATA_URL = "/static/dashboard/plume_2024_2025.json.gz?v=1";
+    var FRAME_CACHE_MAX = 240;    // bounded: 8,760 hours/year would otherwise leak
+    var INDEX_URL = "/static/dashboard/plume_index.json?v=1";
+    var YEAR_URL = "/static/dashboard/plume_{year}.json.gz?v=1";
 
     // PM2.5 (µg/m³) -> color stops (EPA AQI category colors).
     var RAMP = [
@@ -34,83 +39,83 @@
     ];
 
     // ---- State ----------------------------------------------------------
-    var map, overlay = null, sensorLayer = null;
-    var bbox = null;
-    var canvasCache = {};        // step -> dataURL (only used by the dead IDW path)
-    var cur = 0, playing = false, playTimer = null, showSensors = false;
-    // ---- Sparse hourly dataset (counting-sort index, memory-bounded) ----------
-    // The asset is station-keyed (coords once + a flat [hour,pm] list per station).
-    // On load we counting-sort all points into per-hour buckets backed by typed
-    // arrays, so a frame's points are materialized on demand in O(active sensors)
-    // without ever holding ~4.7M point objects at once.
+    var map, overlay = null, sensorLayer = null, provinceLayer = null;
+    var manifest = null, year = null, yearMeta = null;
+    var bbox = null, gridCols = 200, gridRows = 170;
+    var cur = 0, playing = false, playTimer = null, showSensors = true;
+    var loading = false, fitted = false;
+
+    // ---- Sparse hourly index (counting-sorted, memory-bounded) ----------
+    // The asset is station-keyed (coords once + a delta-encoded [Δhour, pm] list
+    // per station). On load every reading is counting-sorted into per-hour
+    // buckets backed by typed arrays, so a frame's points are materialized on
+    // demand in O(active sensors) — never ~10M point objects at once.
+    // Station index and value are both Uint16 (4 B/point): the largest year has
+    // 1,556 stations, and pm is stored in tenths (0.1 µg/m³ up to 6553.5).
     var nSteps = 0, t0ms = 0, stepSeconds = 3600;
     var stations = [];           // [{id,lat,lon}]
     var stepStart = null;        // Int32Array(nSteps+1): first point offset per hour
-    var stationIdxByPair = null; // Int32Array(total): station index of each point
-    var pmByPair = null;         // Float32Array(total): pm value of each point
-    // Clip the interpolated surface to the Ontario + Québec boundary — kills the
-    // bbox rectangle and focuses the two provinces. U.S. sensors still inform the
-    // interpolation near the border; they're just not drawn.
-    var clipRegion = true;
-    // ECCC RDAQA model layer (a single current gridded analysis surface).
-    var mode = "observed";       // "observed" (PurpleAir, animated) | "model" (ECCC)
-    var eccc = null;             // { mesh: {rows,cols,bbox,values}, run } or null
-    var ecccOverlay = null;
+    var stationIdxByPair = null; // Uint16Array(total): station index of each point
+    var pmByPair = null;         // Uint16Array(total): pm × 10
 
     // ---- DOM ------------------------------------------------------------
     var $ = function (id) { return document.getElementById(id); };
     var els = {};
 
+    // ---- Frame cache (bounded ring) --------------------------------------
+    var cacheMap = {}, cacheOrder = [];
+    function cacheGet(k) { return cacheMap[k]; }
+    function cachePut(k, v) {
+        if (cacheMap[k] === undefined) {
+            cacheOrder.push(k);
+            if (cacheOrder.length > FRAME_CACHE_MAX) delete cacheMap[cacheOrder.shift()];
+        }
+        cacheMap[k] = v;
+    }
+    function cacheClear() { cacheMap = {}; cacheOrder = []; }
+
     // ---- Sparse-index helpers -------------------------------------------
-    // Counting-sort the per-station [hour,pm] lists into per-hour buckets.
+    // Counting-sort the per-station delta-encoded lists into per-hour buckets.
+    // `series[s]` is [h0, pm, Δh, pm, Δh, pm, ...] — the first hour is absolute,
+    // every later one is a delta from the previous (see gen_plume_finalized.py).
     function buildIndex(series) {
-        var counts = new Int32Array(nSteps), total = 0, s, k, arr;
+        var counts = new Int32Array(nSteps), total = 0, s, k, arr, h;
         for (s = 0; s < series.length; s++) {
             arr = series[s];
-            for (k = 0; k < arr.length; k += 2) { counts[arr[k]]++; total++; }
+            for (k = 0, h = 0; k < arr.length; k += 2) {
+                h += arr[k];
+                if (h >= 0 && h < nSteps) { counts[h]++; total++; }
+            }
         }
         stepStart = new Int32Array(nSteps + 1);
         for (var i = 0; i < nSteps; i++) stepStart[i + 1] = stepStart[i] + counts[i];
         var cursor = stepStart.slice(0, nSteps);   // mutable copy of the offsets
-        stationIdxByPair = new Int32Array(total);
-        pmByPair = new Float32Array(total);
+        stationIdxByPair = new Uint16Array(total);
+        pmByPair = new Uint16Array(total);
         for (s = 0; s < series.length; s++) {
             arr = series[s];
-            for (k = 0; k < arr.length; k += 2) {
-                var pos = cursor[arr[k]]++;
+            for (k = 0, h = 0; k < arr.length; k += 2) {
+                h += arr[k];
+                if (h < 0 || h >= nSteps) continue;
+                var pos = cursor[h]++;
                 stationIdxByPair[pos] = s;
-                pmByPair[pos] = arr[k + 1];
+                pmByPair[pos] = Math.min(65535, Math.round(arr[k + 1] * 10));
             }
+            series[s] = null;   // release as we go; the parsed arrays are large
         }
         return total;
     }
 
-    // Materialize one hour's sensor points on demand (cheap; not cached so long
-    // playback never accumulates ~4.7M objects).
+    // Materialize one hour's sensor points on demand (cheap; not cached, so long
+    // playback never accumulates millions of objects).
     function getPoints(step) {
         if (!stepStart) return [];
         var a = stepStart[step], b = stepStart[step + 1], pts = new Array(b - a);
         for (var j = a, n = 0; j < b; j++, n++) {
             var st = stations[stationIdxByPair[j]];
-            pts[n] = { lat: st.lat, lon: st.lon, pm: pmByPair[j] };
+            pts[n] = { lat: st.lat, lon: st.lon, pm: pmByPair[j] / 10 };
         }
         return pts;
-    }
-
-    // Hour with the highest median PM2.5 (among hours with enough sensors) — so
-    // the view auto-opens on the worst smoke episode in 2024–2025.
-    function findPeakStep(minCount) {
-        var best = 0, bestMed = -1, tmp = [];
-        for (var step = 0; step < nSteps; step++) {
-            var a = stepStart[step], b = stepStart[step + 1], n = b - a;
-            if (n < minCount) continue;
-            tmp.length = n;
-            for (var j = a, t = 0; j < b; j++, t++) tmp[t] = pmByPair[j];
-            tmp.sort(function (x, y) { return x - y; });
-            var med = n % 2 ? tmp[(n - 1) / 2] : (tmp[n / 2 - 1] + tmp[n / 2]) / 2;
-            if (med > bestMed) { bestMed = med; best = step; }
-        }
-        return bestMed >= 0 ? best : 0;
     }
 
     // The asset is a raw .gz; decompress client-side. If the server already
@@ -146,58 +151,23 @@
         return RAMP[RAMP.length - 1][1];
     }
 
-    // ---- Ontario clip ---------------------------------------------------
-    // The surface is shown only inside the province (no hard bbox rectangle, no
-    // U.S. coverage). PROVINCE_POLYGONS (global from ontario-boundary.js) is an
-    // array of [lon,lat] rings; a point is "in Ontario" if it falls inside any
-    // ring. Per-ring bbox skips the ray-cast for far-away cells. If the asset
-    // failed to load we degrade to no clip rather than a blank map.
-    var _ringBoxes = null;
-    function inRegion(lon, lat) {
-        if (typeof PROVINCE_POLYGONS === "undefined") return true;
-        if (!_ringBoxes) {
-            _ringBoxes = PROVINCE_POLYGONS.map(function (ring) {
-                var b = { minx: 180, maxx: -180, miny: 90, maxy: -90 };
-                for (var i = 0; i < ring.length; i++) {
-                    var p = ring[i];
-                    if (p[0] < b.minx) b.minx = p[0];
-                    if (p[0] > b.maxx) b.maxx = p[0];
-                    if (p[1] < b.miny) b.miny = p[1];
-                    if (p[1] > b.maxy) b.maxy = p[1];
-                }
-                return b;
-            });
-        }
+    // ---- Province outline (reference only, NOT a clip) -------------------
+    // The finalized network reaches from the Upper Midwest to the Gulf of St.
+    // Lawrence and only 227 of its 1,742 sensors sit in Ontario or Québec, so the
+    // surface is drawn everywhere and the provinces are merely outlined for
+    // orientation. PROVINCE_POLYGONS (global, provinces-boundary.js) is an array
+    // of [lon,lat] rings.
+    function drawProvinces() {
+        if (typeof PROVINCE_POLYGONS === "undefined" || provinceLayer) return;
+        var lines = [];
         for (var k = 0; k < PROVINCE_POLYGONS.length; k++) {
-            var bb = _ringBoxes[k];
-            if (lon < bb.minx || lon > bb.maxx || lat < bb.miny || lat > bb.maxy) continue;
-            var ring = PROVINCE_POLYGONS[k], inside = false, n = ring.length;
-            for (var i = 0, j = n - 1; i < n; j = i++) {
-                var xi = ring[i][0], yi = ring[i][1], xj = ring[j][0], yj = ring[j][1];
-                if (((yi > lat) !== (yj > lat)) &&
-                    (lon < (xj - xi) * (lat - yi) / (yj - yi) + xi)) inside = !inside;
-            }
-            if (inside) return true;
+            var ring = PROVINCE_POLYGONS[k], latlngs = [];
+            for (var i = 0; i < ring.length; i++) latlngs.push([ring[i][1], ring[i][0]]);
+            lines.push(L.polyline(latlngs, {
+                color: "#8b8b96", weight: 1, opacity: 0.55, fill: false, interactive: false,
+            }));
         }
-        return false;
-    }
-
-    // Grid -> Ontario inside/outside mask, cached (the grid is identical per frame).
-    var _maskKey = null, _mask = null;
-    function regionMask(west, east, north, south, cols, rows) {
-        var key = clipRegion + "," + west + "," + east + "," + north + "," + south + "," + cols + "," + rows;
-        if (_mask && _maskKey === key) return _mask;
-        var m = new Uint8Array(cols * rows);
-        if (!clipRegion) { m.fill(1); _mask = m; _maskKey = key; return m; }
-        for (var y = 0; y < rows; y++) {
-            var lat = north - (y + 0.5) / rows * (north - south);
-            for (var x = 0; x < cols; x++) {
-                var lon = west + (x + 0.5) / cols * (east - west);
-                m[y * cols + x] = inRegion(lon, lat) ? 1 : 0;
-            }
-        }
-        _mask = m; _maskKey = key;
-        return m;
+        provinceLayer = L.layerGroup(lines).addTo(map);
     }
 
     // Bucket sensors into a coarse grid so each cell only scans nearby points.
@@ -214,37 +184,57 @@
         return { buckets: buckets, bs: bs };
     }
 
-    // Interpolate one frame to a dataURL (cached), clipped to Ontario.
-    // Colour = IDW of PM2.5; opacity = a smooth Gaussian "coverage" that merges
-    // neighbouring sensors into one continuous field and fades out where data
-    // thins (so no per-sensor blobs, no hard edge).
+    // Choose a grid whose cells are roughly square for this bbox. The finalized
+    // footprint is ~38° of longitude by ~21° of latitude — far wider than the old
+    // Ontario-only box — so a fixed 200×150 grid would stretch every cell.
+    function sizeGrid() {
+        var north = bbox.nwlat, south = bbox.selat, west = bbox.nwlng, east = bbox.selng;
+        var midLatCos = Math.cos((north + south) / 2 * Math.PI / 180);
+        var w = Math.max(1e-6, (east - west) * midLatCos), h = Math.max(1e-6, north - south);
+        var cols = Math.round(Math.sqrt(GRID_CELLS * w / h));
+        gridCols = Math.max(40, Math.min(400, cols));
+        gridRows = Math.max(40, Math.min(400, Math.round(GRID_CELLS / gridCols)));
+    }
+
+    // Interpolate one hour to a dataURL (bounded cache).
+    //
+    // Colour is the IDW of PM2.5. Opacity is a separate "coverage" term: each
+    // sensor contributes a Gaussian kernel, the kernels are summed, and the sum
+    // is passed through 1 - e^(-gain·sum) so it saturates. That does two things a
+    // flat opacity cannot:
+    //   - a lone sensor no longer paints a uniform disc the full width of the
+    //     cutoff with a hard rim, which looked like a bubble and implied the same
+    //     confidence 130 km out as directly overhead;
+    //   - overlapping sensors saturate to fully opaque, so a cluster reads as ONE
+    //     continuous plume rather than a cloud of separate blobs.
+    // The net effect is that the surface fades out exactly where the network
+    // thins, and never claims more than the data supports.
     function renderFrame(index) {
-        if (canvasCache[index]) return canvasCache[index];
+        var hit = cacheGet(index);
+        if (hit) return hit;
         var pts = getPoints(index);
         var west = bbox.nwlng, east = bbox.selng, north = bbox.nwlat, south = bbox.selat;
         var midLatCos = Math.cos((north + south) / 2 * Math.PI / 180);
 
         var bk = buildBuckets(pts, midLatCos), buckets = bk.buckets, bs = bk.bs;
-        var mask = regionMask(west, east, north, south, GRID_COLS, GRID_ROWS);
         var cutoff2 = CUTOFF_DEG * CUTOFF_DEG;
-        var flatAlpha = Math.round(MAX_ALPHA * 255);
+        var invTwoSigma2 = 1 / (2 * COVERAGE_SIGMA * COVERAGE_SIGMA);
 
         var cv = document.createElement("canvas");
-        cv.width = GRID_COLS; cv.height = GRID_ROWS;
+        cv.width = gridCols; cv.height = gridRows;
         var ctx = cv.getContext("2d");
-        var img = ctx.createImageData(GRID_COLS, GRID_ROWS);
+        var img = ctx.createImageData(gridCols, gridRows);
         var data = img.data;
 
-        for (var y = 0; y < GRID_ROWS; y++) {
-            var lat = north - (y + 0.5) / GRID_ROWS * (north - south);
+        for (var y = 0; y < gridRows; y++) {
+            var lat = north - (y + 0.5) / gridRows * (north - south);
             var by = Math.floor(lat / bs);
-            for (var x = 0; x < GRID_COLS; x++) {
-                var idx = y * GRID_COLS + x, o = idx * 4;
-                if (!mask[idx]) { data[o + 3] = 0; continue; }   // outside Ontario
-                var lon = west + (x + 0.5) / GRID_COLS * (east - west);
+            for (var x = 0; x < gridCols; x++) {
+                var o = (y * gridCols + x) * 4;
+                var lon = west + (x + 0.5) / gridCols * (east - west);
                 var bx = Math.floor((lon * midLatCos) / bs);
 
-                var wsum = 0, vsum = 0, exact = null;
+                var wsum = 0, vsum = 0, exact = null, csum = 0;
                 for (var gx = bx - 1; gx <= bx + 1; gx++) {
                     for (var gy = by - 1; gy <= by + 1; gy++) {
                         var arr = buckets[gx + ":" + gy];
@@ -254,25 +244,26 @@
                             var ddx = (lon - p.lon) * midLatCos, ddy = lat - p.lat;
                             var d2 = ddx * ddx + ddy * ddy;
                             if (d2 > cutoff2) continue;
+                            csum += Math.exp(-d2 * invTwoSigma2);
                             if (d2 < 1e-9) { exact = p.pm; continue; }
                             var w = 1 / Math.pow(d2, IDW_POWER / 2);
                             wsum += w; vsum += w * p.pm;
                         }
-                        
                     }
                 }
 
                 if (wsum === 0 && exact === null) { data[o + 3] = 0; continue; }
                 var pm = exact !== null ? exact : vsum / wsum;
+                var alpha = Math.round(MAX_ALPHA * 255 * (1 - Math.exp(-COVERAGE_GAIN * csum)));
+                if (alpha < 4) { data[o + 3] = 0; continue; }
                 var c = rampColor(pm);
-                // Flat opacity where there's data — no Gaussian coverage fade.
                 data[o] = c[0]; data[o + 1] = c[1]; data[o + 2] = c[2];
-                data[o + 3] = flatAlpha;
+                data[o + 3] = alpha;
             }
         }
         ctx.putImageData(img, 0, 0);
         var url = cv.toDataURL();
-        canvasCache[index] = url;
+        cachePut(index, url);
         return url;
     }
 
@@ -281,108 +272,9 @@
         return [[bbox.selat, bbox.nwlng], [bbox.nwlat, bbox.selng]];
     }
 
-    // ---- ECCC RDAQA model surface (already gridded -> direct raster, no IDW) --
-    function meshBounds(mesh) {
-        var b = mesh.bbox;
-        return [[b.selat, b.nwlng], [b.nwlat, b.selng]];
-    }
-
-    function renderMeshURL(mesh) {
-        // values are row-major, north->south rows, west->east cols -> paint
-        // directly: pixel (c, r) = values[r*cols + c]. Clipped to Ontario so the
-        // model surface follows the province too, not the bbox rectangle.
-        var rows = mesh.rows, cols = mesh.cols, vals = mesh.values || [];
-        var b = mesh.bbox, west = b.nwlng, east = b.selng, north = b.nwlat, south = b.selat;
-        var cv = document.createElement("canvas");
-        cv.width = cols; cv.height = rows;
-        var ctx = cv.getContext("2d");
-        var img = ctx.createImageData(cols, rows);
-        var d = img.data;
-        for (var r = 0; r < rows; r++) {
-            var lat = north - (r + 0.5) / rows * (north - south);
-            for (var col = 0; col < cols; col++) {
-                var i = r * cols + col, o = i * 4, v = vals[i];
-                if (v === null || v === undefined || (typeof v === "number" && isNaN(v))) { d[o + 3] = 0; continue; }
-                var lon = west + (col + 0.5) / cols * (east - west);
-                if (!inRegion(lon, lat)) { d[o + 3] = 0; continue; }
-                var c = rampColor(v);
-                d[o] = c[0]; d[o + 1] = c[1]; d[o + 2] = c[2]; d[o + 3] = 209; // ~0.82
-            }
-        }
-        ctx.putImageData(img, 0, 0);
-        return cv.toDataURL();
-    }
-
-    function clearPurpleAir() {
-        if (overlay) { map.removeLayer(overlay); overlay = null; }
-        if (sensorLayer) { map.removeLayer(sensorLayer); sensorLayer = null; }
-    }
-    function clearEccc() {
-        if (ecccOverlay) { map.removeLayer(ecccOverlay); ecccOverlay = null; }
-    }
-
-    function showModel() {
-        clearPurpleAir();
-        var url = renderMeshURL(eccc.mesh);
-        if (!ecccOverlay) {
-            ecccOverlay = L.imageOverlay(url, meshBounds(eccc.mesh), { opacity: 1, interactive: false }).addTo(map);
-        } else {
-            ecccOverlay.setUrl(url); ecccOverlay.addTo(map);
-        }
-        var live = (eccc.mesh.values || []).filter(function (v) { return v !== null && v !== undefined; }).length;
-        els.clock.textContent = "ECCC RDAQA · 10 km analysis";
-        els.rel.textContent = eccc.run ? ("run " + eccc.run) : "";
-        els.sensorCount.textContent = live.toLocaleString() + " cells";
-        els.transport.classList.add("disabled");
-    }
-
-    function setMode(m) {
-        if (m === mode) return;
-        if (m === "model" && (!eccc || !eccc.mesh)) return;
-        mode = m;
-        els.modeObserved.classList.toggle("active", m === "observed");
-        els.modeModel.classList.toggle("active", m === "model");
-        if (m === "model") {
-            pause();
-            showModel();
-        } else {
-            clearEccc();
-            els.transport.classList.remove("disabled");
-            if (nSteps) showFrame(cur);
-        }
-    }
-
-    function loadEccc() {
-        fetch("/api/eccc/?kind=analysis")
-            .then(function (r) { return r.ok ? r.json() : null; })
-            .then(function (d) {
-                var mesh = d && d.data && d.data.mesh;
-                if (!mesh || !mesh.values || !mesh.rows) {
-                    els.modeModel.disabled = true;
-                    els.modeModel.title = "No ECCC model surface ingested yet";
-                    return;
-                }
-                eccc = { mesh: mesh, run: (d.data.run || "") };
-                els.modeModel.disabled = false;
-                els.modeModel.title = "ECCC RDAQA 10 km analysis (model nowcast)";
-                // Deep-link: /plan/?mode=model opens straight on the model surface.
-                try {
-                    if (new URLSearchParams(window.location.search).get("mode") === "model") setMode("model");
-                } catch (e) { /* URLSearchParams unsupported -> ignore */ }
-            })
-            .catch(function () { els.modeModel.disabled = true; });
-    }
-
-    function relTime(iso, latestIso) {
-        var t = new Date(iso).getTime(), latest = new Date(latestIso).getTime();
-        var mins = Math.round((latest - t) / 60000);
-        return mins <= 0 ? "live" : "T−" + mins + " min";
-    }
-
     function fmtClock(ms) {
         var d = new Date(ms);
         if (isNaN(d.getTime())) return String(ms);
-        // Hourly frames -> date + hour (UTC, so the calendar day doesn't shift).
         var day = d.toLocaleDateString([], { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" });
         var hh = ("0" + d.getUTCHours()).slice(-2);
         return day + " · " + hh + ":00 UTC";
@@ -392,7 +284,15 @@
         if (!nSteps) return;
         cur = Math.max(0, Math.min(index, nSteps - 1));
         var pts = getPoints(cur);
-        drawSensors(pts);   // plotted sensor readings (interpolated surface removed)
+
+        var url = renderFrame(cur);
+        if (!overlay) {
+            overlay = L.imageOverlay(url, frameBounds(), { opacity: 1, interactive: false }).addTo(map);
+        } else {
+            overlay.setUrl(url);
+        }
+        drawSensors(showSensors ? pts : []);
+
         els.slider.value = cur;
         els.clock.textContent = fmtClock(stepTimeMs(cur));
         els.rel.textContent = (cur + 1).toLocaleString() + " / " + nSteps.toLocaleString();
@@ -402,22 +302,22 @@
 
     function drawSensors(pts) {
         if (sensorLayer) { map.removeLayer(sensorLayer); sensorLayer = null; }
-        var markers = [];
         pts = pts || [];
+        if (!pts.length) return;
+        var markers = new Array(pts.length);
         for (var i = 0; i < pts.length; i++) {
-            var p = pts[i];
-            if (clipRegion && !inRegion(p.lon, p.lat)) continue;  // Ontario + Québec only
-            var c = rampColor(p.pm);
-            markers.push(L.circleMarker([p.lat, p.lon], {
-                radius: 4, stroke: false, fillColor: "rgb(" + c[0] + "," + c[1] + "," + c[2] + ")",
-                fillOpacity: 0.85,
-            }));
+            var p = pts[i], c = rampColor(p.pm);
+            markers[i] = L.circleMarker([p.lat, p.lon], {
+                radius: 3, stroke: true, weight: 0.5, color: "rgba(0,0,0,0.55)",
+                fillColor: "rgb(" + c[0] + "," + c[1] + "," + c[2] + ")",
+                fillOpacity: 0.95, interactive: false,
+            });
         }
         sensorLayer = L.layerGroup(markers).addTo(map);
     }
 
     function play() {
-        if (!nSteps) return;
+        if (!nSteps || loading) return;
         playing = true; els.play.textContent = "⏸";
         clearInterval(playTimer);
         playTimer = setInterval(function () {
@@ -437,84 +337,147 @@
 
     function initMap() {
         map = L.map("plan-map", { preferCanvas: true, zoomControl: false, attributionControl: true })
-            .setView([49.5, -85], 5);
+            .setView([48, -80], 5);
         L.control.zoom({ position: "bottomright" }).addTo(map);
         L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a> · PM2.5 © PurpleAir',
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a> · PM2.5 © PurpleAir (EPA-corrected)',
             maxZoom: 12,
         }).addTo(map);
     }
 
-    function pctl(sorted, p) {
-        var i = Math.floor(p * (sorted.length - 1));
-        return sorted[Math.max(0, Math.min(sorted.length - 1, i))];
+    // Fit once, to the manifest's global percentile-trimmed view, so switching
+    // year never makes the map jump.
+    function fitOnce() {
+        if (fitted || !manifest) return;
+        var v = manifest.view || manifest.extent;
+        if (!v) return;
+        map.fitBounds([[v.selat, v.nwlng], [v.nwlat, v.selng]], { padding: [24, 24], maxZoom: 7 });
+        fitted = true;
     }
 
-    function fitToBbox() {
-        if (!bbox) return;
-        // Fit to where sensors actually are (the dense southern-Ontario / Great
-        // Lakes / St-Lawrence cloud) rather than the full station extent — a
-        // handful of far-north Québec sensors (to ~62°N) would otherwise zoom the
-        // whole continent out. Trim ~2.5% of stations off each edge so the bulk
-        // frames nicely; fall back to min/max then the bbox.
-        var pts = stations;
-        if (pts.length >= 20) {
-            var lats = [], lons = [], i;
-            for (i = 0; i < pts.length; i++) { lats.push(pts[i].lat); lons.push(pts[i].lon); }
-            lats.sort(function (a, b) { return a - b; });
-            lons.sort(function (a, b) { return a - b; });
-            map.fitBounds(
-                [[pctl(lats, 0.025), pctl(lons, 0.025)], [pctl(lats, 0.975), pctl(lons, 0.975)]],
-                { padding: [24, 24], maxZoom: 7 });
-        } else if (pts.length >= 3) {
-            var minLa = 90, maxLa = -90, minLo = 180, maxLo = -180;
-            for (i = 0; i < pts.length; i++) {
-                var p = pts[i];
-                if (p.lat < minLa) minLa = p.lat;
-                if (p.lat > maxLa) maxLa = p.lat;
-                if (p.lon < minLo) minLo = p.lon;
-                if (p.lon > maxLo) maxLo = p.lon;
-            }
-            map.fitBounds([[minLa, minLo], [maxLa, maxLo]], { padding: [24, 24], maxZoom: 7 });
-        } else {
-            map.fitBounds(frameBounds(), { padding: [10, 10], maxZoom: 7 });
+    // ---- Year loading ----------------------------------------------------
+    function yearEntry(y) {
+        var list = (manifest && manifest.years) || [];
+        for (var i = 0; i < list.length; i++) if (list[i].year === y) return list[i];
+        return null;
+    }
+
+    function buildYearButtons() {
+        var list = (manifest && manifest.years) || [];
+        while (els.years.firstChild) els.years.removeChild(els.years.firstChild);
+        for (var i = 0; i < list.length; i++) {
+            (function (entry) {
+                var b = document.createElement("button");
+                b.className = "seg";
+                b.textContent = entry.year;
+                b.title = entry.stations.toLocaleString() + " sensors · " +
+                    entry.points.toLocaleString() + " readings · peak " +
+                    entry.peak_time.slice(0, 10);
+                b.setAttribute("data-year", entry.year);
+                b.addEventListener("click", function () { loadYear(entry.year); });
+                els.years.appendChild(b);
+            })(list[i]);
         }
     }
 
-    // Load the static 2024–2025 HOURLY PurpleAir dataset (no live API, zero cost):
-    // {t0, step_seconds, n_steps, bbox, stations:[{id,lat,lon}], series:[[h,pm,...]]}.
-    // The .gz is fetched as bytes, decompressed, then counting-sorted into per-hour
-    // buckets so frames are built on demand (see buildIndex / getPoints).
-    function load() {
-        setOverlayMsg("Loading plume data…", "Decompressing the 2024–2025 hourly dataset (~16 MB).", true);
-        fetch(PLUME_DATA_URL)
-            .then(function (r) { return r.ok ? r.arrayBuffer() : Promise.reject(r.status); })
+    function markActiveYear() {
+        var btns = els.years.querySelectorAll(".seg");
+        for (var i = 0; i < btns.length; i++) {
+            btns[i].classList.toggle("active", parseInt(btns[i].getAttribute("data-year"), 10) === year);
+            btns[i].disabled = loading;
+        }
+    }
+
+    function loadYear(y) {
+        if (loading || y === year) return;
+        var entry = yearEntry(y);
+        if (!entry) return;
+        pause();
+        loading = true;
+        markActiveYear();
+        var mb = (entry.bytes_gz / 1048576).toFixed(1);
+        setOverlayMsg("Loading " + y + "…",
+            "Decompressing " + entry.points.toLocaleString() + " EPA-corrected readings (" + mb + " MB).", true);
+
+        fetch(YEAR_URL.replace("{year}", y))
+            .then(function (r) { return r.ok ? r.arrayBuffer() : Promise.reject("HTTP " + r.status); })
             .then(decodeMaybeGzip)
             .then(function (d) {
+                // Drop the previous year's index before building the new one.
+                stepStart = stationIdxByPair = pmByPair = null;
+                cacheClear();
+                if (overlay) { map.removeLayer(overlay); overlay = null; }
+
+                year = y; yearMeta = entry;
                 bbox = d.bbox;
-                clipRegion = true;   // clip to Ontario + Québec
                 stations = d.stations || [];
                 nSteps = d.n_steps || 0;
                 stepSeconds = d.step_seconds || 3600;
                 t0ms = Date.parse(d.t0);
                 if (!stations.length || !nSteps || isNaN(t0ms)) {
                     els.statusPill.textContent = "no data";
-                    setOverlayMsg("No 2024–2025 data", "The dataset is empty or malformed.", false);
+                    setOverlayMsg("No data for " + y, "The asset is empty or malformed.", false);
+                    loading = false; markActiveYear();
                     return;
                 }
-                buildIndex(d.series || []);
+                // The index packs station ids into a Uint16Array; refuse rather
+                // than silently wrap if a future asset ever exceeds that.
+                if (stations.length > 65535) {
+                    els.statusPill.textContent = "error";
+                    setOverlayMsg("Too many sensors for " + y,
+                        stations.length.toLocaleString() + " stations exceeds the 65,535 index limit.", false);
+                    loading = false; markActiveYear();
+                    return;
+                }
+                sizeGrid();
+                var total = buildIndex(d.series || []);
+                d.series = null;
+
                 els.frameTotal.textContent = nSteps.toLocaleString();
                 els.slider.max = Math.max(0, nSteps - 1);
+                els.statusPill.textContent = stations.length.toLocaleString() + " sensors · " +
+                    total.toLocaleString() + " readings";
+                els.age.textContent = String(y);
                 els.overlay.classList.add("hidden");
-                els.statusPill.textContent = nSteps.toLocaleString() + " hrs · 2024–2025";
-                els.age.textContent = "2024–2025";
-                fitToBbox();
-                // Start on the peak-smoke hour so the worst episode is visible at once.
-                showFrame(findPeakStep(30));
+                loading = false;
+                markActiveYear();
+                fitOnce();
+                // Open on the year's worst smoke hour (precomputed in the manifest).
+                showFrame(entry.peak_step || 0);
+            })
+            .catch(function (e) {
+                loading = false;
+                markActiveYear();
+                els.statusPill.textContent = "error";
+                setOverlayMsg("Could not load " + y, String(e), false);
+            });
+    }
+
+    function load() {
+        setOverlayMsg("Loading…", "Reading the plume manifest.", true);
+        fetch(INDEX_URL)
+            .then(function (r) { return r.ok ? r.json() : Promise.reject("HTTP " + r.status); })
+            .then(function (idx) {
+                manifest = idx;
+                var list = idx.years || [];
+                if (!list.length) {
+                    setOverlayMsg("No plume data", "The manifest lists no years.", false);
+                    return;
+                }
+                buildYearButtons();
+                drawProvinces();
+                fitOnce();
+                // Default to the year with the highest peak median — the worst
+                // smoke episode in the whole 2021–2025 record.
+                var best = list[0];
+                for (var i = 1; i < list.length; i++) {
+                    if ((list[i].peak_median || 0) > (best.peak_median || 0)) best = list[i];
+                }
+                loadYear(best.year);
             })
             .catch(function (e) {
                 els.statusPill.textContent = "error";
-                setOverlayMsg("Could not load 2024–2025 data", String(e), false);
+                setOverlayMsg("Could not load the plume manifest", String(e), false);
             });
     }
 
@@ -524,16 +487,14 @@
             frameIdx: $("frame-idx"), frameTotal: $("frame-total"), sensorCount: $("sensor-count"),
             age: $("age"), showSensors: $("show-sensors"), statusPill: $("status-pill"),
             overlay: $("overlay"), ovTitle: $("ov-title"), ovBody: $("ov-body"), ovSpin: $("ov-spin"),
-            transport: $("transport"), modeObserved: $("mode-observed"), modeModel: $("mode-model"),
+            transport: $("transport"), years: $("years"),
         };
-        els.modeModel.disabled = true;  // enabled by loadEccc() once a model surface exists
+        els.showSensors.checked = showSensors;
         els.slider.addEventListener("input", function () { pause(); showFrame(parseInt(this.value, 10)); });
         els.play.addEventListener("click", function () { playing ? pause() : play(); });
-        els.modeObserved.addEventListener("click", function () { setMode("observed"); });
-        els.modeModel.addEventListener("click", function () { setMode("model"); });
         els.showSensors.addEventListener("change", function () {
             showSensors = this.checked;
-            if (nSteps) { showSensors ? drawSensors(getPoints(cur)) : drawSensors([]); }
+            if (nSteps) drawSensors(showSensors ? getPoints(cur) : []);
         });
     }
 
@@ -541,6 +502,5 @@
         wire();
         initMap();
         load();
-        // (live ECCC model layer disabled for the 2023 historical replay)
     });
 })();
