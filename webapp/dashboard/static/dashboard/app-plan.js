@@ -20,8 +20,6 @@
     var GRID_CELLS = 34000;       // ~ total interpolation cells; split by bbox aspect
     var IDW_POWER = 2;            // inverse-distance exponent
     var CUTOFF_DEG = 1.2;         // sensors beyond this (deg, lat-corrected) don't contribute
-    var COVERAGE_SIGMA = 0.55;    // deg; width of each sensor's coverage kernel
-    var COVERAGE_GAIN = 1.6;      // how fast overlapping kernels saturate to opaque
     var MAX_ALPHA = 0.82;
     var PLAY_MS = 100;            // ms per frame during playback (hourly frames)
     var FRAME_CACHE_MAX = 240;    // bounded: 8,760 hours/year would otherwise leak
@@ -198,17 +196,9 @@
 
     // Interpolate one hour to a dataURL (bounded cache).
     //
-    // Colour is the IDW of PM2.5. Opacity is a separate "coverage" term: each
-    // sensor contributes a Gaussian kernel, the kernels are summed, and the sum
-    // is passed through 1 - e^(-gain·sum) so it saturates. That does two things a
-    // flat opacity cannot:
-    //   - a lone sensor no longer paints a uniform disc the full width of the
-    //     cutoff with a hard rim, which looked like a bubble and implied the same
-    //     confidence 130 km out as directly overhead;
-    //   - overlapping sensors saturate to fully opaque, so a cluster reads as ONE
-    //     continuous plume rather than a cloud of separate blobs.
-    // The net effect is that the surface fades out exactly where the network
-    // thins, and never claims more than the data supports.
+    // Colour is the IDW of PM2.5; opacity is flat wherever any sensor falls inside
+    // CUTOFF_DEG and fully transparent outside it, so the surface has a defined
+    // edge at the interpolation radius rather than a soft falloff.
     function renderFrame(index) {
         var hit = cacheGet(index);
         if (hit) return hit;
@@ -218,7 +208,7 @@
 
         var bk = buildBuckets(pts, midLatCos), buckets = bk.buckets, bs = bk.bs;
         var cutoff2 = CUTOFF_DEG * CUTOFF_DEG;
-        var invTwoSigma2 = 1 / (2 * COVERAGE_SIGMA * COVERAGE_SIGMA);
+        var flatAlpha = Math.round(MAX_ALPHA * 255);
 
         var cv = document.createElement("canvas");
         cv.width = gridCols; cv.height = gridRows;
@@ -234,7 +224,7 @@
                 var lon = west + (x + 0.5) / gridCols * (east - west);
                 var bx = Math.floor((lon * midLatCos) / bs);
 
-                var wsum = 0, vsum = 0, exact = null, csum = 0;
+                var wsum = 0, vsum = 0, exact = null;
                 for (var gx = bx - 1; gx <= bx + 1; gx++) {
                     for (var gy = by - 1; gy <= by + 1; gy++) {
                         var arr = buckets[gx + ":" + gy];
@@ -244,7 +234,6 @@
                             var ddx = (lon - p.lon) * midLatCos, ddy = lat - p.lat;
                             var d2 = ddx * ddx + ddy * ddy;
                             if (d2 > cutoff2) continue;
-                            csum += Math.exp(-d2 * invTwoSigma2);
                             if (d2 < 1e-9) { exact = p.pm; continue; }
                             var w = 1 / Math.pow(d2, IDW_POWER / 2);
                             wsum += w; vsum += w * p.pm;
@@ -254,11 +243,9 @@
 
                 if (wsum === 0 && exact === null) { data[o + 3] = 0; continue; }
                 var pm = exact !== null ? exact : vsum / wsum;
-                var alpha = Math.round(MAX_ALPHA * 255 * (1 - Math.exp(-COVERAGE_GAIN * csum)));
-                if (alpha < 4) { data[o + 3] = 0; continue; }
                 var c = rampColor(pm);
                 data[o] = c[0]; data[o + 1] = c[1]; data[o + 2] = c[2];
-                data[o + 3] = alpha;
+                data[o + 3] = flatAlpha;
             }
         }
         ctx.putImageData(img, 0, 0);
