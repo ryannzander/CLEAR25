@@ -49,7 +49,7 @@ Footprint: lat 41.50–62.20, lon −95.97 to −57.92.
 | Placement | Replace `/plan/` | The corrected record supersedes the old asset in every dimension. One tracker, one codebase. |
 | Coverage | All 12 months, one file per year | Keeps 2021's winter inversions and 2022's cold-season peaks, which a fire-season-only cut would drop. 2022 had no summer smoke event at all. |
 | Map extent | Full network, no clip | Only 227 of 1,742 sensors are in ON+QC. Clipping to the provinces discarded 87% of the network — precisely the upwind US Midwest/Great Lakes coverage that shows smoke *arriving*. Provinces are outlined for orientation only. |
-| Rendering | IDW surface + sensor dots | The surface reads as a plume; the dots keep it honest about where observations actually exist. |
+| Rendering | Sensor dots only | One dot per reporting sensor, no interpolation. Nothing is implied between sensors. (Superseded an IDW surface — see §4.) |
 | Encoding | Delta-encoded hours | Measured, see below. |
 
 ### Encoding, measured on real 2022 data
@@ -112,22 +112,24 @@ highest across-sensor median, minimum 30 sensors reporting. It also carries the 
   `Int32`/`Float32`. Guarded at 65,535 stations on both sides.
 - **Bounded frame cache.** The previous `canvasCache` grew without limit; at 8,760
   hours per year that is a leak the old two-year asset was already exposed to.
-- IDW surface restored in `showFrame` with dots drawn over it and a toggle.
-- **Flat opacity.** Colour is the IDW value; alpha is `MAX_ALPHA` wherever any sensor
-  falls inside `CUTOFF_DEG` and zero outside, so the surface has a defined edge at the
-  interpolation radius.
+- **Sensor dots only — no interpolated surface.** Each sensor reporting in the displayed
+  hour is one `L.circleMarker` at its own coordinates, colored by its own reading, drawn
+  on the map's shared canvas (`preferCanvas: true`). Every pixel of colour is a real
+  measurement at a real location; empty space means nobody was measuring there.
 
-  A Gaussian coverage falloff was tried during implementation and **removed at the
-  user's request** (2026-07-25). Recorded so it is not re-proposed as new: keying alpha
-  to the *nearest* sensor produced a field of separate blobs; summing per-sensor
-  Gaussian kernels through `1 − e^(−1.6·Σ)` at σ = 0.55° did merge clusters into one
-  continuous plume and fade isolated sensors, but the soft look was not wanted. The
-  known trade-off of flat opacity is that an isolated sensor paints a uniform 1.2° disc
-  with a hard rim, which implies the same confidence 130 km out as directly overhead —
-  accepted deliberately. Flat is also marginally cheaper (19 ms/frame vs 22 ms on 2023)
-  since there is no per-point `exp()`.
-- Grid dimensions derived from the bbox aspect (`sizeGrid`) — the footprint is now
-  ~38° lon × 21° lat, so the old fixed 200×150 grid would stretch every cell.
+  Final position after three iterations, recorded so none of them is re-proposed as new.
+  An IDW surface was built; a nearest-sensor opacity falloff produced a field of separate
+  blobs; summed Gaussian coverage kernels (`1 − e^(−1.6·Σ)`, σ = 0.55°) did merge
+  clusters into one continuous plume while fading lone sensors, but the soft look was
+  rejected; flat opacity was then rejected too, as reading like bubbles. **All of that
+  machinery — `renderFrame`, `buildBuckets`, `sizeGrid`, the frame cache and the
+  `imageOverlay` — is deleted, not disabled.**
+
+  Dots are also ~11× cheaper: 1.7 ms/frame against 19 ms on 2023, and 3.8 ms on the
+  densest year. The bounded frame cache is gone with the surface, since nothing is
+  rasterized any more.
+- The "show sensors" toggle was removed: with dots as the only layer it just blanked
+  the map.
 - `PROVINCE_POLYGONS` repurposed from a clip mask to an `L.polyline` outline.
 - Fits **once** to the manifest's global trimmed view, so switching year never makes
   the map jump.
@@ -201,9 +203,10 @@ Browser-measured, 1440×900 headless Chrome:
 
 | Check | Result |
 |---|---|
-| Frame render, 2023 (772 sensors) | 19 ms median, 20 ms max (22/25 with the removed falloff) |
-| Frame render, 2025 (1,556 sensors) | 32 ms median, 39 ms max |
-| Playback interval | 100 ms — 3–4.5× headroom, dots on |
+| Frame render, 2023 (772 sensors) | 1.7 ms median (was 19 ms with the removed surface) |
+| Frame render, 2025 (1,556 sensors) | 3.8 ms median (was 32 ms) |
+| Playback interval | 100 ms — ~26× headroom on the densest year |
+| Image overlays in the DOM | 0 — the surface is gone, not hidden |
 | Console errors/warnings | 0 |
 | Settled heap holding 2025 | 44 MB |
 | Heap after cycling all 5 years ×2 | 515 MB, self-collecting to 44 MB — garbage, not retention |
