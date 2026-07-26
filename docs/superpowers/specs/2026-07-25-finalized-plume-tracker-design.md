@@ -86,7 +86,16 @@ Pure stdlib. `--write` gated, dry-run by default, `--selftest` for unit tests.
   reading), so the largest year holds near 40 MB instead of the ~600 MB a list of
   Python tuples would cost. The series JSON is assembled as pre-formatted text so the
   ~10M-point array never exists as Python numbers.
-- Emits `plume_2021.json.gz` … `plume_2025.json.gz` plus `plume_index.json`.
+- Emits `plume_finalized_2021.json.gz` … `plume_finalized_2025.json.gz` plus
+  `plume_finalized_index.json`.
+
+**The `plume_finalized_` prefix is load-bearing.** WhiteNoise serves static files in
+production and treats `X.gz` as the gzip *variant* of `X` whenever a file named `X` also
+exists — `add_file_to_dictionary()` returns early for the variant, so the `.gz` URL is
+never registered and 404s. The first cut named these `plume_<YEAR>.json.gz`; four years
+worked and **2023 alone 404'd in production**, because the legacy `plume_2023.json` sits
+beside it. `assert_no_whitenoise_shadow()` now fails the build on any `.gz` output with a
+same-stem sibling, and is covered by `--selftest`.
 
 The manifest carries, per year: file name, `t0`, `n_steps` (8784 for leap-year 2024),
 sensor count, point count, bbox, gzip size, and the **peak hour** — the hour with the
@@ -168,6 +177,11 @@ the ML pipeline. `plume_2023.json` is likewise retained as the coordinate fallba
 - Peak hours cross-checked against the QC summaries' peak days.
 - Headless-browser check of the rendered page: surface, dots, year switching, playback,
   and console cleanliness.
+- **Static assets must be checked against WhiteNoise's production file map, not just a
+  dev browser.** `DEBUG=True` puts WhiteNoise in autorefresh mode, which resolves through
+  the staticfiles finders rather than the prebuilt dict, so a dev-server page load proves
+  nothing about whether production will serve the file. Enumerate
+  `WhiteNoise(root=…).files` instead.
 
 ### Results
 

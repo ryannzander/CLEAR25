@@ -6,7 +6,7 @@
    compiled by scripts/gen_plume_finalized.py into one gzip asset per year plus
    a small manifest. Everything is a static file — no live API, no cost, no key.
 
-   Pipeline: fetch plume_index.json -> fetch the selected year's plume_<Y>.json.gz
+   Pipeline: fetch plume_finalized_index.json -> fetch the year's asset named by it
    -> decompress client-side (DecompressionStream) -> counting-sort every reading
    into per-hour buckets backed by typed arrays -> for the displayed hour,
    inverse-distance-weight the sensor points onto a grid, paint that grid to an
@@ -23,8 +23,12 @@
     var MAX_ALPHA = 0.82;
     var PLAY_MS = 100;            // ms per frame during playback (hourly frames)
     var FRAME_CACHE_MAX = 240;    // bounded: 8,760 hours/year would otherwise leak
-    var INDEX_URL = "/static/dashboard/plume_index.json?v=1";
-    var YEAR_URL = "/static/dashboard/plume_{year}.json.gz?v=1";
+    var STATIC_BASE = "/static/dashboard/";
+    var INDEX_URL = STATIC_BASE + "plume_finalized_index.json?v=1";
+    // Per-year filenames come from the manifest's `file` field rather than being
+    // templated here, so the asset naming is entirely the generator's concern.
+    // (It matters: the names must not shadow a same-stem sibling — see the
+    // WhiteNoise note in scripts/gen_plume_finalized.py.)
 
     // PM2.5 (µg/m³) -> color stops (EPA AQI category colors).
     var RAMP = [
@@ -386,7 +390,7 @@
         setOverlayMsg("Loading " + y + "…",
             "Decompressing " + entry.points.toLocaleString() + " EPA-corrected readings (" + mb + " MB).", true);
 
-        fetch(YEAR_URL.replace("{year}", y))
+        fetch(STATIC_BASE + entry.file + "?v=1")
             .then(function (r) { return r.ok ? r.arrayBuffer() : Promise.reject("HTTP " + r.status); })
             .then(decodeMaybeGzip)
             .then(function (d) {
