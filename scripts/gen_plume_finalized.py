@@ -24,8 +24,18 @@ Input (outside the repo, not committed -- ~2.5 GB total):
   is 2021-12-16), so every sensor's points are sorted before delta encoding.
 
 Output (committed, served as static assets):
-  webapp/dashboard/static/dashboard/plume_<YEAR>.json.gz   (x5)
-  webapp/dashboard/static/dashboard/plume_index.json       (manifest)
+  webapp/dashboard/static/dashboard/plume_finalized_<YEAR>.json.gz   (x5)
+  webapp/dashboard/static/dashboard/plume_finalized_index.json       (manifest)
+
+  NAMING IS LOAD-BEARING; do not shorten it back to plume_<YEAR>.json.gz.
+  WhiteNoise serves static files in production and treats "X.gz" as the gzip
+  VARIANT of "X" whenever a file named "X" also exists -- it then refuses to
+  serve "X.gz" at its own URL and returns 404. The directory already holds the
+  legacy plume_2023.json, so plume_2023.json.gz 404'd in production while the
+  other four years worked. DEBUG=True hides this completely: WhiteNoise runs in
+  autorefresh mode and resolves through the finders instead of the prebuilt file
+  dict, so the dev server serves it happily. assert_no_whitenoise_shadow() below
+  fails the build rather than let this recur.
 
 Per-year payload:
     {
@@ -335,7 +345,8 @@ def build_year(year, data_dir, out_dir, write, verbose=True):
     print(f"    payload {len(text) / 1048576:.1f} MB raw -> {len(blob) / 1048576:.2f} MB gz"
           f"  ({len(blob) / max(1, n_points):.2f} B/pt)")
 
-    out = Path(out_dir) / f"plume_{year}.json.gz"
+    out = Path(out_dir) / f"plume_finalized_{year}.json.gz"
+    assert_no_whitenoise_shadow([out])
     if write:
         out.write_bytes(blob)
         print(f"    -> {out}")
@@ -357,6 +368,28 @@ def build_year(year, data_dir, out_dir, write, verbose=True):
         "bytes_gz": len(blob),
         "source": src.name,
     }, blob, n_points, [(s["lat"], s["lon"]) for s in stations]
+
+
+def assert_no_whitenoise_shadow(paths):
+    """Fail if any '<name>.gz' output has a sibling '<name>' in the same folder.
+
+    WhiteNoise (the production static server) reads such a pair as one file plus
+    its gzip encoding: whitenoise.base.add_file_to_dictionary() returns early for
+    the compressed variant, so the '.gz' URL is never registered and 404s. This
+    is invisible under DEBUG=True, where WhiteNoise autorefresh resolves through
+    the staticfiles finders instead of the prebuilt dict -- so it must be caught
+    at build time, not in a dev browser.
+    """
+    for p in paths:
+        p = Path(p)
+        if p.suffix != ".gz":
+            continue
+        sibling = p.with_suffix("")          # plume_x.json.gz -> plume_x.json
+        if sibling.exists():
+            raise SystemExit(
+                f"refusing to write {p.name}: {sibling.name} exists alongside it, "
+                f"so WhiteNoise would treat {p.name} as {sibling.name}'s gzip "
+                f"variant and 404 the URL in production. Rename the output stem.")
 
 
 def trimmed_view(lats, lons, trim=VIEW_TRIM):
@@ -429,6 +462,21 @@ def selftest():
     # Formatting keeps 0.1 resolution and stays short.
     assert fmt_pm(0) == "0" and fmt_pm(37) == "3.7" and fmt_pm(120) == "12"
     assert fmt_pm(15765) == "1576.5"
+
+    # The WhiteNoise shadow guard: a bare .gz is fine, a .gz beside its stem is not.
+    import tempfile
+    with tempfile.TemporaryDirectory() as td:
+        lone = Path(td) / "asset_a.json.gz"
+        assert_no_whitenoise_shadow([lone])                  # no sibling -> ok
+        assert_no_whitenoise_shadow([Path(td) / "plain.json"])  # not .gz -> ok
+        shadowed = Path(td) / "asset_b.json.gz"
+        (Path(td) / "asset_b.json").write_text("{}", encoding="utf-8")
+        try:
+            assert_no_whitenoise_shadow([shadowed])
+        except SystemExit:
+            pass
+        else:
+            raise AssertionError("shadow guard failed to fire on a .gz beside its stem")
 
     # Delta round-trip, including a large gap and a zero-valued reading.
     pts = [(0, 0.0), (1, 3.7), (2, 12.0), (500, 66.4), (8759, 1576.5)]
@@ -511,7 +559,7 @@ def main(argv=None):
         "view": view,
         "years": entries,
     }
-    idx_path = out_dir / "plume_index.json"
+    idx_path = out_dir / "plume_finalized_index.json"
     idx_text = json.dumps(index, separators=(",", ":"), indent=None)
 
     print()

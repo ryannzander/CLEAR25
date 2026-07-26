@@ -86,7 +86,16 @@ Pure stdlib. `--write` gated, dry-run by default, `--selftest` for unit tests.
   reading), so the largest year holds near 40 MB instead of the ~600 MB a list of
   Python tuples would cost. The series JSON is assembled as pre-formatted text so the
   ~10M-point array never exists as Python numbers.
-- Emits `plume_2021.json.gz` … `plume_2025.json.gz` plus `plume_index.json`.
+- Emits `plume_finalized_2021.json.gz` … `plume_finalized_2025.json.gz` plus
+  `plume_finalized_index.json`.
+
+**The `plume_finalized_` prefix is load-bearing.** WhiteNoise serves static files in
+production and treats `X.gz` as the gzip *variant* of `X` whenever a file named `X` also
+exists — `add_file_to_dictionary()` returns early for the variant, so the `.gz` URL is
+never registered and 404s. The first cut named these `plume_<YEAR>.json.gz`; four years
+worked and **2023 alone 404'd in production**, because the legacy `plume_2023.json` sits
+beside it. `assert_no_whitenoise_shadow()` now fails the build on any `.gz` output with a
+same-stem sibling, and is covered by `--selftest`.
 
 The manifest carries, per year: file name, `t0`, `n_steps` (8784 for leap-year 2024),
 sensor count, point count, bbox, gzip size, and the **peak hour** — the hour with the
@@ -104,15 +113,19 @@ highest across-sensor median, minimum 30 sensors reporting. It also carries the 
 - **Bounded frame cache.** The previous `canvasCache` grew without limit; at 8,760
   hours per year that is a leak the old two-year asset was already exposed to.
 - IDW surface restored in `showFrame` with dots drawn over it and a toggle.
-- **Coverage-based opacity** (added during implementation, after the first render
-  showed the problem). Colour is the IDW value; opacity is a separate term where each
-  sensor contributes a Gaussian kernel, the kernels are summed, and the sum passes
-  through `1 − e^(−gain·Σ)`. A flat opacity made every isolated sensor paint a uniform
-  disc the full width of the 1.2° cutoff with a hard rim — a bubble that implied the
-  same confidence 130 km out as directly overhead. Keying opacity to the *nearest*
-  sensor instead over-corrected into a field of separate blobs. The summed-kernel form
-  is what makes a cluster saturate into one continuous plume while a lone sensor still
-  fades: σ = 0.55°, gain = 1.6.
+- **Flat opacity.** Colour is the IDW value; alpha is `MAX_ALPHA` wherever any sensor
+  falls inside `CUTOFF_DEG` and zero outside, so the surface has a defined edge at the
+  interpolation radius.
+
+  A Gaussian coverage falloff was tried during implementation and **removed at the
+  user's request** (2026-07-25). Recorded so it is not re-proposed as new: keying alpha
+  to the *nearest* sensor produced a field of separate blobs; summing per-sensor
+  Gaussian kernels through `1 − e^(−1.6·Σ)` at σ = 0.55° did merge clusters into one
+  continuous plume and fade isolated sensors, but the soft look was not wanted. The
+  known trade-off of flat opacity is that an isolated sensor paints a uniform 1.2° disc
+  with a hard rim, which implies the same confidence 130 km out as directly overhead —
+  accepted deliberately. Flat is also marginally cheaper (19 ms/frame vs 22 ms on 2023)
+  since there is no per-point `exp()`.
 - Grid dimensions derived from the bbox aspect (`sizeGrid`) — the footprint is now
   ~38° lon × 21° lat, so the old fixed 200×150 grid would stretch every cell.
 - `PROVINCE_POLYGONS` repurposed from a clip mask to an `L.polyline` outline.
@@ -164,6 +177,11 @@ the ML pipeline. `plume_2023.json` is likewise retained as the coordinate fallba
 - Peak hours cross-checked against the QC summaries' peak days.
 - Headless-browser check of the rendered page: surface, dots, year switching, playback,
   and console cleanliness.
+- **Static assets must be checked against WhiteNoise's production file map, not just a
+  dev browser.** `DEBUG=True` puts WhiteNoise in autorefresh mode, which resolves through
+  the staticfiles finders rather than the prebuilt dict, so a dev-server page load proves
+  nothing about whether production will serve the file. Enumerate
+  `WhiteNoise(root=…).files` instead.
 
 ### Results
 
@@ -183,7 +201,7 @@ Browser-measured, 1440×900 headless Chrome:
 
 | Check | Result |
 |---|---|
-| Frame render, 2023 (772 sensors) | 22 ms median, 25 ms max |
+| Frame render, 2023 (772 sensors) | 19 ms median, 20 ms max (22/25 with the removed falloff) |
 | Frame render, 2025 (1,556 sensors) | 32 ms median, 39 ms max |
 | Playback interval | 100 ms — 3–4.5× headroom, dots on |
 | Console errors/warnings | 0 |
