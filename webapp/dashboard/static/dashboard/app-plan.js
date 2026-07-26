@@ -1,6 +1,6 @@
 /* ============================================================
    CLEAR · 2021–2025 Smoke-Plume Replay
-   Animated IDW-interpolated PM2.5 surface over a Leaflet basemap.
+   One colored dot per reporting sensor, animated hour by hour.
 
    Data: the finalized, EPA/Barkjohn humidity-corrected PurpleAir record,
    compiled by scripts/gen_plume_finalized.py into one gzip asset per year plus
@@ -8,21 +8,19 @@
 
    Pipeline: fetch plume_finalized_index.json -> fetch the year's asset named by it
    -> decompress client-side (DecompressionStream) -> counting-sort every reading
-   into per-hour buckets backed by typed arrays -> for the displayed hour,
-   inverse-distance-weight the sensor points onto a grid, paint that grid to an
-   offscreen canvas, and show it as a Leaflet imageOverlay stretched to the bbox
-   (the browser bilinearly smooths it). Sensor dots are drawn on top.
+   into per-hour buckets backed by typed arrays -> for the displayed hour, plot
+   each reporting sensor at its own position, colored by its own reading.
+
+   Deliberately NOT interpolated: no IDW surface, no smoothing, no coverage
+   kernel. Every pixel of colour on this map is a real measurement at a real
+   location, and empty space means nobody was measuring there.
    ============================================================ */
 (function () {
     "use strict";
 
     // ---- Config ---------------------------------------------------------
-    var GRID_CELLS = 34000;       // ~ total interpolation cells; split by bbox aspect
-    var IDW_POWER = 2;            // inverse-distance exponent
-    var CUTOFF_DEG = 1.2;         // sensors beyond this (deg, lat-corrected) don't contribute
-    var MAX_ALPHA = 0.82;
     var PLAY_MS = 100;            // ms per frame during playback (hourly frames)
-    var FRAME_CACHE_MAX = 240;    // bounded: 8,760 hours/year would otherwise leak
+    var DOT_RADIUS = 4;           // px
     var STATIC_BASE = "/static/dashboard/";
     var INDEX_URL = STATIC_BASE + "plume_finalized_index.json?v=1";
     // Per-year filenames come from the manifest's `file` field rather than being
@@ -41,10 +39,10 @@
     ];
 
     // ---- State ----------------------------------------------------------
-    var map, overlay = null, sensorLayer = null, provinceLayer = null;
+    var map, sensorLayer = null, provinceLayer = null;
     var manifest = null, year = null, yearMeta = null;
-    var bbox = null, gridCols = 200, gridRows = 170;
-    var cur = 0, playing = false, playTimer = null, showSensors = true;
+    var bbox = null;
+    var cur = 0, playing = false, playTimer = null;
     var loading = false, fitted = false;
 
     // ---- Sparse hourly index (counting-sorted, memory-bounded) ----------
@@ -63,18 +61,6 @@
     // ---- DOM ------------------------------------------------------------
     var $ = function (id) { return document.getElementById(id); };
     var els = {};
-
-    // ---- Frame cache (bounded ring) --------------------------------------
-    var cacheMap = {}, cacheOrder = [];
-    function cacheGet(k) { return cacheMap[k]; }
-    function cachePut(k, v) {
-        if (cacheMap[k] === undefined) {
-            cacheOrder.push(k);
-            if (cacheOrder.length > FRAME_CACHE_MAX) delete cacheMap[cacheOrder.shift()];
-        }
-        cacheMap[k] = v;
-    }
-    function cacheClear() { cacheMap = {}; cacheOrder = []; }
 
     // ---- Sparse-index helpers -------------------------------------------
     // Counting-sort the per-station delta-encoded lists into per-hour buckets.
@@ -172,97 +158,6 @@
         provinceLayer = L.layerGroup(lines).addTo(map);
     }
 
-    // Bucket sensors into a coarse grid so each cell only scans nearby points.
-    function buildBuckets(points, midLatCos) {
-        var bs = CUTOFF_DEG; // bucket size = cutoff radius
-        var buckets = {};
-        for (var i = 0; i < points.length; i++) {
-            var p = points[i];
-            var bx = Math.floor((p.lon * midLatCos) / bs);
-            var by = Math.floor(p.lat / bs);
-            var key = bx + ":" + by;
-            (buckets[key] || (buckets[key] = [])).push(p);
-        }
-        return { buckets: buckets, bs: bs };
-    }
-
-    // Choose a grid whose cells are roughly square for this bbox. The finalized
-    // footprint is ~38° of longitude by ~21° of latitude — far wider than the old
-    // Ontario-only box — so a fixed 200×150 grid would stretch every cell.
-    function sizeGrid() {
-        var north = bbox.nwlat, south = bbox.selat, west = bbox.nwlng, east = bbox.selng;
-        var midLatCos = Math.cos((north + south) / 2 * Math.PI / 180);
-        var w = Math.max(1e-6, (east - west) * midLatCos), h = Math.max(1e-6, north - south);
-        var cols = Math.round(Math.sqrt(GRID_CELLS * w / h));
-        gridCols = Math.max(40, Math.min(400, cols));
-        gridRows = Math.max(40, Math.min(400, Math.round(GRID_CELLS / gridCols)));
-    }
-
-    // Interpolate one hour to a dataURL (bounded cache).
-    //
-    // Colour is the IDW of PM2.5; opacity is flat wherever any sensor falls inside
-    // CUTOFF_DEG and fully transparent outside it, so the surface has a defined
-    // edge at the interpolation radius rather than a soft falloff.
-    function renderFrame(index) {
-        var hit = cacheGet(index);
-        if (hit) return hit;
-        var pts = getPoints(index);
-        var west = bbox.nwlng, east = bbox.selng, north = bbox.nwlat, south = bbox.selat;
-        var midLatCos = Math.cos((north + south) / 2 * Math.PI / 180);
-
-        var bk = buildBuckets(pts, midLatCos), buckets = bk.buckets, bs = bk.bs;
-        var cutoff2 = CUTOFF_DEG * CUTOFF_DEG;
-        var flatAlpha = Math.round(MAX_ALPHA * 255);
-
-        var cv = document.createElement("canvas");
-        cv.width = gridCols; cv.height = gridRows;
-        var ctx = cv.getContext("2d");
-        var img = ctx.createImageData(gridCols, gridRows);
-        var data = img.data;
-
-        for (var y = 0; y < gridRows; y++) {
-            var lat = north - (y + 0.5) / gridRows * (north - south);
-            var by = Math.floor(lat / bs);
-            for (var x = 0; x < gridCols; x++) {
-                var o = (y * gridCols + x) * 4;
-                var lon = west + (x + 0.5) / gridCols * (east - west);
-                var bx = Math.floor((lon * midLatCos) / bs);
-
-                var wsum = 0, vsum = 0, exact = null;
-                for (var gx = bx - 1; gx <= bx + 1; gx++) {
-                    for (var gy = by - 1; gy <= by + 1; gy++) {
-                        var arr = buckets[gx + ":" + gy];
-                        if (!arr) continue;
-                        for (var k = 0; k < arr.length; k++) {
-                            var p = arr[k];
-                            var ddx = (lon - p.lon) * midLatCos, ddy = lat - p.lat;
-                            var d2 = ddx * ddx + ddy * ddy;
-                            if (d2 > cutoff2) continue;
-                            if (d2 < 1e-9) { exact = p.pm; continue; }
-                            var w = 1 / Math.pow(d2, IDW_POWER / 2);
-                            wsum += w; vsum += w * p.pm;
-                        }
-                    }
-                }
-
-                if (wsum === 0 && exact === null) { data[o + 3] = 0; continue; }
-                var pm = exact !== null ? exact : vsum / wsum;
-                var c = rampColor(pm);
-                data[o] = c[0]; data[o + 1] = c[1]; data[o + 2] = c[2];
-                data[o + 3] = flatAlpha;
-            }
-        }
-        ctx.putImageData(img, 0, 0);
-        var url = cv.toDataURL();
-        cachePut(index, url);
-        return url;
-    }
-
-    function frameBounds() {
-        // Leaflet imageOverlay bounds: [[south, west], [north, east]]
-        return [[bbox.selat, bbox.nwlng], [bbox.nwlat, bbox.selng]];
-    }
-
     function fmtClock(ms) {
         var d = new Date(ms);
         if (isNaN(d.getTime())) return String(ms);
@@ -275,14 +170,7 @@
         if (!nSteps) return;
         cur = Math.max(0, Math.min(index, nSteps - 1));
         var pts = getPoints(cur);
-
-        var url = renderFrame(cur);
-        if (!overlay) {
-            overlay = L.imageOverlay(url, frameBounds(), { opacity: 1, interactive: false }).addTo(map);
-        } else {
-            overlay.setUrl(url);
-        }
-        drawSensors(showSensors ? pts : []);
+        drawSensors(pts);
 
         els.slider.value = cur;
         els.clock.textContent = fmtClock(stepTimeMs(cur));
@@ -291,6 +179,10 @@
         els.sensorCount.textContent = pts.length.toLocaleString();
     }
 
+    // One circle per sensor reporting this hour, colored by its own reading. The
+    // thin dark stroke keeps overlapping dots readable where the network is dense
+    // (Chicago, southern Ontario). Rendered on the map's shared canvas
+    // (preferCanvas), so ~1,500 markers cost one canvas pass, not 1,500 DOM nodes.
     function drawSensors(pts) {
         if (sensorLayer) { map.removeLayer(sensorLayer); sensorLayer = null; }
         pts = pts || [];
@@ -299,7 +191,7 @@
         for (var i = 0; i < pts.length; i++) {
             var p = pts[i], c = rampColor(p.pm);
             markers[i] = L.circleMarker([p.lat, p.lon], {
-                radius: 3, stroke: true, weight: 0.5, color: "rgba(0,0,0,0.55)",
+                radius: DOT_RADIUS, stroke: true, weight: 0.5, color: "rgba(0,0,0,0.55)",
                 fillColor: "rgb(" + c[0] + "," + c[1] + "," + c[2] + ")",
                 fillOpacity: 0.95, interactive: false,
             });
@@ -396,8 +288,7 @@
             .then(function (d) {
                 // Drop the previous year's index before building the new one.
                 stepStart = stationIdxByPair = pmByPair = null;
-                cacheClear();
-                if (overlay) { map.removeLayer(overlay); overlay = null; }
+                if (sensorLayer) { map.removeLayer(sensorLayer); sensorLayer = null; }
 
                 year = y; yearMeta = entry;
                 bbox = d.bbox;
@@ -420,7 +311,6 @@
                     loading = false; markActiveYear();
                     return;
                 }
-                sizeGrid();
                 var total = buildIndex(d.series || []);
                 d.series = null;
 
@@ -476,17 +366,14 @@
         els = {
             slider: $("slider"), play: $("play"), clock: $("clock"), rel: $("rel"),
             frameIdx: $("frame-idx"), frameTotal: $("frame-total"), sensorCount: $("sensor-count"),
-            age: $("age"), showSensors: $("show-sensors"), statusPill: $("status-pill"),
+            age: $("age"), statusPill: $("status-pill"),
             overlay: $("overlay"), ovTitle: $("ov-title"), ovBody: $("ov-body"), ovSpin: $("ov-spin"),
             transport: $("transport"), years: $("years"),
         };
-        els.showSensors.checked = showSensors;
+        // No "show sensors" toggle any more: the dots ARE the visualization, so
+        // hiding them would just blank the map.
         els.slider.addEventListener("input", function () { pause(); showFrame(parseInt(this.value, 10)); });
         els.play.addEventListener("click", function () { playing ? pause() : play(); });
-        els.showSensors.addEventListener("change", function () {
-            showSensors = this.checked;
-            if (nSteps) drawSensors(showSensors ? getPoints(cur) : []);
-        });
     }
 
     document.addEventListener("DOMContentLoaded", function () {
