@@ -67,6 +67,8 @@ Usage:
     python3 download_era5_wind.py --years 2023       # just one year
     python3 download_era5_wind.py --years 2023 2024
     python3 download_era5_wind.py --chunk month --years 2023
+    python3 download_era5_wind.py --years 2023 --months 6   # one month, cheap test
+    python3 download_era5_wind.py --months 5 6 7 8 9        # May-Sep fire season only
     python3 download_era5_wind.py --dry-run          # print requests, no network
     python3 download_era5_wind.py --selftest         # offline checks
     python3 download_era5_wind.py --out-dir "/Users/<you>/Desktop/CLEAR 2.0 Ver2 (Firework)/RAW Data/ERA5_Wind"
@@ -156,11 +158,22 @@ def build_request(year, months, area, data_format):
 
 
 def out_name(year, months, data_format):
-    """era5_wind_2023.nc for a whole year, era5_wind_2023_06.nc for one month."""
+    """
+    era5_wind_2023.nc       whole year
+    era5_wind_2023_06.nc    one month
+    era5_wind_2023_05-09.nc contiguous subset (e.g. the May-Sep fire season)
+    era5_wind_2023_05_07.nc any other subset
+    A partial year must never be named like a full one - a later run would skip it.
+    """
     suffix = SUFFIX[data_format]
+    months = sorted(months)
+    if len(months) == 12:
+        return f"era5_wind_{year}{suffix}"
     if len(months) == 1:
         return f"era5_wind_{year}_{months[0]:02d}{suffix}"
-    return f"era5_wind_{year}{suffix}"
+    if months == list(range(months[0], months[-1] + 1)):
+        return f"era5_wind_{year}_{months[0]:02d}-{months[-1]:02d}{suffix}"
+    return f"era5_wind_{year}_" + "_".join(f"{m:02d}" for m in months) + suffix
 
 
 def check_setup():
@@ -279,17 +292,18 @@ def download_chunk(client, out_dir, year, months, area, data_format, dry_run=Fal
     return True
 
 
-def download_year(client, out_dir, year, area, data_format, chunk, fallback, dry_run=False):
+def download_year(client, out_dir, year, months, area, data_format, chunk, fallback,
+                  dry_run=False):
     """One year, as a single request or month by month. Returns True on success."""
     if chunk == "month":
         ok = True
-        for month in range(1, 13):
+        for month in months:
             ok = download_chunk(client, out_dir, year, [month], area, data_format,
                                 dry_run) and ok
         return ok
 
     try:
-        return download_chunk(client, out_dir, year, list(range(1, 13)), area,
+        return download_chunk(client, out_dir, year, months, area,
                               data_format, dry_run)
     except Exception as exc:  # noqa: BLE001 - any server-side refusal lands here
         message = str(exc).lower()
@@ -299,7 +313,7 @@ def download_year(client, out_dir, year, area, data_format, chunk, fallback, dry
         log(f"{year}: whole-year request refused ({exc})")
         log(f"{year}: retrying month by month")
         ok = True
-        for month in range(1, 13):
+        for month in months:
             try:
                 ok = download_chunk(client, out_dir, year, [month], area, data_format,
                                     dry_run) and ok
@@ -345,6 +359,16 @@ def selftest():
     assert out_name(2023, all_months, "netcdf") == "era5_wind_2023.nc"
     assert out_name(2023, [6], "netcdf") == "era5_wind_2023_06.nc"
     assert out_name(2023, all_months, "grib") == "era5_wind_2023.grib"
+    assert out_name(2023, [5, 6, 7, 8, 9], "netcdf") == "era5_wind_2023_05-09.nc"
+    assert out_name(2023, [9, 5, 6, 7, 8], "netcdf") == "era5_wind_2023_05-09.nc"
+    assert out_name(2023, [5, 7, 9], "netcdf") == "era5_wind_2023_05_07_09.nc"
+    # A partial year must not collide with the full-year name, or a resumed run
+    # would skip it as already downloaded.
+    assert out_name(2023, [5, 6], "netcdf") != out_name(2023, all_months, "netcdf")
+    assert item_count(2023, [5, 6, 7, 8, 9]) == 2 * (31 + 30 + 31 + 31 + 30) * 24
+    fire = build_request(2023, [5, 6, 7, 8, 9], AREA, "netcdf")
+    assert fire["month"] == ["05", "06", "07", "08", "09"]
+    assert len(fire["day"]) == 31, "day list is the union across the selected months"
 
     import tempfile
     with tempfile.TemporaryDirectory() as tmp:
@@ -378,6 +402,9 @@ def main():
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--years", type=int, nargs="+", default=YEARS,
                     help=f"calendar years to fetch (default {YEARS[0]}-{YEARS[-1]})")
+    ap.add_argument("--months", type=int, nargs="+", default=list(range(1, 13)),
+                    metavar="M", help="months to fetch (default all 12; the "
+                                      "methodology's May-Sep window is: --months 5 6 7 8 9)")
     ap.add_argument("--area", default=",".join(str(v) for v in AREA),
                     help="AOI as N,W,S,E (default: the project AOI)")
     ap.add_argument("--out-dir", default=str(DEFAULT_OUT_DIR),
@@ -408,6 +435,10 @@ def main():
     if any(y < 1940 for y in years):
         log("ERROR: ERA5 starts in 1940")
         return 2
+    months = sorted(set(args.months))
+    if not months or months[0] < 1 or months[-1] > 12:
+        log(f"ERROR: --months must be between 1 and 12, got {args.months}")
+        return 2
 
     out_dir = Path(args.out_dir).expanduser()
     client = None
@@ -416,11 +447,13 @@ def main():
         import cdsapi
         out_dir.mkdir(parents=True, exist_ok=True)
         client = cdsapi.Client()
-    log(f"AOI N{area[0]} W{area[1]} S{area[2]} E{area[3]} · {args.chunk} chunks · "
+    span = "all months" if len(months) == 12 else \
+        "months " + ",".join(f"{m:02d}" for m in months)
+    log(f"AOI N{area[0]} W{area[1]} S{area[2]} E{area[3]} · {span} · {args.chunk} chunks · "
         f"{args.data_format} -> {out_dir}")
 
     failed = [y for y in years
-              if not download_year(client, out_dir, y, area, args.data_format,
+              if not download_year(client, out_dir, y, months, area, args.data_format,
                                    args.chunk, not args.no_fallback, args.dry_run)]
     if failed:
         log(f"FINISHED WITH ERRORS - incomplete years: {', '.join(str(y) for y in failed)}")
