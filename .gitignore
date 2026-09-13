@@ -67,3 +67,7 @@ wind_hourly/
 # Smoke collector output (Pi runtime data; keep the folder)
 smoke_pi/web/data/*
 !smoke_pi/web/data/.gitkeep
+
+# ERA5 gridded wind download (scripts/download_era5_wind.py output; raw reanalysis,
+# far too large to commit - regenerate with: python scripts/download_era5_wind.py)
+era5_wind/
