@@ -105,6 +105,9 @@ MAX_ITEMS_PER_REQUEST = 120_000
 
 SUFFIX = {"netcdf": ".nc", "grib": ".grib"}
 
+# Older releases only speak to the retired legacy CDS platform.
+MIN_CDSAPI = (0, 7, 2)
+
 # Server-side complaints that a smaller (monthly) request can plausibly fix.
 _RETRY_SMALLER_HINTS = ("too large", "cost limit", "item limit", "conversion", "convert")
 
@@ -176,6 +179,41 @@ def out_name(year, months, data_format):
     return f"era5_wind_{year}_" + "_".join(f"{m:02d}" for m in months) + suffix
 
 
+def version_tuple(version):
+    """('0.7.7' -> (0, 7, 7)). Returns () when the version is unknown or unparseable
+    - an undeterminable version must never be treated as "too old"."""
+    if not version:
+        return ()
+    parts = []
+    for piece in str(version).split(".")[:3]:
+        digits = ""
+        for ch in piece:            # tolerate 0.7.7rc1 / 0.7.7.dev0
+            if not ch.isdigit():
+                break
+            digits += ch
+        if not digits:
+            break
+        parts.append(int(digits))
+    return tuple(parts)
+
+
+def cdsapi_version(module):
+    """
+    cdsapi does NOT define __version__ (checked against 0.7.7), so the installed
+    distribution metadata is the authority; the attribute is only a fallback for
+    a future release that does export one.
+    """
+    try:
+        from importlib.metadata import PackageNotFoundError, version as dist_version
+        try:
+            return dist_version("cdsapi")
+        except PackageNotFoundError:
+            pass
+    except ImportError:
+        pass
+    return getattr(module, "__version__", "")
+
+
 def check_setup():
     """Fail fast and loudly on a missing token or a too-old cdsapi."""
     rc_path = Path(os.environ.get("CDSAPI_RC", Path.home() / ".cdsapirc"))
@@ -198,12 +236,9 @@ def check_setup():
         log('ERROR: cdsapi is not installed. Run: pip install "cdsapi>=0.7.7"')
         sys.exit(1)
 
-    version = getattr(cdsapi, "__version__", "0")
-    try:
-        parsed = tuple(int(p) for p in version.split(".")[:3])
-    except ValueError:
-        parsed = ()
-    if parsed and parsed < (0, 7, 2):
+    version = cdsapi_version(cdsapi)
+    parsed = version_tuple(version)
+    if parsed and parsed < MIN_CDSAPI:
         log(f"ERROR: cdsapi {version} only speaks to the retired legacy CDS.")
         log('       Upgrade with: pip install --upgrade "cdsapi>=0.7.7"')
         sys.exit(1)
@@ -369,6 +404,23 @@ def selftest():
     fire = build_request(2023, [5, 6, 7, 8, 9], AREA, "netcdf")
     assert fire["month"] == ["05", "06", "07", "08", "09"]
     assert len(fire["day"]) == 31, "day list is the union across the selected months"
+
+    # cdsapi 0.7.7 has no __version__ attribute - a gate that reads only the
+    # attribute rejects a perfectly good install, so unknown must mean "allow".
+    assert version_tuple("0.7.7") == (0, 7, 7)
+    assert version_tuple("0.7.7.dev0") == (0, 7, 7)
+    assert version_tuple("0.7.7rc1") == (0, 7, 7)
+    assert version_tuple("0.6.1") < MIN_CDSAPI
+    assert version_tuple("0.7.2") >= MIN_CDSAPI
+    assert version_tuple("1.0") >= MIN_CDSAPI
+    for unknown in ("", None, "unknown"):
+        assert version_tuple(unknown) == (), unknown
+    assert not (version_tuple("") and version_tuple("") < MIN_CDSAPI)
+
+    class _NoVersion:
+        pass
+    assert cdsapi_version(_NoVersion()) in ("", None) or version_tuple(
+        cdsapi_version(_NoVersion())), "installed cdsapi must resolve via metadata"
 
     import tempfile
     with tempfile.TemporaryDirectory() as tmp:
