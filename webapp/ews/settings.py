@@ -111,6 +111,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "dashboard.context_processors.basemap",
             ],
         },
     },
@@ -393,6 +394,14 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
+
+# =============================================================================
+# MAP BASEMAP (CARTO)
+# =============================================================================
+# CARTO serves keyless basemap tiles with an "API KEY REQUIRED" watermark.
+# The key is a public browser key (it ends up in every tile URL), free for
+# non-commercial use: https://carto.com/basemaps/apikey/
+CARTO_BASEMAPS_KEY = os.environ.get("CARTO_BASEMAPS_KEY", "").strip()
 
 # =============================================================================
 # NOWPAYMENTS (Crypto Billing)

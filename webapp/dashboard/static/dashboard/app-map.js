@@ -2,6 +2,15 @@
    PM2.5 EWS — Map: Leaflet integration and station markers
    ============================================================ */
 
+function cartoDarkTileUrl() {
+    // CARTO watermarks keyless tiles ("API KEY REQUIRED"); the key comes from
+    // the CARTO_BASEMAPS_KEY setting via a <meta> tag in the page head.
+    var meta = document.querySelector('meta[name="carto-basemaps-key"]');
+    var key = meta ? meta.content.trim() : "";
+    return "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" +
+        (key ? "?key=" + encodeURIComponent(key) : "");
+}
+
 function initMap() {
     if (map) {
         map.invalidateSize();
@@ -13,7 +22,7 @@ function initMap() {
         if (map) return;
         map = L.map("map-container", { zoomControl: false, attributionControl: true }).setView([52, -96], 4);
         L.control.zoom({ position: "bottomright" }).addTo(map);
-        L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+        L.tileLayer(cartoDarkTileUrl(), {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
             maxZoom: 18,
         }).addTo(map);

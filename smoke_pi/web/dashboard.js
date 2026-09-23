@@ -159,8 +159,13 @@
   function initMap(){
     map=L.map("map",{preferCanvas:true, zoomControl:false, attributionControl:true}).setView([49,-77],4);
     L.control.zoom({position:"bottomright"}).addTo(map);
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{
-      attribution:'&copy; OSM &copy; CARTO · smoke © BlueSky/ECCC', maxZoom:10 }).addTo(map);
+    // CARTO watermarks keyless tiles; serve.py hands out CARTO_BASEMAPS_KEY.
+    getJSON("config.json").then(function(cfg){
+      var key=(cfg&&cfg.carto_basemaps_key)||"";
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"+
+        (key?"?key="+encodeURIComponent(key):""),{
+        attribution:'&copy; OSM &copy; CARTO · smoke © BlueSky/ECCC', maxZoom:10 }).addTo(map);
+    });
   }
 
   function tick(){
