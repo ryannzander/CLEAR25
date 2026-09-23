@@ -218,23 +218,11 @@
         els.overlay.classList.remove("hidden");
     }
 
-    function cartoDarkTileUrl() {
-        // CARTO watermarks keyless tiles ("API KEY REQUIRED"); the key comes from
-        // the CARTO_BASEMAPS_KEY setting via a <meta> tag in the page head.
-        var meta = document.querySelector('meta[name="carto-basemaps-key"]');
-        var key = meta ? meta.content.trim() : "";
-        return "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" +
-            (key ? "?key=" + encodeURIComponent(key) : "");
-    }
-
     function initMap() {
-        map = L.map("plan-map", { preferCanvas: true, zoomControl: false, attributionControl: true })
+        map = L.map("plan-map", { preferCanvas: true, zoomControl: false, attributionControl: true, maxZoom: 12 })
             .setView([48, -80], 5);
         L.control.zoom({ position: "bottomright" }).addTo(map);
-        L.tileLayer(cartoDarkTileUrl(), {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a> · PM2.5 © PurpleAir (EPA-corrected)',
-            maxZoom: 12,
-        }).addTo(map);
+        addDarkBasemap(map, "PM2.5 © PurpleAir (EPA-corrected)");
     }
 
     // Fit once, to the manifest's global percentile-trimmed view, so switching

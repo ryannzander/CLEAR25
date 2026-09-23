@@ -157,15 +157,11 @@
   }
 
   function initMap(){
-    map=L.map("map",{preferCanvas:true, zoomControl:false, attributionControl:true}).setView([49,-77],4);
+    map=L.map("map",{preferCanvas:true, zoomControl:false, attributionControl:true, maxZoom:10}).setView([49,-77],4);
     L.control.zoom({position:"bottomright"}).addTo(map);
-    // CARTO watermarks keyless tiles; serve.py hands out CARTO_BASEMAPS_KEY.
-    getJSON("config.json").then(function(cfg){
-      var key=(cfg&&cfg.carto_basemaps_key)||"";
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"+
-        (key?"?key="+encodeURIComponent(key):""),{
-        attribution:'&copy; OSM &copy; CARTO · smoke © BlueSky/ECCC', maxZoom:10 }).addTo(map);
-    });
+    // OpenFreeMap dark vector style: no API key (CARTO now watermarks keyless tiles).
+    L.maplibreGL({ style:"https://tiles.openfreemap.org/styles/dark",
+      attributionControl:{ customAttribution:'OpenFreeMap &copy; OpenMapTiles Data from OpenStreetMap · smoke © BlueSky/ECCC' } }).addTo(map);
   }
 
   function tick(){

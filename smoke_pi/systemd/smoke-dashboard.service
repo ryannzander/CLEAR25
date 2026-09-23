@@ -7,9 +7,6 @@ Wants=network-online.target
 # >>> EDIT these two paths to match your install <<<
 WorkingDirectory=/home/pi/CLEAR25/smoke_pi
 ExecStart=/home/pi/CLEAR25/.venv/bin/python serve.py --port 8077
-# Free CARTO basemap key (https://carto.com/basemaps/apikey/); without it the
-# map tiles carry an "API KEY REQUIRED" watermark.
-#Environment=CARTO_BASEMAPS_KEY=your-key-here
 Restart=always
 RestartSec=5
 

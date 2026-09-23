@@ -7,6 +7,7 @@
   media="print"
   onload="this.media = 'all'"
 />
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css" integrity="sha384-uTttxo/aOKbdE5RlD/SPzSDoDmNvGlUYPjONi2MN/b7c9HPSvW07OIuyP7uL6jxK" crossorigin="anonymous" />
 {% endblock %} {% block main %}
 <div id="tab-dashboard" class="tab-content tab-visible">
   <!-- Alert Banner -->
@@ -179,6 +180,9 @@
 
 {% endblock %} {% block scripts %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js" integrity="sha384-5+cfbwT0iiub6VsQAdn6yz16nr6sDiQoHx6tm4O8OVYXHYOxcffFmCJBL0dgdvGp" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js" integrity="sha384-tXYNKOHx4T02jMP7YYCtBxPIv1B5gaA5mcVPBzqMp6d7VzWzxJgI2aWF/nJLrQdS" crossorigin="anonymous"></script>
+<script src="{% static 'dashboard/basemap.js' %}?v=1"></script>
 <script src="{% static 'dashboard/app-render.js' %}?v=39"></script>
 <script src="{% static 'dashboard/app-fusion.js' %}?v=2"></script>
 <script src="{% static 'dashboard/app-forecast.js' %}?v=2"></script>

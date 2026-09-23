@@ -84,10 +84,12 @@ class SecurityHeadersMiddleware:
         "font-src 'self' https://fonts.gstatic.com data:; "
         "img-src 'self' data: blob: "
         "https://ui-avatars.com "
-        "https://*.basemaps.cartocdn.com "
         "https://*.tile.openstreetmap.org "
         "https://unpkg.com; "
-        "connect-src 'self' https://api.waqi.info; "
+        # MapLibre (OpenFreeMap basemap) fetches style/tiles/glyphs/sprites
+        # with fetch() and runs its parser in a blob: web worker.
+        "connect-src 'self' https://api.waqi.info https://tiles.openfreemap.org; "
+        "worker-src 'self' blob:; "
         "frame-ancestors 'none'; "
         "base-uri 'self'; "
         "form-action 'self' https://accounts.google.com; "

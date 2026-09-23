@@ -35,9 +35,8 @@ python3 -m venv ~/CLEAR25/.venv
 # 4. test it once (downloads one BlueSky + one FireWork slice)
 ~/CLEAR25/.venv/bin/python collector.py --sources bluesky,firework
 
-# 5. start the dashboard (the free CARTO key removes the map-tile watermark:
-#    https://carto.com/basemaps/apikey/)
-CARTO_BASEMAPS_KEY=your-key ~/CLEAR25/.venv/bin/python serve.py --port 8077
+# 5. start the dashboard
+~/CLEAR25/.venv/bin/python serve.py --port 8077
 #   → open http://<pi-ip>:8077/ from any device on your network
 ```
 
