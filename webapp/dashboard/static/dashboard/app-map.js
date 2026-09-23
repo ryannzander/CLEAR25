@@ -11,12 +11,9 @@ function initMap() {
     // Defer so map-container has valid dimensions after tab becomes visible
     requestAnimationFrame(() => {
         if (map) return;
-        map = L.map("map-container", { zoomControl: false, attributionControl: true }).setView([52, -96], 4);
+        map = L.map("map-container", { zoomControl: false, attributionControl: true, maxZoom: 18 }).setView([52, -96], 4);
         L.control.zoom({ position: "bottomright" }).addTo(map);
-        L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
-            maxZoom: 18,
-        }).addTo(map);
+        addDarkBasemap(map);
         updateMapMarkers(lastResults);
         map.invalidateSize();
     });

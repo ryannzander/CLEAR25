@@ -219,13 +219,10 @@
     }
 
     function initMap() {
-        map = L.map("plan-map", { preferCanvas: true, zoomControl: false, attributionControl: true })
+        map = L.map("plan-map", { preferCanvas: true, zoomControl: false, attributionControl: true, maxZoom: 12 })
             .setView([48, -80], 5);
         L.control.zoom({ position: "bottomright" }).addTo(map);
-        L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a> · PM2.5 © PurpleAir (EPA-corrected)',
-            maxZoom: 12,
-        }).addTo(map);
+        addDarkBasemap(map, "PM2.5 © PurpleAir (EPA-corrected)");
     }
 
     // Fit once, to the manifest's global percentile-trimmed view, so switching
