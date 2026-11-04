@@ -1082,6 +1082,10 @@
             display: block;
         }
 
+        .wave-chart .wave-svg-phone {
+            display: none;
+        }
+
         .wave-line {
             fill: none;
             stroke: #ff9d4d;
@@ -1521,28 +1525,19 @@
                 padding: 24px;
             }
 
-            /* Proof chart on phones: the 820-unit SVG renders at ~0.4x, so
-               its 11px labels became ~4px. Drop the two upstream notes and
-               the threshold label (the timeline right below lists the same
-               June 3 / 6 / 28 readings) and scale up what remains. */
+            /* Proof chart on phones: swap to the taller phone SVG (the 820x336
+               desktop one renders ~0.4x, so its labels became ~4px). */
             .wave-chart {
                 padding: 14px 10px 8px;
             }
 
-            .wave-chart svg {
-                overflow: visible;
-            }
-
-            .wave-chart .wave-note {
+            .wave-chart .wave-svg-desk {
                 display: none;
             }
 
-            .wave-chart .wave-axis {
-                font-size: 26px;
-            }
-
-            .wave-chart .wave-peak {
-                font-size: 30px;
+            .wave-chart .wave-svg-phone {
+                display: block;
+                overflow: visible;
             }
 
             .wave-caption {
@@ -1867,7 +1862,7 @@
             </p>
         </div>
         <div class="wave-chart reveal">
-            <svg viewBox="0 0 820 320" font-family="Inter, -apple-system, sans-serif" aria-label="Toronto PM2.5 during June 2023, rising to a record 241 micrograms per cubic metre">
+            <svg class="wave-svg-desk" viewBox="0 0 820 336" font-family="Inter, -apple-system, sans-serif" aria-label="Toronto PM2.5 during June 2023, rising to a record 241 micrograms per cubic metre">
                 <defs>
                     <linearGradient id="wave-fill" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0" stop-color="#f6821f" stop-opacity="0.4" />
@@ -1889,7 +1884,11 @@
                 <text class="wave-axis" x="42" y="284" text-anchor="end" font-size="11" fill="rgba(255,255,255,0.42)">0</text>
                 <text class="wave-axis" x="42" y="168" text-anchor="end" font-size="11" fill="rgba(255,255,255,0.42)">120</text>
                 <text class="wave-axis" x="42" y="52" text-anchor="end" font-size="11" fill="rgba(255,255,255,0.42)">240</text>
-                <text class="wave-axis" x="425" y="309" text-anchor="middle" font-size="12" font-weight="600"
+                <!-- date ticks at the marker positions (Jun 3 Ottawa, Jun 6 Cornwall, Jun 28 peak) -->
+                <text x="121" y="298" text-anchor="end" font-size="11" font-weight="600" fill="rgba(255,255,255,0.5)">Jun 3</text>
+                <text x="184" y="298" font-size="11" font-weight="600" fill="rgba(255,255,255,0.5)">Jun 6</text>
+                <text x="710" y="298" text-anchor="middle" font-size="11" font-weight="600" fill="rgba(255,255,255,0.5)">Jun 28</text>
+                <text class="wave-axis" x="425" y="326" text-anchor="middle" font-size="12" font-weight="600"
                     fill="rgba(255,255,255,0.42)">June 2023 — Toronto PM2.5 (µg/m³)</text>
                 <!-- area + line -->
                 <path class="wave-area" fill="url(#wave-fill)"
@@ -1915,6 +1914,41 @@
                     <text class="wave-peak" x="710" y="38" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">241
                         µg/m³</text>
                 </g>
+            </svg>
+            <!-- Phone version: same coordinates, y doubled by one linear map
+                 (y' = 40 + (y-30)*2; generated, not hand-placed) so labels can be
+                 legible at 390px. -->
+            <svg class="wave-svg-phone" viewBox="0 0 820 610" font-family="Inter, -apple-system, sans-serif" aria-label="Toronto PM2.5 during June 2023, rising to a record 241 micrograms per cubic metre">
+                <defs>
+                    <linearGradient id="wave-fill-phone" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stop-color="#f6821f" stop-opacity="0.4" />
+                        <stop offset="100%" stop-color="#f6821f" stop-opacity="0" />
+                    </linearGradient>
+                </defs>
+                <rect x="50" y="40" width="750" height="269.2" fill="#7f1d1d" opacity="0.12" />
+                <rect x="50" y="309.2" width="750" height="77.0" fill="#dc2626" opacity="0.07" />
+                <rect x="50" y="386.2" width="750" height="38.4" fill="#f97316" opacity="0.07" />
+                <rect x="50" y="424.6" width="750" height="77.0" fill="#eab308" opacity="0.06" />
+                <rect x="50" y="501.6" width="750" height="38.4" fill="#22c55e" opacity="0.06" />
+                <line x1="50" y1="309.2" x2="800" y2="309.2" stroke="#ef4444" stroke-width="2" stroke-dasharray="8 8" stroke-opacity="0.55" />
+                <text x="40" y="551.0" text-anchor="end" font-size="32" fill="rgba(255,255,255,0.5)">0</text>
+                <text x="40" y="320.3" text-anchor="end" font-size="32" fill="rgba(255,255,255,0.5)">120</text>
+                <text x="40" y="89.5" text-anchor="end" font-size="32" fill="rgba(255,255,255,0.5)">240</text>
+                <path class="wave-area" fill="url(#wave-fill-phone)" d="M70 524.0 L165 511.2 L213 366.0 L284 463.0 L402 505.4 L521 472.6 L639 290.0 L710 76.6 L780 309.2 L780 540.0 L70 540.0 Z" />
+                <path class="wave-line" style="stroke-width:6" d="M70 524.0 L165 511.2 L213 366.0 L284 463.0 L402 505.4 L521 472.6 L639 290.0 L710 76.6 L780 309.2" />
+                <g class="wave-mark">
+                    <line x1="117" y1="540" x2="117" y2="240.0" stroke="#f6821f" stroke-width="3" stroke-dasharray="6 8" stroke-opacity="0.7" />
+                    <circle cx="117" cy="240.0" r="8" fill="#ff9d4d" />
+                    <line x1="188" y1="540" x2="188" y2="232.4" stroke="#f6821f" stroke-width="3" stroke-dasharray="6 8" stroke-opacity="0.7" />
+                    <circle cx="188" cy="232.4" r="8" fill="#ff9d4d" />
+                </g>
+                <g class="wave-mark">
+                    <circle cx="710" cy="76.6" r="10" fill="#fff" stroke="#f6821f" stroke-width="4" />
+                    <text x="690" y="52.6" text-anchor="end" font-size="34" font-weight="700" fill="#fff">241 &micro;g/m&sup3;</text>
+                </g>
+                <text x="121" y="590" text-anchor="end" font-size="32" font-weight="600" fill="rgba(255,255,255,0.55)">Jun 3</text>
+                <text x="184" y="590" font-size="32" font-weight="600" fill="rgba(255,255,255,0.55)">Jun 6</text>
+                <text x="710" y="590" text-anchor="middle" font-size="32" font-weight="600" fill="rgba(255,255,255,0.55)">Jun 28</text>
             </svg>
             <p class="wave-caption">Illustrative Toronto profile; peak (241 µg/m³, Jun 28) and upstream alerts from
                 project data.</p>

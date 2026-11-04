@@ -106,6 +106,12 @@
             .panel { bottom:34px; padding:12px 12px 10px; }
             .leaflet-control-attribution { font-size:9px; line-height:1.35; }
             .meta { gap:10px; }
+            /* Touch targets: 40px year chips, 44px play, and a 36px-tall hit
+               area on the slider (its visible track stays thin). */
+            .layerseg { width:100%; }
+            .seg { flex:1; min-height:40px; padding:0 6px; font-size:13px; }
+            .play { width:44px; height:44px; }
+            input[type=range] { height:36px; margin:0; }
         }
     </style>
 </head>
@@ -157,7 +163,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js" integrity="sha384-5+cfbwT0iiub6VsQAdn6yz16nr6sDiQoHx6tm4O8OVYXHYOxcffFmCJBL0dgdvGp" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js" integrity="sha384-tXYNKOHx4T02jMP7YYCtBxPIv1B5gaA5mcVPBzqMp6d7VzWzxJgI2aWF/nJLrQdS" crossorigin="anonymous"></script>
-    <script src="{% static 'dashboard/basemap.js' %}?v=2"></script>
+    <script src="{% static 'dashboard/basemap.js' %}?v=3"></script>
     <script src="{% static 'dashboard/provinces-boundary.js' %}?v=1"></script>
     <script src="{% static 'dashboard/app-plan.js' %}?v=16"></script>
 </body>
