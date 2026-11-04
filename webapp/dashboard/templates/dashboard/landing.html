@@ -581,7 +581,7 @@
 
         /* ========== Coverage section ========== */
         .coverage {
-            padding: 130px 0 110px;
+            padding: 130px var(--gutter) 110px;
         }
 
         .boxed {
@@ -688,7 +688,7 @@
 
         /* ========== Bento (protected cities) ========== */
         .bento {
-            padding: 20px 0 120px;
+            padding: 20px var(--gutter) 120px;
         }
 
         .bento-grid {
@@ -840,7 +840,7 @@
 
         /* ========== CTA ========== */
         .cta {
-            padding: 0 0 130px;
+            padding: 0 var(--gutter) 130px;
         }
 
         .cta-box {
@@ -936,7 +936,7 @@
 
         /* ========== By the numbers (scale strip) ========== */
         .scale {
-            padding: 0;
+            padding: 0 var(--gutter);
         }
 
         .scale-grid {
@@ -976,7 +976,7 @@
 
         /* ========== 360° detection (three rules) ========== */
         .detection {
-            padding: 110px 0 0;
+            padding: 110px var(--gutter) 0;
         }
 
         .rules-grid {
@@ -1053,7 +1053,7 @@
 
         /* ========== Real-world example (timeline) ========== */
         .example {
-            padding: 110px 0 0;
+            padding: 110px var(--gutter) 0;
         }
 
         .wave-chart {
@@ -1197,7 +1197,7 @@
 
         /* ========== Alert levels (tiers) ========== */
         .tiers-section {
-            padding: 110px 0 110px;
+            padding: 110px var(--gutter) 110px;
         }
 
         .tiers {
@@ -1445,6 +1445,26 @@
         }
 
         @media (max-width: 680px) {
+            /* Phone nav: brand + one primary CTA + menu. "Feedback" lives in
+               the hamburger menu here; showing it too pushed the menu button
+               and half the CTA off-screen at 390px. */
+            .nav-inner {
+                gap: 12px;
+            }
+
+            .nav-right {
+                gap: 8px;
+            }
+
+            .nav-right .nav-btn:not(.nav-btn-primary) {
+                display: none;
+            }
+
+            .nav-btn-primary {
+                padding: 8px 14px;
+                font-size: 13px;
+            }
+
             .hero-card {
                 min-height: 540px;
                 padding: 64px 20px 90px;

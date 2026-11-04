@@ -9,16 +9,19 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'dashboard/style.css' %}?v=47">
+    <link rel="stylesheet" href="{% static 'dashboard/style.css' %}?v=48">
 </head>
-<body>
+<body class="auth-body">
     <div class="auth-page">
         <div class="auth-card">
-            <div class="auth-brand">CLEAR25</div>
+            <a class="auth-brand" href="/">
+                <img src="{% static 'dashboard/favicon.svg' %}" alt="" width="28" height="28">
+                <span>CLEAR25</span>
+            </a>
             <h1 class="auth-title">{% block page_title %}{% endblock %}</h1>
             {% block content %}{% endblock %}
             <div class="auth-footer">
-                <a href="/">Back to dashboard</a>
+                <a href="/">&larr; Back to home</a>
             </div>
         </div>
     </div>

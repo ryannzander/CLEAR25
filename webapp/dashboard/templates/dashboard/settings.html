@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'dashboard/style.css' %}?v=47">
+    <link rel="stylesheet" href="{% static 'dashboard/style.css' %}?v=48">
     <style>
         .settings-page {
             min-height: 100vh;
@@ -26,7 +26,7 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            color: #71717a;
+            color: #8b8b93;
             text-decoration: none;
             font-size: 14px;
             font-weight: 500;
@@ -51,7 +51,7 @@
         }
 
         .settings-header p {
-            color: #71717a;
+            color: #8b8b93;
             font-size: 15px;
         }
 
@@ -115,7 +115,7 @@
 
         .form-group input:disabled {
             background: #1c1c20;
-            color: #71717a;
+            color: #8b8b93;
             cursor: not-allowed;
         }
 
@@ -325,7 +325,7 @@
             <div class="settings-card">
                 <h2>Subscription</h2>
                 <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-                    <span style="display:inline-flex;align-items:center;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;{% if current_plan == 'business' %}background:rgba(168,85,247,0.15);color:#a855f7{% else %}background:rgba(59,130,246,0.15);color:#60a5fa{% endif %};">{{ current_plan|upper }}</span>
+                    <span style="display:inline-flex;align-items:center;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;{% if current_plan == 'business' %}background:rgba(246,130,31,0.15);color:#fdba74{% else %}background:rgba(59,130,246,0.15);color:#60a5fa{% endif %};">{{ current_plan|upper }}</span>
                     <span style="font-size:14px;color:#a1a1aa;">
                         {% if plan_expires %}Expires {{ plan_expires|date:"M j, Y" }}{% endif %}
                     </span>

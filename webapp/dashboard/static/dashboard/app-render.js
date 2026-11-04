@@ -2,6 +2,16 @@
    PM2.5 EWS — Rendering: table, city cards, accent, results
    ============================================================ */
 
+// Display-only city names (the data keys stay unaccented).
+const CITY_DISPLAY = { Montreal: "Montréal" };
+function displayCity(city) { return CITY_DISPLAY[city] || city; }
+
+// Predicted values arrive as int or float; show one decimal everywhere.
+function fmtPm(v) {
+    const n = Number(v);
+    return Number.isFinite(n) ? n.toFixed(1) : String(v);
+}
+
 function renderTable(results) {
     const resultMap = {};
     if (results) results.forEach(r => { resultMap[r.id + (r.target_city || "")] = r; });
@@ -13,7 +23,7 @@ function renderTable(results) {
         const city = st.target_city || "";
         if (city !== currentCity) {
             currentCity = city;
-            html += `<div class="tier-sep" style="color:var(--accent-color, #71717a);font-size:13px;padding:12px 20px 6px;">${city}</div>`;
+            html += `<div class="tier-sep">${displayCity(city)}</div>`;
         }
 
         const r = resultMap[st.id + city] || (results ? results.find(x => x.id === st.id && x.target_city === city) : null);
@@ -27,7 +37,6 @@ function renderTable(results) {
         }
 
         html += `<div class="row${hasData ? "" : " no-data"}">
-            <span class="td-city">${city}</span>
             <span class="td-id">${st.id}</span>
             <span class="td-station">${st.city_name}</span>
             <span class="td-dist">${st.distance.toFixed(0)} km</span>
@@ -41,9 +50,15 @@ function renderTable(results) {
     });
 
     tableBody.innerHTML = html || `<div class="empty-state">
-        <div class="empty-icon">📡</div>
         <div class="empty-text">No stations loaded</div>
     </div>`;
+}
+
+// City card headline: the predicted PM2.5 as the card's big number.
+function cardPm(value) {
+    return `<span class="city-card-pm__val">${fmtPm(value)}</span>`
+        + `<span class="city-card-pm__unit">µg/m³</span>`
+        + `<span class="city-card-pm__label">predicted</span>`;
 }
 
 function updateCityCards(results, cityAlerts) {
@@ -57,11 +72,11 @@ function updateCityCards(results, cityAlerts) {
         const detailEl = card.querySelector(".city-card-detail");
 
         if (!results || results.length === 0) {
-            card.style.setProperty("--card-color", "#fff");
-            card.style.borderColor = "#27272a";
+            card.style.removeProperty("--card-color");
+            card.style.borderColor = "";
             levelEl.innerHTML = "";
             levelEl.textContent = "Waiting for data";
-            levelEl.style.color = "#71717a";
+            levelEl.style.color = "";
             if (pmEl) { pmEl.textContent = ""; }
             detailEl.textContent = "";
             return;
@@ -69,11 +84,11 @@ function updateCityCards(results, cityAlerts) {
 
         const cityResults = results.filter(r => r.target_city === city);
         if (cityResults.length === 0) {
-            card.style.setProperty("--card-color", "#fff");
-            card.style.borderColor = "#27272a";
+            card.style.removeProperty("--card-color");
+            card.style.borderColor = "";
             levelEl.innerHTML = "";
             levelEl.textContent = "No data";
-            levelEl.style.color = "#71717a";
+            levelEl.style.color = "";
             if (pmEl) { pmEl.textContent = ""; }
             detailEl.textContent = "";
             return;
@@ -86,14 +101,16 @@ function updateCityCards(results, cityAlerts) {
         if (alert) {
             const c = alertColor(alert.level_name);
             card.style.setProperty("--card-color", c);
-            card.style.borderColor = c + "44";
+            card.style.borderColor = "";
             levelEl.innerHTML = alertBadge(alert.level_name);
             levelEl.style.color = "";
             if (pmEl) {
-                pmEl.innerHTML = `<span class="city-card-pm__label">Predicted</span> <span class="city-card-pm__val" style="color:${c}">${alert.predicted_pm25} µg/m³</span>`;
+                pmEl.innerHTML = cardPm(alert.predicted_pm25);
             }
             if (alert.alert) {
-                const ruleLabel = alert.rule === "rule1" ? "Rule 1" : "Rule 2";
+                // evaluate.py emits "rule1" | "rule2" | "rule3"; previously anything
+                // that wasn't rule1 was labelled "Rule 2", mislabelling Rule 3.
+                const ruleLabel = { rule1: "Rule 1", rule2: "Rule 2", rule3: "Rule 3" }[alert.rule] || "Alert";
                 detailEl.textContent = `${ruleLabel} · ${leadTime ? leadTime + " lead · " : ""}${cityResults.length} stations`;
             } else {
                 detailEl.textContent = `${cityResults.length} stations · ${leadTime ? leadTime + " lead" : "no alert"}`;
@@ -102,11 +119,11 @@ function updateCityCards(results, cityAlerts) {
             const worst = cityResults[0];
             const c = alertColor(worst.level_name);
             card.style.setProperty("--card-color", c);
-            card.style.borderColor = c + "44";
+            card.style.borderColor = "";
             levelEl.innerHTML = alertBadge(worst.level_name);
             levelEl.style.color = "";
             if (pmEl) {
-                pmEl.innerHTML = `<span class="city-card-pm__label">Predicted</span> <span class="city-card-pm__val" style="color:${c}">${worst.predicted.toFixed(1)} µg/m³</span>`;
+                pmEl.innerHTML = cardPm(worst.predicted);
             }
             detailEl.textContent = `${cityResults.length} stations · ${leadTime ? leadTime + " lead" : "via " + worst.station}`;
         }

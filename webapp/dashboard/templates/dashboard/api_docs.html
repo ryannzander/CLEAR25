@@ -17,7 +17,8 @@
             --card: #1e1e1e;
             --border: rgba(255, 255, 255, 0.08);
             --text: #fafafa;
-            --muted: #71717a;
+            --muted: #a1a1aa;
+            --faint: #8b8b93;
             --accent: #f6821f;
         }
 
@@ -108,12 +109,15 @@
 
         /* Code blocks */
         .code-block {
-            background: #000;
+            background: #0d0d0d;
             border: 1px solid var(--border);
             border-radius: 8px;
-            padding: 16px;
+            padding: 16px 18px;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 13px;
+            font-size: 12.5px;
+            line-height: 1.65;
+            color: #d4d4d8;
+            white-space: pre;
             overflow-x: auto;
             margin-bottom: 16px;
         }
@@ -197,11 +201,35 @@
         }
 
         .level-badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
             font-size: 12px;
+            font-weight: 700;
+        }
+
+        .level-table td {
+            vertical-align: middle;
+        }
+
+        .level-name {
             font-weight: 600;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .level-range {
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .level-advice {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.5;
         }
 
         /* API Keys section */
@@ -377,7 +405,7 @@
         <!-- Level Reference -->
         <div class="section">
             <h2>Air Quality Levels</h2>
-            <p>The API returns air quality as an integer <code class="code-inline">level</code> (1-5). Here's what each level means:</p>
+            <p>The API returns air quality as an integer <code class="code-inline">level</code> (1&ndash;5) with its <code class="code-inline">level_name</code> and <code class="code-inline">health_advisory</code>. Bands and advisory text are the ones the alert engine uses.</p>
 
             <div class="card" style="padding: 0; overflow: hidden;">
                 <table class="level-table">
@@ -391,34 +419,34 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td><span class="level-badge" style="background: #A8D5A0; color: #000;">1</span></td>
-                            <td>NONE</td>
-                            <td>0 - 31 &micro;g/m&sup3;</td>
-                            <td style="color: var(--muted);">No safety precautions needed.</td>
+                            <td><span class="level-badge" style="background: #22c55e; color: #000;">1</span></td>
+                            <td class="level-name">LOW</td>
+                            <td class="level-range">0–20 &micro;g/m&sup3;</td>
+                            <td class="level-advice">No significant risk. No action required.</td>
                         </tr>
                         <tr>
-                            <td><span class="level-badge" style="background: #D2CC9A; color: #000;">2</span></td>
-                            <td>MODERATE</td>
-                            <td>31 - 60 &micro;g/m&sup3;</td>
-                            <td style="color: var(--muted);">Sensitive groups avoid strenuous activities.</td>
+                            <td><span class="level-badge" style="background: #eab308; color: #000;">2</span></td>
+                            <td class="level-name">MODERATE</td>
+                            <td class="level-range">21–60 &micro;g/m&sup3;</td>
+                            <td class="level-advice">Sensitive groups (children, elderly, respiratory conditions) should reduce outdoor activity.</td>
                         </tr>
                         <tr>
-                            <td><span class="level-badge" style="background: #F0BFA0; color: #000;">3</span></td>
-                            <td>HIGH</td>
-                            <td>60 - 80 &micro;g/m&sup3;</td>
-                            <td style="color: var(--muted);">Everyone reduce physical exertion. Use N95 mask.</td>
+                            <td><span class="level-badge" style="background: #f97316; color: #000;">3</span></td>
+                            <td class="level-name">HIGH</td>
+                            <td class="level-range">61–80 &micro;g/m&sup3;</td>
+                            <td class="level-advice">General population affected. Reduce prolonged outdoor exertion. Use N95/KN95 mask outdoors.</td>
                         </tr>
                         <tr>
-                            <td><span class="level-badge" style="background: #E8988A; color: #fff;">4</span></td>
-                            <td>VERY HIGH</td>
-                            <td>80 - 120 &micro;g/m&sup3;</td>
-                            <td style="color: var(--muted);">Avoid all outdoor activity. Keep hydrated.</td>
+                            <td><span class="level-badge" style="background: #dc2626; color: #fff;">4</span></td>
+                            <td class="level-name">VERY HIGH</td>
+                            <td class="level-range">81–120 &micro;g/m&sup3;</td>
+                            <td class="level-advice">Significant risk for all. Avoid outdoor exertion. Keep doors and windows closed.</td>
                         </tr>
                         <tr>
-                            <td><span class="level-badge" style="background: #E65C50; color: #fff;">5</span></td>
-                            <td>EXTREME</td>
-                            <td>&gt;120 &micro;g/m&sup3;</td>
-                            <td style="color: var(--muted);">Halt all indoor pollution sources.</td>
+                            <td><span class="level-badge" style="background: #7f1d1d; color: #fff;">5</span></td>
+                            <td class="level-name">EXTREME</td>
+                            <td class="level-range">&gt;120 &micro;g/m&sup3;</td>
+                            <td class="level-advice">Emergency conditions. Stay indoors. Close windows. Run HEPA filter. No indoor pollution sources.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -439,7 +467,7 @@
                     <p class="endpoint-desc">Get current PM2.5 readings and predictions. Query: <code>limit</code> (default 50, max 200), <code>station</code> (filter by id). If the live cache is empty, responses use demo preview values (<code>data_source: demo_preview</code>).</p>
 
                     <div class="response-label">Response</div>
-                    <div class="code-block"><span class="json-key">{</span>
+                    <div class="code-block">{
   <span class="json-key">"stations"</span>: [
     {
       <span class="json-key">"id"</span>: <span class="json-string">"61502"</span>,
@@ -451,7 +479,7 @@
       <span class="json-key">"predicted"</span>: <span class="json-number">52.1</span>,
       <span class="json-key">"level"</span>: <span class="json-number">2</span>,
       <span class="json-key">"level_name"</span>: <span class="json-string">"MODERATE"</span>,
-      <span class="json-key">"health_advisory"</span>: <span class="json-string">"Sensitive groups avoid strenuous activities."</span>
+      <span class="json-key">"health_advisory"</span>: <span class="json-string">"Sensitive groups (children, elderly, respiratory conditions) should reduce outdoor activity."</span>
     }
   ],
   <span class="json-key">"count"</span>: <span class="json-number">50</span>,
@@ -459,7 +487,7 @@
   <span class="json-key">"timestamp"</span>: <span class="json-string">"2025-02-07T10:30:00Z"</span>,
   <span class="json-key">"age_seconds"</span>: <span class="json-number">120</span>,
   <span class="json-key">"data_source"</span>: <span class="json-string">"live"</span>
-<span class="json-key">}</span></div>
+}</div>
                 </div>
             </div>
 
@@ -476,7 +504,7 @@
                     <div class="code-block"><span class="json-key">city</span> (optional): Filter by city. Options: {{ cities|join:", " }}</div>
 
                     <div class="response-label">Response</div>
-                    <div class="code-block"><span class="json-key">{</span>
+                    <div class="code-block">{
   <span class="json-key">"stations"</span>: [
     {
       <span class="json-key">"id"</span>: <span class="json-string">"61502"</span>,
@@ -489,7 +517,7 @@
   ],
   <span class="json-key">"count"</span>: <span class="json-number">50</span>,
   <span class="json-key">"cities"</span>: [<span class="json-string">"Toronto"</span>, <span class="json-string">"Montreal"</span>, ...]
-<span class="json-key">}</span></div>
+}</div>
                 </div>
             </div>
 
@@ -503,7 +531,7 @@
                     <p class="endpoint-desc">Get list of supported cities with coordinates.</p>
 
                     <div class="response-label">Response</div>
-                    <div class="code-block"><span class="json-key">{</span>
+                    <div class="code-block">{
   <span class="json-key">"cities"</span>: [
     {
       <span class="json-key">"id"</span>: <span class="json-string">"Toronto"</span>,
@@ -513,7 +541,7 @@
     }
   ],
   <span class="json-key">"count"</span>: <span class="json-number">4</span>
-<span class="json-key">}</span></div>
+}</div>
                 </div>
             </div>
         </div>
@@ -534,9 +562,9 @@
         <!-- Errors -->
         <div class="section">
             <h2>Error Responses</h2>
-            <div class="code-block"><span class="json-key">{</span>
+            <div class="code-block">{
   <span class="json-key">"error"</span>: <span class="json-string">"Invalid API key"</span>
-<span class="json-key">}</span></div>
+}</div>
             <p style="margin-top: 12px;">Common HTTP status codes:</p>
             <ul style="color: var(--muted); padding-left: 20px; margin-top: 8px;">
                 <li><code class="code-inline">401</code> — Missing or invalid API key</li>

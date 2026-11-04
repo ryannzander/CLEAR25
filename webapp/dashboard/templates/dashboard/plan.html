@@ -76,6 +76,18 @@
             border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 12px; }
         @keyframes spin { to { transform:rotate(360deg); } }
         .hidden { display:none !important; }
+        /* Units must never be uppercased (µg/m³ would render as "MG/M³"). */
+        .unit { text-transform:none; letter-spacing:0; }
+        @media (max-width: 640px) {
+            .topbar { flex-wrap:wrap; gap:6px 10px; padding:10px 12px 18px; }
+            .topbar h1 { font-size:14px; }
+            .topbar .sub { display:none; }
+            .pill { font-size:10.5px; }
+            .legend { top:64px; bottom:auto; right:10px; padding:8px 10px; }
+            .legend .bar { width:118px; }
+            .panel { bottom:10px; padding:12px 12px 10px; }
+            .meta { gap:10px; }
+        }
     </style>
 </head>
 <body>
@@ -91,7 +103,7 @@
     </div>
 
     <div class="legend">
-        <div class="lt">PM2.5 µg/m³ · EPA-corrected</div>
+        <div class="lt">PM2.5 <span class="unit">µg/m³</span> · EPA-corrected</div>
         <div class="bar"></div>
         <div class="ticks"><span>0</span><span>12</span><span>35</span><span>55</span><span>150</span><span>250+</span></div>
     </div>
