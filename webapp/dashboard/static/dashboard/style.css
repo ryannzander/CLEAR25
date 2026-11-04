@@ -15,7 +15,9 @@
        focus rings). Never severity-driven. */
     --brand: #f6821f;
     --brand-hover: #ff8c2e;
-    --brand-text: #fff;
+    /* Ink on brand-orange controls. White on #f6821f is ~2.6:1 (fails AA
+       for button-size text); near-black is ~6.9:1. */
+    --brand-text: #1a1a1a;
     /* Surfaces — matched to the landing page */
     --bg: #141414;
     --surface: #1e1e1e;
@@ -1316,13 +1318,18 @@ body {
     color: var(--text-tertiary);
 }
 
-.auth-card .auth-footer a {
+.auth-card .auth-footer a,
+.auth-card .auth-footer a:not([class]) {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     color: var(--text-secondary);
     text-decoration: none;
     font-weight: 500;
 }
 
-.auth-card .auth-footer a:hover {
+.auth-card .auth-footer a:hover,
+.auth-card .auth-footer a:not([class]):hover {
     color: var(--text-primary);
 }
 
@@ -3926,10 +3933,25 @@ button.google-btn {
     .td-station {
         flex: 1;
         min-width: 0;
+        padding-right: 8px;
+    }
+
+    /* Several stations share a town name (3x Prince George, 3x Quesnel);
+       with the ID column hidden, show the ID under the name. */
+    .td-station-name {
+        display: block;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        padding-right: 8px;
+    }
+
+    .row .td-station-sub {
+        display: block;
+        margin-top: 2px;
+        font-size: 11px;
+        font-weight: 400;
+        color: var(--text-tertiary);
+        font-variant-numeric: tabular-nums;
     }
 
     .th-pm,
@@ -3980,15 +4002,17 @@ button.google-btn {
 
 /* ---- Round 2 (council) ---- */
 
-/* Leaflet's default white attribution bar glared on the dark maps. */
-.leaflet-container .leaflet-control-attribution {
-    background: rgba(18, 18, 18, 0.78);
-    color: var(--text-tertiary);
+/* Leaflet's default white attribution bar glared on the dark maps.
+   leaflet.css loads after this sheet with a 0-2-0 selector, so match it
+   with one extra class to win. */
+.leaflet-container .leaflet-control-attribution.leaflet-control {
+    background: rgba(18, 18, 18, 0.9);
+    color: #aaa;
     border-top-left-radius: var(--r-sm);
 }
 
-.leaflet-container .leaflet-control-attribution a {
-    color: var(--text-secondary);
+.leaflet-container .leaflet-control-attribution.leaflet-control a {
+    color: #ccc;
 }
 
 /* Inline code inside running text (research, docs). */
@@ -4058,6 +4082,7 @@ button.google-btn {
 }
 
 /* ---- Sidebar labels: long form on desktop, short + labelled on phones ---- */
+.td-station-sub,
 .tab-short,
 .signin-person {
     display: none;
@@ -4071,8 +4096,8 @@ button.google-btn {
     }
 
     .sidebar-tab svg {
-        width: 21px;
-        height: 21px;
+        width: 20px;
+        height: 20px;
     }
 
     .sidebar-tab span {
@@ -4080,7 +4105,7 @@ button.google-btn {
         font-size: 10px;
         font-weight: 500;
         line-height: 1.1;
-        letter-spacing: 0;
+        letter-spacing: -0.01em;
     }
 
     /* Keep the full name for screen readers, show the short one. */
@@ -4119,11 +4144,76 @@ button.google-btn {
 
     .sidebar-signin svg.signin-person {
         display: block;
-        width: 21px;
-        height: 21px;
+        width: 20px;
+        height: 20px;
     }
 
     .main-content {
         padding-bottom: 84px;
     }
+}
+
+/* Dark zoom buttons to match the dark basemap (Leaflet ships white).
+   leaflet.css loads after this sheet, so every selector carries an extra
+   .leaflet-container to outrank it. */
+.leaflet-container.leaflet-touch .leaflet-bar,
+.leaflet-container .leaflet-bar {
+    border: 1px solid #2a2a2e;
+    box-shadow: none;
+}
+
+.leaflet-container .leaflet-bar a,
+.leaflet-container.leaflet-touch .leaflet-bar a {
+    background: #1c1c1f;
+    color: #d4d4d8;
+    border-bottom-color: #2a2a2e;
+}
+
+.leaflet-container .leaflet-bar a:hover,
+.leaflet-container.leaflet-touch .leaflet-bar a:hover {
+    background: #26262a;
+    color: #fff;
+}
+
+/* Desktop table: the station column used to swallow all spare width,
+   leaving a ~550px gap before the numbers. Let every column share it. */
+@media (min-width: 641px) {
+    .th-id, .td-id,
+    .th-dist, .td-dist,
+    .th-dir, .td-dir,
+    .th-tier, .td-tier,
+    .th-pm, .td-pm,
+    .th-pred, .td-pred,
+    .th-level, .td-level,
+    .th-lead, .td-lead {
+        flex: 1 0 auto;
+    }
+
+    .th-station,
+    .td-station {
+        flex: 2.2 1 0%;
+    }
+}
+
+/* Feedback sort tabs use the same segmented control as Research. */
+.feedback-sort {
+    display: inline-flex;
+    gap: 4px;
+    padding: 4px;
+    margin-bottom: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+}
+
+.sort-btn {
+    padding: 7px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.sort-btn.sort-active {
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15);
 }

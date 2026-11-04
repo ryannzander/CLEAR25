@@ -38,7 +38,7 @@ function renderTable(results) {
 
         html += `<div class="row${hasData ? "" : " no-data"}">
             <span class="td-id">${st.id}</span>
-            <span class="td-station">${st.city_name}</span>
+            <span class="td-station"><span class="td-station-name">${st.city_name}</span><span class="td-station-sub">${st.id}</span></span>
             <span class="td-dist">${st.distance.toFixed(0)} km</span>
             <span class="td-dir">${st.direction}</span>
             <span class="td-tier">T${st.tier}</span>

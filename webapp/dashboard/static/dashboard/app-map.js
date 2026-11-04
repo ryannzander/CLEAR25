@@ -11,7 +11,9 @@ function initMap() {
     // Defer so map-container has valid dimensions after tab becomes visible
     requestAnimationFrame(() => {
         if (map) return;
-        map = L.map("map-container", { zoomControl: false, attributionControl: true, maxZoom: 18 }).setView([52, -96], 4);
+        // zoomSnap 0.25 lets fitBounds frame the network instead of rounding
+        // down a whole zoom level (which left the frame mostly empty).
+        map = L.map("map-container", { zoomControl: false, attributionControl: true, maxZoom: 18, zoomSnap: 0.25 }).setView([52, -96], 4);
         L.control.zoom({ position: "bottomright" }).addTo(map);
         addDarkBasemap(map);
         updateMapMarkers(lastResults);
@@ -187,7 +189,7 @@ function updateMapMarkers(results) {
             map.fitBounds([
                 [Math.min(...lats) - 1, Math.min(...lons) - 1],
                 [Math.max(...lats) + 1, Math.max(...lons) + 1],
-            ], { padding: [20, 20] });
+            ], { padding: [32, 32] });
         }
     }
 }

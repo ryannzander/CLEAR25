@@ -274,7 +274,7 @@
 
         .nav-btn-primary {
             background: var(--orange);
-            color: #fff;
+            color: #1a1a1a;
             border-color: var(--orange);
             box-shadow: 0 0 24px rgba(246, 130, 31, 0.25);
         }
@@ -399,7 +399,7 @@
                ~2.6:1 (fails WCAG AA) and the slab glared on a dark page.
                #bb520c-ish mid-tones put the subtitle at ~4.8:1. */
             background:
-                radial-gradient(120% 90% at 50% 118%, rgba(255, 176, 110, 0.32) 0%, rgba(255, 150, 70, 0) 48%),
+                radial-gradient(90% 70% at 50% -10%, rgba(255, 190, 130, 0.16) 0%, rgba(255, 150, 70, 0) 60%),
                 linear-gradient(176deg, #c95b0e 0%, #bb520c 52%, #a8480a 100%);
             animation: floatIn 1s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
@@ -507,7 +507,7 @@
             gap: 9px;
             padding: 15px 30px;
             background: var(--orange);
-            color: #fff;
+            color: #1a1a1a;
             font-size: 15px;
             font-weight: 600;
             border-radius: 999px;
@@ -581,6 +581,13 @@
             font-size: 13.5px;
             color: var(--text-faint);
             font-weight: 500;
+        }
+
+        .stat-note {
+            display: block;
+            margin-top: 2px;
+            font-size: 12px;
+            opacity: 0.8;
         }
 
         /* ========== Coverage section ========== */
@@ -728,7 +735,7 @@
             border: none;
             color: #fff;
             background:
-                radial-gradient(120% 100% at 50% 120%, rgba(255, 176, 110, 0.30) 0%, rgba(255, 150, 70, 0) 50%),
+                radial-gradient(90% 70% at 30% -10%, rgba(255, 190, 130, 0.16) 0%, rgba(255, 150, 70, 0) 60%),
                 linear-gradient(165deg, #c95b0e 0%, #bb520c 55%, #a8480a 100%);
             justify-content: space-between;
         }
@@ -1225,8 +1232,20 @@
             border-color: var(--border);
         }
 
-        .tier-bar {
-            height: 6px;
+        /* Level colour as a small chip (the identity colour, including
+           EXTREME's dark red) rather than a coloured card strip. */
+        .tier-name {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tier-chip {
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+            flex: 0 0 auto;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
         }
 
         .tier-body {
@@ -1502,6 +1521,34 @@
                 padding: 24px;
             }
 
+            /* Proof chart on phones: the 820-unit SVG renders at ~0.4x, so
+               its 11px labels became ~4px. Drop the two upstream notes and
+               the threshold label (the timeline right below lists the same
+               June 3 / 6 / 28 readings) and scale up what remains. */
+            .wave-chart {
+                padding: 14px 10px 8px;
+            }
+
+            .wave-chart svg {
+                overflow: visible;
+            }
+
+            .wave-chart .wave-note {
+                display: none;
+            }
+
+            .wave-chart .wave-axis {
+                font-size: 26px;
+            }
+
+            .wave-chart .wave-peak {
+                font-size: 30px;
+            }
+
+            .wave-caption {
+                font-size: 12px;
+            }
+
             /* Smoke-travel diagram: lift the distance label above the
                node row so it no longer collides with the end badges. */
             .corridor {
@@ -1653,7 +1700,7 @@
             <div class="stat-item">
                 <div class="stat-value"><span class="accent count" data-target="87.5" data-decimals="1"
                         data-suffix="%">87.5%</span></div>
-                <div class="stat-label">Detection Accuracy (2024 out-of-sample)</div>
+                <div class="stat-label">Detection Accuracy <span class="stat-note">2024 out-of-sample</span></div>
             </div>
             <div class="stat-item">
                 <div class="stat-value"><span class="count" data-target="100" data-suffix="%">100%</span></div>
@@ -1836,34 +1883,36 @@
                 <!-- EXTREME threshold -->
                 <line x1="50" y1="164.6" x2="800" y2="164.6" stroke="#ef4444" stroke-width="1" stroke-dasharray="4 4"
                     stroke-opacity="0.55" />
-                <text x="796" y="159" text-anchor="end" font-size="11" font-weight="600" fill="#fca5a5">EXTREME ≥ 120
+                <text class="wave-note" x="796" y="159" text-anchor="end" font-size="11" font-weight="600" fill="#fca5a5">EXTREME ≥ 120
                     µg/m³</text>
                 <!-- y axis -->
-                <text x="42" y="284" text-anchor="end" font-size="11" fill="rgba(255,255,255,0.42)">0</text>
-                <text x="42" y="168" text-anchor="end" font-size="11" fill="rgba(255,255,255,0.42)">120</text>
-                <text x="42" y="52" text-anchor="end" font-size="11" fill="rgba(255,255,255,0.42)">240</text>
-                <text x="425" y="309" text-anchor="middle" font-size="12" font-weight="600"
+                <text class="wave-axis" x="42" y="284" text-anchor="end" font-size="11" fill="rgba(255,255,255,0.42)">0</text>
+                <text class="wave-axis" x="42" y="168" text-anchor="end" font-size="11" fill="rgba(255,255,255,0.42)">120</text>
+                <text class="wave-axis" x="42" y="52" text-anchor="end" font-size="11" fill="rgba(255,255,255,0.42)">240</text>
+                <text class="wave-axis" x="425" y="309" text-anchor="middle" font-size="12" font-weight="600"
                     fill="rgba(255,255,255,0.42)">June 2023 — Toronto PM2.5 (µg/m³)</text>
                 <!-- area + line -->
                 <path class="wave-area" fill="url(#wave-fill)"
                     d="M70 272 L165 265.6 L213 193 L284 241.5 L402 262.7 L521 246.3 L639 155 L710 48.3 L780 164.6 L780 280 L70 280 Z" />
                 <path class="wave-line"
                     d="M70 272 L165 265.6 L213 193 L284 241.5 L402 262.7 L521 246.3 L639 155 L710 48.3 L780 164.6" />
-                <!-- upstream early-alert flags -->
+                <!-- upstream early-alert flags, plotted on the same axis as the
+                     line (y = 280 - v * 0.9614, so 120 -> 164.6, 241 -> 48.3):
+                     Ottawa 156 -> 130.0, Cornwall 160 -> 126.2 -->
                 <g class="wave-mark">
-                    <line x1="117" y1="280" x2="117" y2="118" stroke="#f6821f" stroke-width="1.5" stroke-dasharray="3 4"
+                    <line x1="117" y1="280" x2="117" y2="130" stroke="#f6821f" stroke-width="1.5" stroke-dasharray="3 4"
                         stroke-opacity="0.7" />
-                    <circle cx="117" cy="118" r="3.5" fill="#ff9d4d" />
-                    <text x="113" y="111" font-size="11" font-weight="600" fill="#cfcfcf">Ottawa · 156</text>
-                    <line x1="188" y1="280" x2="188" y2="140" stroke="#f6821f" stroke-width="1.5" stroke-dasharray="3 4"
+                    <circle cx="117" cy="130" r="3.5" fill="#ff9d4d" />
+                    <text class="wave-note" x="110" y="124" text-anchor="end" font-size="11" font-weight="600" fill="#cfcfcf">Ottawa · 156</text>
+                    <line x1="188" y1="280" x2="188" y2="126.2" stroke="#f6821f" stroke-width="1.5" stroke-dasharray="3 4"
                         stroke-opacity="0.7" />
-                    <circle cx="188" cy="140" r="3.5" fill="#ff9d4d" />
-                    <text x="184" y="133" font-size="11" font-weight="600" fill="#cfcfcf">Cornwall · 160</text>
+                    <circle cx="188" cy="126.2" r="3.5" fill="#ff9d4d" />
+                    <text class="wave-note" x="195" y="120" font-size="11" font-weight="600" fill="#cfcfcf">Cornwall · 160</text>
                 </g>
                 <!-- peak marker -->
                 <g class="wave-mark">
                     <circle cx="710" cy="48.3" r="5" fill="#fff" stroke="#f6821f" stroke-width="2" />
-                    <text x="710" y="38" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">241
+                    <text class="wave-peak" x="710" y="38" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">241
                         µg/m³</text>
                 </g>
             </svg>
@@ -1919,41 +1968,36 @@
         </div>
         <div class="tiers">
             <div class="tier reveal">
-                <div class="tier-bar" style="background:var(--alert-low-bg)"></div>
                 <div class="tier-body">
-                    <div class="tier-name" style="color:#22c55e">LOW</div>
+                    <div class="tier-name" style="color:#22c55e"><span class="tier-chip" style="background:#22c55e" aria-hidden="true"></span>LOW</div>
                     <div class="tier-range">0–20 µg/m³</div>
                     <div class="tier-action">No significant risk. No action required.</div>
                 </div>
             </div>
             <div class="tier reveal reveal-delay-1">
-                <div class="tier-bar" style="background:var(--alert-moderate-bg)"></div>
                 <div class="tier-body">
-                    <div class="tier-name" style="color:#eab308">MODERATE</div>
+                    <div class="tier-name" style="color:#eab308"><span class="tier-chip" style="background:#eab308" aria-hidden="true"></span>MODERATE</div>
                     <div class="tier-range">20–60 µg/m³</div>
                     <div class="tier-action">Sensitive groups should reduce outdoor activity.</div>
                 </div>
             </div>
             <div class="tier reveal reveal-delay-2">
-                <div class="tier-bar" style="background:var(--alert-high-bg)"></div>
                 <div class="tier-body">
-                    <div class="tier-name" style="color:#f97316">HIGH</div>
+                    <div class="tier-name" style="color:#f97316"><span class="tier-chip" style="background:#f97316" aria-hidden="true"></span>HIGH</div>
                     <div class="tier-range">60–80 µg/m³</div>
                     <div class="tier-action">General population affected. Use an N95/KN95 mask outdoors.</div>
                 </div>
             </div>
             <div class="tier reveal reveal-delay-3">
-                <div class="tier-bar" style="background:var(--alert-veryhigh-bg)"></div>
                 <div class="tier-body">
-                    <div class="tier-name" style="color:#dc2626">VERY HIGH</div>
+                    <div class="tier-name" style="color:#f87171"><span class="tier-chip" style="background:#dc2626" aria-hidden="true"></span>VERY HIGH</div>
                     <div class="tier-range">80–120 µg/m³</div>
                     <div class="tier-action">Significant risk for all. Avoid outdoor exertion; keep windows closed.</div>
                 </div>
             </div>
             <div class="tier reveal reveal-delay-3">
-                <div class="tier-bar" style="background:var(--alert-extreme-bg)"></div>
                 <div class="tier-body">
-                    <div class="tier-name" style="color:#fca5a5">EXTREME</div>
+                    <div class="tier-name" style="color:#f87171"><span class="tier-chip" style="background:#7f1d1d" aria-hidden="true"></span>EXTREME</div>
                     <div class="tier-range">&gt; 120 µg/m³</div>
                     <div class="tier-action">Emergency conditions. Stay indoors; run a HEPA filter.</div>
                 </div>

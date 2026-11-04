@@ -50,7 +50,7 @@
     <div class="stat-card">
       <div class="stat-label">Worst Predicted</div>
       <div class="stat-value" id="stat-worst">—</div>
-      <div class="stat-unit">µg/m³</div>
+      <div class="stat-unit">µg/m³ · single station</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Stations Reporting</div>
@@ -93,24 +93,23 @@
 </div>
 
 <div id="tab-map" class="tab-content">
-  <div class="map-controls">
-    <button class="action-btn action-ghost" onclick="mapRunDemo()">
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-      >
-        <polygon points="5 3 19 12 5 21 5 3" />
-      </svg>
-      Run Demo
-    </button>
-    <div id="map-status" class="station-count">
-      Live data updates automatically every 30 minutes
+  <header class="page-head">
+    <div class="page-head-text">
+      <h1 class="page-title">Live map</h1>
+      <p class="page-sub">Upstream monitoring stations and the four target cities, coloured by alert level.</p>
     </div>
-  </div>
+    <div class="page-head-actions">
+      <div id="map-status" class="station-count">
+        Live data updates automatically every 30 minutes
+      </div>
+      <button class="action-btn action-ghost" onclick="mapRunDemo()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <polygon points="5 3 19 12 5 21 5 3" />
+        </svg>
+        Run Demo
+      </button>
+    </div>
+  </header>
   <div id="map-container" class="map-container"></div>
   <div class="map-legend">
     <span class="legend-title">Alert Levels:</span>
@@ -172,9 +171,9 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js" integrity="sha384-5+cfbwT0iiub6VsQAdn6yz16nr6sDiQoHx6tm4O8OVYXHYOxcffFmCJBL0dgdvGp" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js" integrity="sha384-tXYNKOHx4T02jMP7YYCtBxPIv1B5gaA5mcVPBzqMp6d7VzWzxJgI2aWF/nJLrQdS" crossorigin="anonymous"></script>
-<script src="{% static 'dashboard/basemap.js' %}?v=1"></script>
-<script src="{% static 'dashboard/app-render.js' %}?v=41"></script>
+<script src="{% static 'dashboard/basemap.js' %}?v=2"></script>
+<script src="{% static 'dashboard/app-render.js' %}?v=42"></script>
 <script src="{% static 'dashboard/app-fusion.js' %}?v=2"></script>
 <script src="{% static 'dashboard/app-forecast.js' %}?v=2"></script>
-<script src="{% static 'dashboard/app-map.js' %}?v=42"></script>
+<script src="{% static 'dashboard/app-map.js' %}?v=43"></script>
 {% endblock %}

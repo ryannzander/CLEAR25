@@ -6,7 +6,13 @@ the same bar whether or not it loads style.css.
 Usage: {% include "dashboard/_doc_topbar.html" with back_href="/dashboard/" back_label="Dashboard" %}
 {% endcomment %}
 <style>
+    /* Fixed 900px track centred on the viewport, independent of each page's
+       content width, so the brand and back link never shift between pages. */
     .doc-topbar {
+        box-sizing: border-box;
+        width: min(900px, calc(100vw - 48px));
+        margin-left: 50%;
+        transform: translateX(-50%);
         display: flex;
         align-items: center;
         justify-content: space-between;

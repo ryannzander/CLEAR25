@@ -117,8 +117,7 @@
             font-size: 12.5px;
             line-height: 1.65;
             color: #d4d4d8;
-            white-space: pre-wrap;
-            overflow-wrap: anywhere;
+            white-space: pre;
             overflow-x: auto;
             margin-bottom: 16px;
         }
@@ -138,8 +137,8 @@
         }
 
         .docs-head h1 {
-            font-size: 30px;
-            font-weight: 700;
+            font-size: 28px;
+            font-weight: 800;
             letter-spacing: -0.03em;
             line-height: 1.2;
             margin-bottom: 8px;
@@ -300,7 +299,7 @@
 
         .btn-primary {
             background: var(--accent);
-            color: #fff;
+            color: #1a1a1a;
         }
 
         .btn-primary:hover {
@@ -330,7 +329,20 @@
 
         .login-prompt {
             text-align: center;
-            padding: 32px;
+            padding: 4px 0;
+            color: var(--muted);
+        }
+
+        .section .login-prompt p {
+            margin: 0;
+        }
+
+        /* Phones: wrap long JSON values rather than scroll sideways. */
+        @media (max-width: 640px) {
+            .code-block {
+                white-space: pre-wrap;
+                overflow-wrap: anywhere;
+            }
         }
 
         .login-prompt a {

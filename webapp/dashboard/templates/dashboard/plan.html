@@ -82,6 +82,14 @@
             border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 12px; }
         @keyframes spin { to { transform:rotate(360deg); } }
         .hidden { display:none !important; }
+        /* Dark map credits (Leaflet's default is a white bar). */
+        .leaflet-container .leaflet-control-attribution.leaflet-control {
+            background:rgba(18,18,18,0.9); color:#aaa; border-top-left-radius:6px; }
+        .leaflet-container .leaflet-control-attribution.leaflet-control a { color:#ccc; }
+        /* Dark zoom buttons (Leaflet ships white). */
+        .leaflet-container.leaflet-touch .leaflet-bar, .leaflet-container .leaflet-bar { border:1px solid var(--line); box-shadow:none; }
+        .leaflet-container .leaflet-bar a, .leaflet-container.leaflet-touch .leaflet-bar a { background:#1c1c21; color:#d4d4d8; border-bottom-color:var(--line); }
+        .leaflet-container .leaflet-bar a:hover, .leaflet-container.leaflet-touch .leaflet-bar a:hover { background:#26262d; color:#fff; }
         /* Units must never be uppercased (µg/m³ would render as "MG/M³"). */
         .unit { text-transform:none; letter-spacing:0; }
         @media (max-width: 640px) {
@@ -149,7 +157,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js" integrity="sha384-5+cfbwT0iiub6VsQAdn6yz16nr6sDiQoHx6tm4O8OVYXHYOxcffFmCJBL0dgdvGp" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js" integrity="sha384-tXYNKOHx4T02jMP7YYCtBxPIv1B5gaA5mcVPBzqMp6d7VzWzxJgI2aWF/nJLrQdS" crossorigin="anonymous"></script>
-    <script src="{% static 'dashboard/basemap.js' %}?v=1"></script>
+    <script src="{% static 'dashboard/basemap.js' %}?v=2"></script>
     <script src="{% static 'dashboard/provinces-boundary.js' %}?v=1"></script>
     <script src="{% static 'dashboard/app-plan.js' %}?v=16"></script>
 </body>
