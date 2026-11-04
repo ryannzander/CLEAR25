@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'dashboard/style.css' %}?v=48">
+    <link rel="stylesheet" href="{% static 'dashboard/style.css' %}?v=49">
     <style>
         .billing-page {
             min-height: 100vh;
@@ -407,12 +407,7 @@
 <body>
     <div class="billing-page">
         <div class="billing-container">
-            <a href="/dashboard/" class="billing-back">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="15 18 9 12 15 6"/>
-                </svg>
-                Back to Dashboard
-            </a>
+            {% include "dashboard/_doc_topbar.html" with back_href="/dashboard/" back_label="dashboard" %}
 
             <div class="billing-header">
                 <h1>Billing & Plans</h1>

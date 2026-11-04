@@ -30,34 +30,6 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-        .doc-top {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding-bottom: 20px;
-            margin-bottom: 40px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .doc-brand {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 700;
-            font-size: 16px;
-            letter-spacing: -0.02em;
-            color: #fafafa;
-        }
-        .doc-brand:hover,
-        .doc-home:hover {
-            text-decoration: none;
-        }
-        .doc-home {
-            font-size: 14px;
-            color: #a1a1aa;
-        }
-        .doc-home:hover {
-            color: #fafafa;
-        }
         .updated {
             color: #8b8b93;
             font-size: 14px;
@@ -110,13 +82,7 @@
 </head>
 <body>
     <div class="container">
-        <header class="doc-top">
-            <a href="/" class="doc-brand">
-                <img src="/static/dashboard/favicon.svg?v=3" alt="" width="28" height="28">
-                CLEAR25
-            </a>
-            <a href="/" class="doc-home">&larr; Back to home</a>
-        </header>
+        {% include "dashboard/_doc_topbar.html" with back_href="/" back_label="home" %}
         <h1>Privacy Policy</h1>
         <p class="updated">Last updated: February 2025</p>
 

@@ -30,7 +30,7 @@ function renderTable(results) {
         const hasData = !!r;
         const pm = hasData ? r.pm25.toFixed(1) : "—";
         const pred = hasData ? r.predicted.toFixed(1) : "—";
-        const lead = hasData ? r.lead : "";
+        const lead = hasData ? fmtLead(r.lead) : "";
         let badge = "";
         if (hasData) {
             badge = alertBadge(r.level_name, { small: true });
@@ -56,9 +56,16 @@ function renderTable(results) {
 
 // City card headline: the predicted PM2.5 as the card's big number.
 function cardPm(value) {
-    return `<span class="city-card-pm__val">${fmtPm(value)}</span>`
+    return `<span class="city-card-pm__label">Predicted</span>`
+        + `<span class="city-card-pm__row">`
+        + `<span class="city-card-pm__val">${fmtPm(value)}</span>`
         + `<span class="city-card-pm__unit">µg/m³</span>`
-        + `<span class="city-card-pm__label">predicted</span>`;
+        + `</span>`;
+}
+
+// Lead-time ranges arrive as "8-24 hrs"; typeset the range with an en dash.
+function fmtLead(lead) {
+    return lead ? String(lead).replace(/(\d)\s*-\s*(\d)/, "$1–$2") : lead;
 }
 
 function updateCityCards(results, cityAlerts) {
@@ -95,7 +102,7 @@ function updateCityCards(results, cityAlerts) {
         }
 
         const tier1City = cityResults.filter(r => r.tier === 1);
-        const leadTime = tier1City.length > 0 ? tier1City[0].lead : cityResults[0].lead;
+        const leadTime = fmtLead(tier1City.length > 0 ? tier1City[0].lead : cityResults[0].lead);
 
         const alert = cityAlerts && cityAlerts[city];
         if (alert) {
@@ -136,7 +143,7 @@ function updateCityCards(results, cityAlerts) {
         document.getElementById("stat-worst").style.color = alertColor(worst.level_name);
         document.getElementById("stat-reporting").textContent = results.length;
         const tier1 = results.filter(r => r.tier === 1);
-        document.getElementById("stat-lead").textContent = tier1.length > 0 ? tier1[0].lead : results[0].lead;
+        document.getElementById("stat-lead").textContent = fmtLead(tier1.length > 0 ? tier1[0].lead : results[0].lead);
     } else {
         statsRow.style.display = "none";
     }

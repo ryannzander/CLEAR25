@@ -19,9 +19,15 @@
         #plan-map { position:absolute; inset:0; z-index:1; background:#0a0a0b; }
         .leaflet-container { background:#0a0a0b; }
 
-        .topbar { position:absolute; top:0; left:0; right:0; z-index:1000; display:flex;
-            align-items:center; gap:14px; padding:12px 18px;
-            background:linear-gradient(180deg, rgba(10,10,11,0.92), rgba(10,10,11,0)); }
+        /* Floating header card, same material as the playback panel, so the
+           title never sits directly on the map's city labels. */
+        .topbar { position:absolute; top:12px; left:12px; z-index:1000; display:flex;
+            align-items:center; gap:14px; padding:10px 14px; max-width:calc(100% - 24px);
+            background:rgba(20,20,23,0.86); border:1px solid var(--line); border-radius:12px;
+            backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+            box-shadow:0 10px 30px rgba(0,0,0,0.35); }
+        .topbar a.back { display:inline-flex; align-items:center; gap:6px; padding-right:14px;
+            border-right:1px solid var(--line); align-self:stretch; }
         .topbar a.back { color:var(--muted); text-decoration:none; font-size:13px; font-weight:600; }
         .topbar a.back:hover { color:var(--text); }
         .topbar h1 { font-size:15px; font-weight:800; margin:0; letter-spacing:0.2px; }
@@ -79,13 +85,18 @@
         /* Units must never be uppercased (µg/m³ would render as "MG/M³"). */
         .unit { text-transform:none; letter-spacing:0; }
         @media (max-width: 640px) {
-            .topbar { flex-wrap:wrap; gap:6px 10px; padding:10px 12px 18px; }
+            .topbar { flex-wrap:wrap; gap:6px 10px; padding:10px 12px; top:10px; left:10px; right:10px; }
+            .topbar a.back { border-right:none; padding-right:0; width:100%; }
             .topbar h1 { font-size:14px; }
             .topbar .sub { display:none; }
             .pill { font-size:10.5px; }
-            .legend { top:64px; bottom:auto; right:10px; padding:8px 10px; }
+            .legend { top:132px; bottom:auto; right:10px; padding:8px 10px; }
+            /* Pinch-zoom covers phones; the +/- buttons sat under the panel. */
+            .leaflet-control-zoom { display:none; }
             .legend .bar { width:118px; }
-            .panel { bottom:10px; padding:12px 12px 10px; }
+            /* Sit above the (required) map credits instead of covering them. */
+            .panel { bottom:34px; padding:12px 12px 10px; }
+            .leaflet-control-attribution { font-size:9px; line-height:1.35; }
             .meta { gap:10px; }
         }
     </style>
@@ -94,7 +105,7 @@
     <div id="plan-map"></div>
 
     <div class="topbar">
-        <a class="back" href="/dashboard/">← Dashboard</a>
+        <a class="back" href="/dashboard/"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Dashboard</a>
         <div>
             <h1>CLEAR · <span>2021–2025 Smoke-Plume Replay</span></h1>
             <div class="sub">PurpleAir PM2.5 · EPA-corrected · hourly · Great Lakes, Northeast &amp; ON/QC</div>
@@ -140,6 +151,6 @@
     <script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js" integrity="sha384-tXYNKOHx4T02jMP7YYCtBxPIv1B5gaA5mcVPBzqMp6d7VzWzxJgI2aWF/nJLrQdS" crossorigin="anonymous"></script>
     <script src="{% static 'dashboard/basemap.js' %}?v=1"></script>
     <script src="{% static 'dashboard/provinces-boundary.js' %}?v=1"></script>
-    <script src="{% static 'dashboard/app-plan.js' %}?v=14"></script>
+    <script src="{% static 'dashboard/app-plan.js' %}?v=16"></script>
 </body>
 </html>

@@ -1,0 +1,58 @@
+{% load static %}{% comment %}
+Shared top bar for the standalone pages outside the app shell (settings,
+billing, API docs, privacy): brand on the left, one back link on the right,
+hairline underneath. Styles live here so every page that includes it renders
+the same bar whether or not it loads style.css.
+Usage: {% include "dashboard/_doc_topbar.html" with back_href="/dashboard/" back_label="Dashboard" %}
+{% endcomment %}
+<style>
+    .doc-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding-bottom: 18px;
+        margin-bottom: 36px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    .doc-topbar__brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: #fafafa;
+        text-decoration: none;
+    }
+    .doc-topbar__brand img {
+        width: 28px;
+        height: 28px;
+        display: block;
+    }
+    .doc-topbar__back {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #a1a1aa;
+        text-decoration: none;
+        transition: color 0.15s;
+    }
+    .doc-topbar__back:hover {
+        color: #fafafa;
+        text-decoration: none;
+    }
+</style>
+<header class="doc-topbar">
+    <a href="/" class="doc-topbar__brand">
+        <img src="{% static 'dashboard/favicon.svg' %}?v=3" alt="" width="28" height="28">
+        <span>CLEAR25</span>
+    </a>
+    <a href="{{ back_href|default:'/' }}" class="doc-topbar__back">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        Back to {{ back_label|default:"home" }}
+    </a>
+</header>

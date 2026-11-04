@@ -3540,7 +3540,7 @@ button.google-btn {
 @media (min-width: 769px) {
     .sidebar-tab.tab-active {
         color: var(--text-primary);
-        background: rgba(246, 130, 31, 0.12);
+        background: rgba(246, 130, 31, 0.16);
         box-shadow: none;
         font-weight: 600;
     }
@@ -3560,18 +3560,6 @@ button.google-btn {
     padding: 18px 20px 16px;
     border: 1px solid var(--border);
     border-radius: var(--r-lg);
-}
-
-/* A thin level-colored rule across the top replaces the big radial wash. */
-.city-card::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    height: 3px;
-    background: var(--card-color, transparent);
-    opacity: 0.9;
 }
 
 .city-card-glow {
@@ -3617,11 +3605,14 @@ button.google-btn {
 }
 
 .city-card-pm {
+    margin-top: 14px;
+    min-height: 54px;
+}
+
+.city-card-pm__row {
     display: flex;
     align-items: baseline;
     gap: 6px;
-    margin-top: 16px;
-    min-height: 36px;
 }
 
 .city-card-pm__val {
@@ -3640,7 +3631,8 @@ button.google-btn {
 }
 
 .city-card-pm__label {
-    margin: 0 0 0 auto;
+    display: block;
+    margin: 0 0 6px;
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.06em;
@@ -3820,10 +3812,6 @@ button.google-btn {
     border: 1px solid var(--border);
 }
 
-.rnav-active {
-    box-shadow: inset 0 -2px 0 var(--brand);
-}
-
 .key-stat {
     background: var(--bg);
     border: 1px solid var(--border-soft);
@@ -3987,5 +3975,155 @@ button.google-btn {
     .stat-value {
         font-size: 19px;
         white-space: nowrap;
+    }
+}
+
+/* ---- Round 2 (council) ---- */
+
+/* Leaflet's default white attribution bar glared on the dark maps. */
+.leaflet-container .leaflet-control-attribution {
+    background: rgba(18, 18, 18, 0.78);
+    color: var(--text-tertiary);
+    border-top-left-radius: var(--r-sm);
+}
+
+.leaflet-container .leaflet-control-attribution a {
+    color: var(--text-secondary);
+}
+
+/* Inline code inside running text (research, docs). */
+.research-card code {
+    font-size: 0.875em;
+}
+
+@media (max-width: 768px) {
+    /* Navigation chrome is always brand orange; severity colour stays on
+       the data (values, badges), not on "you are here". */
+    .sidebar-tab.tab-active {
+        color: var(--brand);
+    }
+
+    .sidebar-tab.tab-active::after {
+        background: var(--brand);
+    }
+}
+
+@media (max-width: 640px) {
+    /* Two-up city cards so the forecast and table start above the fold. */
+    .city-cards {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .city-card {
+        padding: 14px 14px 12px;
+    }
+
+    .city-card-name {
+        font-size: 14px;
+    }
+
+    .city-card-pm {
+        margin-top: 10px;
+        min-height: 48px;
+    }
+
+    .city-card-pm__val {
+        font-size: 26px;
+    }
+
+    .city-card-pm__unit {
+        font-size: 11px;
+    }
+
+    .city-card-detail {
+        margin-top: 10px;
+        padding-top: 10px;
+        font-size: 11px;
+        line-height: 1.45;
+    }
+}
+
+@media (max-width: 340px) {
+    .city-cards {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Live map fills the viewport (it stopped ~95px short of the bottom). */
+@media (min-width: 641px) {
+    .map-container {
+        height: calc(100vh - 176px);
+    }
+}
+
+/* ---- Sidebar labels: long form on desktop, short + labelled on phones ---- */
+.tab-short,
+.signin-person {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    /* Phone bottom bar: icon + 10px label (seven bare icons were guesswork). */
+    .sidebar-tab {
+        gap: 4px;
+        padding: 9px 0 7px;
+    }
+
+    .sidebar-tab svg {
+        width: 21px;
+        height: 21px;
+    }
+
+    .sidebar-tab span {
+        display: block;
+        font-size: 10px;
+        font-weight: 500;
+        line-height: 1.1;
+        letter-spacing: 0;
+    }
+
+    /* Keep the full name for screen readers, show the short one. */
+    .sidebar-tab .tab-long {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+
+    .sidebar-tab .tab-short {
+        display: block;
+    }
+
+    .sidebar-tab.tab-active::after {
+        bottom: auto;
+        top: 0;
+        width: 18px;
+        height: 2px;
+        border-radius: 0 0 2px 2px;
+    }
+
+    .sidebar-signin {
+        flex-direction: column;
+        gap: 4px;
+        padding: 9px 10px 7px;
+        font-size: 10px;
+        font-weight: 500;
+    }
+
+    .sidebar-signin svg {
+        display: none;
+    }
+
+    .sidebar-signin svg.signin-person {
+        display: block;
+        width: 21px;
+        height: 21px;
+    }
+
+    .main-content {
+        padding-bottom: 84px;
     }
 }

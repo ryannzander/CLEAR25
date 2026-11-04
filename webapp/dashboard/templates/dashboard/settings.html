@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'dashboard/style.css' %}?v=48">
+    <link rel="stylesheet" href="{% static 'dashboard/style.css' %}?v=49">
     <style>
         .settings-page {
             min-height: 100vh;
@@ -96,27 +96,40 @@
             margin-bottom: 6px;
         }
 
+        /* Same field as the sign-in page (.auth-input). */
         .form-group input {
+            box-sizing: border-box;
             width: 100%;
-            padding: 10px 14px;
-            background: #000;
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 8px;
+            height: 42px;
+            padding: 0 14px;
+            background: var(--bg, #141414);
+            border: 1px solid var(--border, rgba(255,255,255,0.11));
+            border-radius: var(--r-sm, 6px);
             color: #fff;
             font-size: 14px;
             font-family: inherit;
-            transition: border-color 0.15s;
+            transition: border-color 0.15s, box-shadow 0.15s;
         }
 
         .form-group input:focus {
             outline: none;
-            border-color: #fff;
+            border-color: var(--brand, #f6821f);
+            box-shadow: 0 0 0 3px rgba(246, 130, 31, 0.18);
         }
 
+        /* Read-only, not broken: dashed edge + no fill. */
         .form-group input:disabled {
-            background: #1c1c20;
-            color: #8b8b93;
+            background: transparent;
+            border-style: dashed;
+            color: #a1a1aa;
             cursor: not-allowed;
+        }
+
+        .settings-card .form-hint {
+            margin: 6px 0 0;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #8b8b93;
         }
 
         .settings-actions {
@@ -280,12 +293,7 @@
 <body>
     <div class="settings-page">
         <div class="settings-container">
-            <a href="/" class="settings-back">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="15 18 9 12 15 6"/>
-                </svg>
-                Back to Dashboard
-            </a>
+            {% include "dashboard/_doc_topbar.html" with back_href="/dashboard/" back_label="dashboard" %}
 
             <div class="settings-header">
                 <h1>Settings</h1>
@@ -310,7 +318,8 @@
                     </div>
                     <div class="form-group">
                         <label for="email">Email</label>
-                        <input type="email" id="email" value="{{ user.email }}" disabled>
+                        <input type="email" id="email" value="{{ user.email }}" disabled aria-describedby="email-hint">
+                        <p class="form-hint" id="email-hint">Your email comes from your sign-in account and can&rsquo;t be changed here.</p>
                     </div>
                     <div class="success-msg" id="profile-success">Your profile has been updated.</div>
                     <div class="error-msg" id="profile-error"></div>
