@@ -274,7 +274,7 @@
 
         .nav-btn-primary {
             background: var(--orange);
-            color: #fff;
+            color: #1a1a1a;
             border-color: var(--orange);
             box-shadow: 0 0 24px rgba(246, 130, 31, 0.25);
         }
@@ -395,9 +395,12 @@
             justify-content: center;
             text-align: center;
             padding: 80px 28px 120px;
+            /* Burnt-orange ramp: white body copy on the old #f6821f was
+               ~2.6:1 (fails WCAG AA) and the slab glared on a dark page.
+               #bb520c-ish mid-tones put the subtitle at ~4.8:1. */
             background:
-                radial-gradient(120% 90% at 50% 118%, rgba(255, 230, 175, 0.9) 0%, rgba(255, 175, 90, 0) 46%),
-                linear-gradient(176deg, #ff7d1a 0%, #f6821f 52%, #ef7613 100%);
+                radial-gradient(90% 70% at 50% -10%, rgba(255, 190, 130, 0.16) 0%, rgba(255, 150, 70, 0) 60%),
+                linear-gradient(176deg, #c95b0e 0%, #bb520c 52%, #a8480a 100%);
             animation: floatIn 1s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
 
@@ -430,7 +433,8 @@
 
         .hero-subtitle {
             font-size: clamp(16px, 1.7vw, 19px);
-            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+            color: #fff;
             line-height: 1.6;
             max-width: 600px;
             margin: 0 auto 38px;
@@ -503,7 +507,7 @@
             gap: 9px;
             padding: 15px 30px;
             background: var(--orange);
-            color: #fff;
+            color: #1a1a1a;
             font-size: 15px;
             font-weight: 600;
             border-radius: 999px;
@@ -579,9 +583,16 @@
             font-weight: 500;
         }
 
+        .stat-note {
+            display: block;
+            margin-top: 2px;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
         /* ========== Coverage section ========== */
         .coverage {
-            padding: 130px 0 110px;
+            padding: 130px var(--gutter) 110px;
         }
 
         .boxed {
@@ -688,7 +699,7 @@
 
         /* ========== Bento (protected cities) ========== */
         .bento {
-            padding: 20px 0 120px;
+            padding: 20px var(--gutter) 120px;
         }
 
         .bento-grid {
@@ -724,8 +735,8 @@
             border: none;
             color: #fff;
             background:
-                radial-gradient(120% 100% at 50% 120%, rgba(255, 230, 175, 0.85) 0%, rgba(255, 175, 90, 0) 50%),
-                linear-gradient(165deg, #ff7d1a 0%, #f6821f 55%, #ef7613 100%);
+                radial-gradient(90% 70% at 30% -10%, rgba(255, 190, 130, 0.16) 0%, rgba(255, 150, 70, 0) 60%),
+                linear-gradient(165deg, #c95b0e 0%, #bb520c 55%, #a8480a 100%);
             justify-content: space-between;
         }
 
@@ -840,7 +851,7 @@
 
         /* ========== CTA ========== */
         .cta {
-            padding: 0 0 130px;
+            padding: 0 var(--gutter) 130px;
         }
 
         .cta-box {
@@ -936,7 +947,7 @@
 
         /* ========== By the numbers (scale strip) ========== */
         .scale {
-            padding: 0;
+            padding: 0 var(--gutter);
         }
 
         .scale-grid {
@@ -976,7 +987,7 @@
 
         /* ========== 360° detection (three rules) ========== */
         .detection {
-            padding: 110px 0 0;
+            padding: 110px var(--gutter) 0;
         }
 
         .rules-grid {
@@ -1053,7 +1064,7 @@
 
         /* ========== Real-world example (timeline) ========== */
         .example {
-            padding: 110px 0 0;
+            padding: 110px var(--gutter) 0;
         }
 
         .wave-chart {
@@ -1069,6 +1080,10 @@
             width: 100%;
             height: auto;
             display: block;
+        }
+
+        .wave-chart .wave-svg-phone {
+            display: none;
         }
 
         .wave-line {
@@ -1197,7 +1212,7 @@
 
         /* ========== Alert levels (tiers) ========== */
         .tiers-section {
-            padding: 110px 0 110px;
+            padding: 110px var(--gutter) 110px;
         }
 
         .tiers {
@@ -1221,8 +1236,20 @@
             border-color: var(--border);
         }
 
-        .tier-bar {
-            height: 6px;
+        /* Level colour as a small chip (the identity colour, including
+           EXTREME's dark red) rather than a coloured card strip. */
+        .tier-name {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tier-chip {
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+            flex: 0 0 auto;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
         }
 
         .tier-body {
@@ -1445,6 +1472,93 @@
         }
 
         @media (max-width: 680px) {
+            /* Phone nav: brand + one primary CTA + menu. "Feedback" lives in
+               the hamburger menu here; showing it too pushed the menu button
+               and half the CTA off-screen at 390px. */
+            .nav-inner {
+                gap: 12px;
+            }
+
+            .nav-right {
+                gap: 8px;
+            }
+
+            .nav-right .nav-btn:not(.nav-btn-primary) {
+                display: none;
+            }
+
+            .nav-btn-primary {
+                padding: 8px 14px;
+                font-size: 13px;
+            }
+
+            /* Phone rhythm: the desktop 110-130px section gaps made the
+               page run ~6 screens before the June 2023 example. */
+            .coverage {
+                padding-top: 72px;
+                padding-bottom: 56px;
+            }
+
+            .detection,
+            .example {
+                padding-top: 64px;
+            }
+
+            .tiers-section {
+                padding-top: 64px;
+                padding-bottom: 64px;
+            }
+
+            .bento {
+                padding-bottom: 72px;
+            }
+
+            .cta {
+                padding-bottom: 72px;
+            }
+
+            .section-header {
+                margin-bottom: 32px;
+            }
+
+            .rule-card {
+                padding: 24px;
+            }
+
+            /* Proof chart on phones: swap to the taller phone SVG (the 820x336
+               desktop one renders ~0.4x, so its labels became ~4px). */
+            .wave-chart {
+                padding: 14px 10px 8px;
+            }
+
+            .wave-chart .wave-svg-desk {
+                display: none;
+            }
+
+            .wave-chart .wave-svg-phone {
+                display: block;
+                overflow: visible;
+            }
+
+            .wave-caption {
+                font-size: 12px;
+            }
+
+            /* Smoke-travel diagram: lift the distance label above the
+               node row so it no longer collides with the end badges. */
+            .corridor {
+                gap: 10px;
+                padding: 44px 16px 20px;
+            }
+
+            .corridor-node {
+                width: 72px;
+            }
+
+            .track-dist {
+                top: -30px;
+            }
+
             .hero-card {
                 min-height: 540px;
                 padding: 64px 20px 90px;
@@ -1581,7 +1695,7 @@
             <div class="stat-item">
                 <div class="stat-value"><span class="accent count" data-target="87.5" data-decimals="1"
                         data-suffix="%">87.5%</span></div>
-                <div class="stat-label">Detection Accuracy (2024 out-of-sample)</div>
+                <div class="stat-label">Detection Accuracy <span class="stat-note">2024 out-of-sample</span></div>
             </div>
             <div class="stat-item">
                 <div class="stat-value"><span class="count" data-target="100" data-suffix="%">100%</span></div>
@@ -1748,7 +1862,7 @@
             </p>
         </div>
         <div class="wave-chart reveal">
-            <svg viewBox="0 0 820 320" font-family="Inter, -apple-system, sans-serif" aria-label="Toronto PM2.5 during June 2023, rising to a record 241 micrograms per cubic metre">
+            <svg class="wave-svg-desk" viewBox="0 0 820 336" font-family="Inter, -apple-system, sans-serif" aria-label="Toronto PM2.5 during June 2023, rising to a record 241 micrograms per cubic metre">
                 <defs>
                     <linearGradient id="wave-fill" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0" stop-color="#f6821f" stop-opacity="0.4" />
@@ -1764,36 +1878,77 @@
                 <!-- EXTREME threshold -->
                 <line x1="50" y1="164.6" x2="800" y2="164.6" stroke="#ef4444" stroke-width="1" stroke-dasharray="4 4"
                     stroke-opacity="0.55" />
-                <text x="796" y="159" text-anchor="end" font-size="11" font-weight="600" fill="#fca5a5">EXTREME ≥ 120
+                <text class="wave-note" x="796" y="159" text-anchor="end" font-size="11" font-weight="600" fill="#fca5a5">EXTREME ≥ 120
                     µg/m³</text>
                 <!-- y axis -->
-                <text x="42" y="284" text-anchor="end" font-size="11" fill="rgba(255,255,255,0.42)">0</text>
-                <text x="42" y="168" text-anchor="end" font-size="11" fill="rgba(255,255,255,0.42)">120</text>
-                <text x="42" y="52" text-anchor="end" font-size="11" fill="rgba(255,255,255,0.42)">240</text>
-                <text x="425" y="309" text-anchor="middle" font-size="12" font-weight="600"
+                <text class="wave-axis" x="42" y="284" text-anchor="end" font-size="11" fill="rgba(255,255,255,0.42)">0</text>
+                <text class="wave-axis" x="42" y="168" text-anchor="end" font-size="11" fill="rgba(255,255,255,0.42)">120</text>
+                <text class="wave-axis" x="42" y="52" text-anchor="end" font-size="11" fill="rgba(255,255,255,0.42)">240</text>
+                <!-- date ticks at the marker positions (Jun 3 Ottawa, Jun 6 Cornwall, Jun 28 peak) -->
+                <text x="121" y="298" text-anchor="end" font-size="11" font-weight="600" fill="rgba(255,255,255,0.5)">Jun 3</text>
+                <text x="184" y="298" font-size="11" font-weight="600" fill="rgba(255,255,255,0.5)">Jun 6</text>
+                <text x="710" y="298" text-anchor="middle" font-size="11" font-weight="600" fill="rgba(255,255,255,0.5)">Jun 28</text>
+                <text class="wave-axis" x="425" y="326" text-anchor="middle" font-size="12" font-weight="600"
                     fill="rgba(255,255,255,0.42)">June 2023 — Toronto PM2.5 (µg/m³)</text>
                 <!-- area + line -->
                 <path class="wave-area" fill="url(#wave-fill)"
                     d="M70 272 L165 265.6 L213 193 L284 241.5 L402 262.7 L521 246.3 L639 155 L710 48.3 L780 164.6 L780 280 L70 280 Z" />
                 <path class="wave-line"
                     d="M70 272 L165 265.6 L213 193 L284 241.5 L402 262.7 L521 246.3 L639 155 L710 48.3 L780 164.6" />
-                <!-- upstream early-alert flags -->
+                <!-- upstream early-alert flags, plotted on the same axis as the
+                     line (y = 280 - v * 0.9614, so 120 -> 164.6, 241 -> 48.3):
+                     Ottawa 156 -> 130.0, Cornwall 160 -> 126.2 -->
                 <g class="wave-mark">
-                    <line x1="117" y1="280" x2="117" y2="118" stroke="#f6821f" stroke-width="1.5" stroke-dasharray="3 4"
+                    <line x1="117" y1="280" x2="117" y2="130" stroke="#f6821f" stroke-width="1.5" stroke-dasharray="3 4"
                         stroke-opacity="0.7" />
-                    <circle cx="117" cy="118" r="3.5" fill="#ff9d4d" />
-                    <text x="113" y="111" font-size="11" font-weight="600" fill="#cfcfcf">Ottawa · 156</text>
-                    <line x1="188" y1="280" x2="188" y2="140" stroke="#f6821f" stroke-width="1.5" stroke-dasharray="3 4"
+                    <circle cx="117" cy="130" r="3.5" fill="#ff9d4d" />
+                    <text class="wave-note" x="110" y="124" text-anchor="end" font-size="11" font-weight="600" fill="#cfcfcf">Ottawa · 156</text>
+                    <line x1="188" y1="280" x2="188" y2="126.2" stroke="#f6821f" stroke-width="1.5" stroke-dasharray="3 4"
                         stroke-opacity="0.7" />
-                    <circle cx="188" cy="140" r="3.5" fill="#ff9d4d" />
-                    <text x="184" y="133" font-size="11" font-weight="600" fill="#cfcfcf">Cornwall · 160</text>
+                    <circle cx="188" cy="126.2" r="3.5" fill="#ff9d4d" />
+                    <text class="wave-note" x="195" y="120" font-size="11" font-weight="600" fill="#cfcfcf">Cornwall · 160</text>
                 </g>
                 <!-- peak marker -->
                 <g class="wave-mark">
                     <circle cx="710" cy="48.3" r="5" fill="#fff" stroke="#f6821f" stroke-width="2" />
-                    <text x="710" y="38" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">241
+                    <text class="wave-peak" x="710" y="38" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">241
                         µg/m³</text>
                 </g>
+            </svg>
+            <!-- Phone version: same coordinates, y doubled by one linear map
+                 (y' = 40 + (y-30)*2; generated, not hand-placed) so labels can be
+                 legible at 390px. -->
+            <svg class="wave-svg-phone" viewBox="0 0 820 610" font-family="Inter, -apple-system, sans-serif" aria-label="Toronto PM2.5 during June 2023, rising to a record 241 micrograms per cubic metre">
+                <defs>
+                    <linearGradient id="wave-fill-phone" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stop-color="#f6821f" stop-opacity="0.4" />
+                        <stop offset="100%" stop-color="#f6821f" stop-opacity="0" />
+                    </linearGradient>
+                </defs>
+                <rect x="50" y="40" width="750" height="269.2" fill="#7f1d1d" opacity="0.12" />
+                <rect x="50" y="309.2" width="750" height="77.0" fill="#dc2626" opacity="0.07" />
+                <rect x="50" y="386.2" width="750" height="38.4" fill="#f97316" opacity="0.07" />
+                <rect x="50" y="424.6" width="750" height="77.0" fill="#eab308" opacity="0.06" />
+                <rect x="50" y="501.6" width="750" height="38.4" fill="#22c55e" opacity="0.06" />
+                <line x1="50" y1="309.2" x2="800" y2="309.2" stroke="#ef4444" stroke-width="2" stroke-dasharray="8 8" stroke-opacity="0.55" />
+                <text x="40" y="551.0" text-anchor="end" font-size="32" fill="rgba(255,255,255,0.5)">0</text>
+                <text x="40" y="320.3" text-anchor="end" font-size="32" fill="rgba(255,255,255,0.5)">120</text>
+                <text x="40" y="89.5" text-anchor="end" font-size="32" fill="rgba(255,255,255,0.5)">240</text>
+                <path class="wave-area" fill="url(#wave-fill-phone)" d="M70 524.0 L165 511.2 L213 366.0 L284 463.0 L402 505.4 L521 472.6 L639 290.0 L710 76.6 L780 309.2 L780 540.0 L70 540.0 Z" />
+                <path class="wave-line" style="stroke-width:6" d="M70 524.0 L165 511.2 L213 366.0 L284 463.0 L402 505.4 L521 472.6 L639 290.0 L710 76.6 L780 309.2" />
+                <g class="wave-mark">
+                    <line x1="117" y1="540" x2="117" y2="240.0" stroke="#f6821f" stroke-width="3" stroke-dasharray="6 8" stroke-opacity="0.7" />
+                    <circle cx="117" cy="240.0" r="8" fill="#ff9d4d" />
+                    <line x1="188" y1="540" x2="188" y2="232.4" stroke="#f6821f" stroke-width="3" stroke-dasharray="6 8" stroke-opacity="0.7" />
+                    <circle cx="188" cy="232.4" r="8" fill="#ff9d4d" />
+                </g>
+                <g class="wave-mark">
+                    <circle cx="710" cy="76.6" r="10" fill="#fff" stroke="#f6821f" stroke-width="4" />
+                    <text x="690" y="52.6" text-anchor="end" font-size="34" font-weight="700" fill="#fff">241 &micro;g/m&sup3;</text>
+                </g>
+                <text x="121" y="590" text-anchor="end" font-size="32" font-weight="600" fill="rgba(255,255,255,0.55)">Jun 3</text>
+                <text x="184" y="590" font-size="32" font-weight="600" fill="rgba(255,255,255,0.55)">Jun 6</text>
+                <text x="710" y="590" text-anchor="middle" font-size="32" font-weight="600" fill="rgba(255,255,255,0.55)">Jun 28</text>
             </svg>
             <p class="wave-caption">Illustrative Toronto profile; peak (241 µg/m³, Jun 28) and upstream alerts from
                 project data.</p>
@@ -1847,41 +2002,36 @@
         </div>
         <div class="tiers">
             <div class="tier reveal">
-                <div class="tier-bar" style="background:var(--alert-low-bg)"></div>
                 <div class="tier-body">
-                    <div class="tier-name" style="color:#22c55e">LOW</div>
+                    <div class="tier-name" style="color:#22c55e"><span class="tier-chip" style="background:#22c55e" aria-hidden="true"></span>LOW</div>
                     <div class="tier-range">0–20 µg/m³</div>
                     <div class="tier-action">No significant risk. No action required.</div>
                 </div>
             </div>
             <div class="tier reveal reveal-delay-1">
-                <div class="tier-bar" style="background:var(--alert-moderate-bg)"></div>
                 <div class="tier-body">
-                    <div class="tier-name" style="color:#eab308">MODERATE</div>
+                    <div class="tier-name" style="color:#eab308"><span class="tier-chip" style="background:#eab308" aria-hidden="true"></span>MODERATE</div>
                     <div class="tier-range">20–60 µg/m³</div>
                     <div class="tier-action">Sensitive groups should reduce outdoor activity.</div>
                 </div>
             </div>
             <div class="tier reveal reveal-delay-2">
-                <div class="tier-bar" style="background:var(--alert-high-bg)"></div>
                 <div class="tier-body">
-                    <div class="tier-name" style="color:#f97316">HIGH</div>
+                    <div class="tier-name" style="color:#f97316"><span class="tier-chip" style="background:#f97316" aria-hidden="true"></span>HIGH</div>
                     <div class="tier-range">60–80 µg/m³</div>
                     <div class="tier-action">General population affected. Use an N95/KN95 mask outdoors.</div>
                 </div>
             </div>
             <div class="tier reveal reveal-delay-3">
-                <div class="tier-bar" style="background:var(--alert-veryhigh-bg)"></div>
                 <div class="tier-body">
-                    <div class="tier-name" style="color:#dc2626">VERY HIGH</div>
+                    <div class="tier-name" style="color:#f87171"><span class="tier-chip" style="background:#dc2626" aria-hidden="true"></span>VERY HIGH</div>
                     <div class="tier-range">80–120 µg/m³</div>
                     <div class="tier-action">Significant risk for all. Avoid outdoor exertion; keep windows closed.</div>
                 </div>
             </div>
             <div class="tier reveal reveal-delay-3">
-                <div class="tier-bar" style="background:var(--alert-extreme-bg)"></div>
                 <div class="tier-body">
-                    <div class="tier-name" style="color:#fca5a5">EXTREME</div>
+                    <div class="tier-name" style="color:#f87171"><span class="tier-chip" style="background:#7f1d1d" aria-hidden="true"></span>EXTREME</div>
                     <div class="tier-range">&gt; 120 µg/m³</div>
                     <div class="tier-action">Emergency conditions. Stay indoors; run a HEPA filter.</div>
                 </div>

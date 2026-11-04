@@ -15,7 +15,9 @@
        focus rings). Never severity-driven. */
     --brand: #f6821f;
     --brand-hover: #ff8c2e;
-    --brand-text: #fff;
+    /* Ink on brand-orange controls. White on #f6821f is ~2.6:1 (fails AA
+       for button-size text); near-black is ~6.9:1. */
+    --brand-text: #1a1a1a;
     /* Surfaces — matched to the landing page */
     --bg: #141414;
     --surface: #1e1e1e;
@@ -1095,146 +1097,392 @@ body {
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    padding: 20px;
+    padding: 24px;
+    /* Faint warm glow behind the card (the landing hero's tone), kept
+       subtle so the card stays the focal point. */
+    background:
+        radial-gradient(600px 360px at 50% 0%, rgba(246, 130, 31, 0.10), transparent 70%),
+        var(--bg);
 }
 
 .auth-card {
     width: 100%;
-    max-width: 400px;
-    background: var(--surface, #0f0f10);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
-    padding: 40px 32px;
+    max-width: 420px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 36px 32px 28px;
+    box-shadow: var(--shadow-lg);
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-secondary);
 }
 
 .auth-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
     font-weight: 800;
-    font-size: 15px;
-    letter-spacing: -0.03em;
-    color: var(--brand, #f6821f);
-    margin-bottom: 24px;
+    font-size: 16px;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    text-decoration: none;
+    margin-bottom: 28px;
 }
 
 .auth-title {
-    font-size: 24px;
-    font-weight: 800;
+    font-size: 26px;
+    font-weight: 700;
     letter-spacing: -0.03em;
-    color: #fff;
-    margin-bottom: 24px;
+    line-height: 1.2;
+    color: var(--text-primary);
+    margin: 0 0 8px;
+}
+
+/* allauth's own pages (signup, password reset, ...) print their own <h1>,
+   so the layout's title slot is empty there: collapse it. */
+.auth-title:empty {
+    display: none;
+}
+
+.auth-note {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin: 0 0 24px;
+    line-height: 1.55;
 }
 
 .auth-error {
-    background: rgba(230, 92, 80, 0.1);
-    border: 1px solid rgba(230, 92, 80, 0.3);
-    color: #E65C50;
+    background: rgba(220, 38, 38, 0.10);
+    border: 1px solid rgba(220, 38, 38, 0.35);
+    color: #fca5a5;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 500;
     padding: 10px 14px;
-    border-radius: 8px;
+    border-radius: var(--r-sm);
     margin-bottom: 16px;
+}
+
+.auth-form {
+    margin: 0;
 }
 
 .auth-field {
     margin-bottom: 16px;
 }
 
+.auth-label-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+}
+
 .auth-label {
     display: block;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
-    color: var(--text-secondary);
+    color: var(--text-primary);
     margin-bottom: 6px;
 }
 
+.auth-inline-link {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-decoration: none;
+}
+
+.auth-inline-link:hover {
+    color: var(--text-primary);
+    text-decoration: underline;
+}
+
 .auth-input {
+    box-sizing: border-box;
     width: 100%;
-    padding: 10px 14px;
-    background: #111111;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 8px;
-    color: #fff;
+    height: 42px;
+    padding: 0 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    color: var(--text-primary);
     font-family: 'Inter', sans-serif;
     font-size: 14px;
     outline: none;
-    transition: border-color 0.15s;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.auth-input::placeholder {
+    color: #6b6b73;
 }
 
 .auth-input:focus {
-    border-color: var(--brand, #f6821f);
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(246, 130, 31, 0.18);
+}
+
+.auth-input[aria-invalid="true"] {
+    border-color: rgba(220, 38, 38, 0.6);
+}
+
+.auth-field-error {
+    margin: 6px 0 0;
+    font-size: 12px;
+    color: #fca5a5;
+}
+
+.auth-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 0 20px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.auth-check input {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    accent-color: var(--brand);
 }
 
 .auth-submit {
     all: unset;
+    box-sizing: border-box;
     cursor: pointer;
     display: block;
     width: 100%;
+    height: 44px;
+    line-height: 44px;
     text-align: center;
-    padding: 11px;
-    background: var(--brand, #f6821f);
-    color: var(--brand-text, #fff);
+    background: var(--brand);
+    color: var(--brand-text);
     font-family: 'Inter', sans-serif;
     font-size: 14px;
     font-weight: 600;
-    border-radius: 10px;
-    margin-top: 8px;
-    transition: background 0.2s ease, color 0.2s ease;
+    border-radius: var(--r-sm);
+    transition: background 0.15s ease;
 }
 
 .auth-submit:hover {
-    background: var(--brand-hover, #ff8c2e);
+    background: var(--brand-hover);
+}
+
+.auth-submit:focus-visible {
+    box-shadow: var(--focus-ring);
+}
+
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 24px 0;
+    font-size: 12px;
+    color: var(--text-tertiary);
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+
+.auth-card .auth-alt {
+    margin: 20px 0 0;
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.auth-alt a {
+    color: var(--brand);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.auth-alt a:hover {
+    text-decoration: underline;
 }
 
 .auth-footer {
     text-align: center;
-    margin-top: 20px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-soft);
     font-size: 13px;
     color: var(--text-tertiary);
 }
 
-.auth-footer a {
-    color: #fff;
+.auth-card .auth-footer a,
+.auth-card .auth-footer a:not([class]) {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-secondary);
     text-decoration: none;
-    font-weight: 600;
+    font-weight: 500;
 }
 
-.auth-footer a:hover {
-    text-decoration: underline;
+.auth-card .auth-footer a:hover,
+.auth-card .auth-footer a:not([class]):hover {
+    color: var(--text-primary);
 }
 
 .google-btn {
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 12px;
     width: 100%;
-    padding: 12px 20px;
+    height: 44px;
+    padding: 0 20px;
     background: #fff;
     color: #1f1f1f;
     border: none;
-    border-radius: 8px;
-    font-size: 15px;
+    border-radius: var(--r-sm);
+    font-size: 14px;
     font-weight: 600;
     font-family: 'Inter', sans-serif;
     text-decoration: none;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.15s;
 }
 
-/* .google-btn is used as <button> on the allauth confirm page (no app-shell
-   reset there) and as <a> on login.html — cover both. */
+/* .google-btn is a <button> on the allauth confirm page (no app-shell
+   reset there) and an <a> on the sign-in page: cover both. */
 button.google-btn {
     cursor: pointer;
 }
 
-.auth-note {
-    color: var(--text-secondary);
-    font-size: 14px;
-    margin-bottom: 24px;
-    line-height: 1.5;
+.google-btn:hover {
+    background: #ececec;
 }
 
-.google-btn:hover {
-    background: #f0f0f0;
+/* ---- Generic allauth markup (signup, password reset, email confirm ...) ----
+   allauth renders these pages from its own unstyled "element" templates.
+   Rather than override every template, give the plain elements inside the
+   auth card the same look as the hand-built sign-in form. */
+.auth-card > h1 {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--text-primary);
+    margin: 0 0 8px;
+}
+
+.auth-card > h2 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 12px;
+}
+
+.auth-card > p {
+    margin: 0 0 20px;
+}
+
+.auth-card a:not([class]) {
+    color: var(--brand);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.auth-card a:not([class]):hover {
+    text-decoration: underline;
+}
+
+.auth-card form:not([class]) p {
+    margin: 0 0 16px;
+}
+
+.auth-card form:not([class]) label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+}
+
+.auth-card form:not([class]) input:not([type="checkbox"]):not([type="hidden"]) {
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    height: 42px;
+    padding: 0 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    color: var(--text-primary);
+    font: 14px 'Inter', sans-serif;
+    outline: none;
+}
+
+.auth-card form:not([class]) input:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(246, 130, 31, 0.18);
+}
+
+.auth-card form:not([class]) .helptext,
+.auth-card form:not([class]) ul {
+    display: block;
+    margin: 6px 0 0;
+    padding-left: 18px;
+    font-size: 12px;
+    color: var(--text-tertiary);
+}
+
+.auth-card form:not([class]) .errorlist {
+    color: #fca5a5;
+}
+
+.auth-card form:not([class]) button[type="submit"] {
+    box-sizing: border-box;
+    width: 100%;
+    height: 44px;
+    margin-top: 4px;
+    border: none;
+    border-radius: var(--r-sm);
+    background: var(--brand);
+    color: var(--brand-text);
+    font: 600 14px 'Inter', sans-serif;
+    cursor: pointer;
+}
+
+.auth-card form:not([class]) button[type="submit"]:hover {
+    background: var(--brand-hover);
+}
+
+.auth-card > hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 24px 0;
+}
+
+.auth-card > ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.auth-card > ul a {
+    display: block;
+    text-align: center;
+    padding: 11px;
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    color: var(--text-primary);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.auth-card > ul a:hover {
+    background: rgba(255, 255, 255, 0.04);
 }
 
 /* ---- Toast notification ---- */
@@ -3234,4 +3482,738 @@ button.google-btn {
     .api-docs .research-h1 {
         font-size: 20px;
     }
+}
+
+/* ============================================================
+   UI POLISH (2026-11): calmer, easier-on-the-eyes pass.
+   Sits at the END of the sheet on purpose: it restyles earlier
+   components in place, and restates its own breakpoints below
+   so it never fights the responsive blocks above. Presentation
+   only; no data, bands or thresholds change here.
+   ============================================================ */
+
+/* ---- Page header (dashboard) ---- */
+.page-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin: 4px 0 20px;
+}
+
+.page-title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    color: var(--text-primary);
+}
+
+.page-sub {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.page-head-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.page-head-actions .station-count {
+    margin-left: 0;
+}
+
+.action-btn {
+    white-space: nowrap;
+}
+
+.action-ghost {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+}
+
+.action-ghost:hover {
+    background: rgba(255, 255, 255, 0.09);
+}
+
+/* ---- Sidebar: quiet active state on desktop ----
+   The solid orange pill with a glow was the loudest thing on every
+   page. A tinted row with an orange icon still reads as "you are here"
+   without pulling the eye away from the data. (Mobile bottom bar keeps
+   its own dot indicator.) */
+@media (min-width: 769px) {
+    .sidebar-tab.tab-active {
+        color: var(--text-primary);
+        background: rgba(246, 130, 31, 0.16);
+        box-shadow: none;
+        font-weight: 600;
+    }
+
+    .sidebar-tab.tab-active svg {
+        color: var(--brand);
+    }
+}
+
+/* ---- Alert badges: drop the neon glow ---- */
+.alert-badge[data-level] {
+    box-shadow: none;
+}
+
+/* ---- City cards ---- */
+.city-card {
+    padding: 18px 20px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+}
+
+.city-card-glow {
+    opacity: 0.06;
+}
+
+.city-card:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+.city-card-content {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    column-gap: 10px;
+}
+
+.city-card-name {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    text-transform: none;
+    color: var(--text-primary);
+}
+
+.city-card-level {
+    margin: 0;
+    min-height: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0;
+    color: var(--text-tertiary);
+    justify-content: flex-end;
+}
+
+.city-card-pm,
+.city-card-detail,
+.city-card-fusion {
+    grid-column: 1 / -1;
+}
+
+.city-card-pm {
+    margin-top: 14px;
+    min-height: 54px;
+}
+
+.city-card-pm__row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.city-card-pm__val {
+    font-size: 34px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+.city-card-pm__unit {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.city-card-pm__label {
+    display: block;
+    margin: 0 0 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+}
+
+.city-card-detail {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-soft);
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.city-card-fusion {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.city-card-fusion:empty {
+    display: none;
+}
+
+/* ---- Summary stats ---- */
+.stats-row {
+    margin-top: 16px;
+}
+
+.stat-card {
+    text-align: left;
+    padding: 16px 20px;
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+}
+
+.stat-card:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: var(--border);
+}
+
+.stat-label {
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--text-tertiary);
+    margin-bottom: 6px;
+}
+
+.stat-value {
+    font-family: 'Inter', sans-serif;
+    font-variant-numeric: tabular-nums;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+}
+
+.stat-unit {
+    margin-top: 2px;
+    color: var(--text-tertiary);
+}
+
+/* ---- Station table ---- */
+.table-card {
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+}
+
+.table-head {
+    padding: 11px 20px;
+    background: #232323;
+    border-bottom: 1px solid var(--border);
+}
+
+.th {
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--text-tertiary);
+}
+
+/* Every city already has its own group header row, so repeating the city
+   on every line was noise. */
+.th-city,
+.td-city {
+    display: none;
+}
+
+.tier-sep {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 9px 20px;
+    background: #1b1b1b;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.row {
+    padding: 9px 20px;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.row:hover {
+    background: rgba(255, 255, 255, 0.025);
+}
+
+.row .td-station {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.row .td-dist,
+.row .td-dir,
+.row .td-tier,
+.row .td-lead,
+.row .td-pm,
+.row .td-pred {
+    font-family: 'Inter', sans-serif;
+    font-variant-numeric: tabular-nums;
+}
+
+.row .td-dist,
+.row .td-dir,
+.row .td-tier,
+.row .td-lead {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.row .td-pm,
+.row .td-pred {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.row .td-pm {
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.row.no-data .td-pm,
+.row.no-data .td-pred {
+    color: rgba(255, 255, 255, 0.2);
+}
+
+.empty-state {
+    padding: 40px 20px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.status {
+    color: var(--text-tertiary);
+}
+
+/* ---- Research ---- */
+/* Static reading cards shouldn't jump on hover. */
+.research-card:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.research-card {
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+}
+
+.research-nav {
+    border: 1px solid var(--border);
+}
+
+.key-stat {
+    background: var(--bg);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--r-md);
+    padding: 16px 18px;
+    text-align: left;
+}
+
+/* Was JetBrains Mono in the severity accent, which is a dim gray on this
+   page (no live data here), so the headline numbers read as disabled. */
+.key-stat-value {
+    font-family: 'Inter', sans-serif;
+    font-variant-numeric: tabular-nums;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+}
+
+.key-stat-label {
+    margin-top: 6px;
+    letter-spacing: 0.05em;
+}
+
+.key-stat-value.key-stat-value--name {
+    font-size: var(--fs-lg);
+}
+
+/* ---- Feedback board ---- */
+.feedback-header h2 {
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+}
+
+.feedback-header p {
+    font-size: 13px;
+}
+
+.suggestions-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 56px 24px;
+    border: 1px dashed var(--border);
+    border-radius: var(--r-lg);
+    background: transparent;
+}
+
+.suggestions-empty__icon {
+    color: var(--text-tertiary);
+    margin-bottom: 8px;
+}
+
+.suggestions-empty__title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.suggestions-empty__sub {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.suggestion-card {
+    border: 1px solid var(--border);
+}
+
+@media (max-width: 768px) {
+    .page-head {
+        align-items: flex-start;
+        margin-top: 8px;
+    }
+}
+
+@media (max-width: 640px) {
+    .page-head-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .city-card {
+        padding: 16px 16px 14px;
+    }
+
+    .city-card-pm__val {
+        font-size: 30px;
+    }
+
+    .table-head {
+        padding: 10px 14px;
+    }
+
+    .row {
+        padding: 9px 14px;
+    }
+
+    .tier-sep {
+        padding: 9px 14px;
+    }
+
+    /* Phone row: station · current · predicted · level. The ID column and
+       the long fixed widths overlapped at 390px. */
+    .th-id,
+    .td-id {
+        display: none;
+    }
+
+    .th-station,
+    .td-station {
+        flex: 1;
+        min-width: 0;
+        padding-right: 8px;
+    }
+
+    /* Several stations share a town name (3x Prince George, 3x Quesnel);
+       with the ID column hidden, show the ID under the name. */
+    .td-station-name {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .row .td-station-sub {
+        display: block;
+        margin-top: 2px;
+        font-size: 11px;
+        font-weight: 400;
+        color: var(--text-tertiary);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .th-pm,
+    .td-pm {
+        width: 62px;
+    }
+
+    .th-pred,
+    .td-pred {
+        width: 72px;
+    }
+
+    .th-level,
+    .td-level {
+        width: 72px;
+        text-align: right;
+    }
+
+    .th {
+        font-size: 10px;
+        letter-spacing: 0.04em;
+    }
+
+    .key-stat-value {
+        font-size: 19px;
+    }
+
+    /* Three compact stats side by side instead of three tall cards. */
+    .stats-row {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+
+    .stat-card {
+        padding: 12px;
+    }
+
+    .stat-label {
+        font-size: 10px;
+        letter-spacing: 0.04em;
+    }
+
+    .stat-value {
+        font-size: 19px;
+        white-space: nowrap;
+    }
+}
+
+/* ---- Round 2 (council) ---- */
+
+/* Leaflet's default white attribution bar glared on the dark maps.
+   leaflet.css loads after this sheet with a 0-2-0 selector, so match it
+   with one extra class to win. */
+.leaflet-container .leaflet-control-attribution.leaflet-control {
+    background: rgba(18, 18, 18, 0.9);
+    color: #aaa;
+    border-top-left-radius: var(--r-sm);
+}
+
+.leaflet-container .leaflet-control-attribution.leaflet-control a {
+    color: #ccc;
+}
+
+/* Inline code inside running text (research, docs). */
+.research-card code {
+    font-size: 0.875em;
+}
+
+@media (max-width: 768px) {
+    /* Navigation chrome is always brand orange; severity colour stays on
+       the data (values, badges), not on "you are here". */
+    .sidebar-tab.tab-active {
+        color: var(--brand);
+    }
+
+    .sidebar-tab.tab-active::after {
+        background: var(--brand);
+    }
+}
+
+@media (max-width: 640px) {
+    /* Two-up city cards so the forecast and table start above the fold. */
+    .city-cards {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .city-card {
+        padding: 14px 14px 12px;
+    }
+
+    .city-card-name {
+        font-size: 14px;
+    }
+
+    .city-card-pm {
+        margin-top: 10px;
+        min-height: 48px;
+    }
+
+    .city-card-pm__val {
+        font-size: 26px;
+    }
+
+    .city-card-pm__unit {
+        font-size: 11px;
+    }
+
+    .city-card-detail {
+        margin-top: 10px;
+        padding-top: 10px;
+        font-size: 11px;
+        line-height: 1.45;
+    }
+}
+
+@media (max-width: 340px) {
+    .city-cards {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Live map fills the viewport (it stopped ~95px short of the bottom). */
+@media (min-width: 641px) {
+    .map-container {
+        height: calc(100vh - 176px);
+    }
+}
+
+/* ---- Sidebar labels: long form on desktop, short + labelled on phones ---- */
+.td-station-sub,
+.tab-short,
+.signin-person {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    /* Phone bottom bar: icon + 10px label (seven bare icons were guesswork). */
+    .sidebar-tab {
+        gap: 4px;
+        padding: 9px 0 7px;
+    }
+
+    .sidebar-tab svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .sidebar-tab span {
+        display: block;
+        font-size: 10px;
+        font-weight: 500;
+        line-height: 1.1;
+        letter-spacing: -0.01em;
+    }
+
+    /* Keep the full name for screen readers, show the short one. */
+    .sidebar-tab .tab-long {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+
+    .sidebar-tab .tab-short {
+        display: block;
+    }
+
+    .sidebar-tab.tab-active::after {
+        bottom: auto;
+        top: 0;
+        width: 18px;
+        height: 2px;
+        border-radius: 0 0 2px 2px;
+    }
+
+    .sidebar-signin {
+        flex-direction: column;
+        gap: 4px;
+        padding: 9px 10px 7px;
+        font-size: 10px;
+        font-weight: 500;
+    }
+
+    .sidebar-signin svg {
+        display: none;
+    }
+
+    .sidebar-signin svg.signin-person {
+        display: block;
+        width: 20px;
+        height: 20px;
+    }
+
+    .main-content {
+        padding-bottom: 84px;
+    }
+}
+
+/* Dark zoom buttons to match the dark basemap (Leaflet ships white).
+   leaflet.css loads after this sheet, so every selector carries an extra
+   .leaflet-container to outrank it. */
+.leaflet-container.leaflet-touch .leaflet-bar,
+.leaflet-container .leaflet-bar {
+    border: 1px solid #2a2a2e;
+    box-shadow: none;
+}
+
+.leaflet-container .leaflet-bar a,
+.leaflet-container.leaflet-touch .leaflet-bar a {
+    background: #1c1c1f;
+    color: #d4d4d8;
+    border-bottom-color: #2a2a2e;
+}
+
+.leaflet-container .leaflet-bar a:hover,
+.leaflet-container.leaflet-touch .leaflet-bar a:hover {
+    background: #26262a;
+    color: #fff;
+}
+
+/* Desktop table: the station column used to swallow all spare width,
+   leaving a ~550px gap before the numbers. Let every column share it. */
+@media (min-width: 641px) {
+    .th-id, .td-id,
+    .th-dist, .td-dist,
+    .th-dir, .td-dir,
+    .th-tier, .td-tier,
+    .th-pm, .td-pm,
+    .th-pred, .td-pred,
+    .th-level, .td-level,
+    .th-lead, .td-lead {
+        flex: 1 0 auto;
+    }
+
+    .th-station,
+    .td-station {
+        flex: 2.2 1 0%;
+    }
+}
+
+/* Feedback sort tabs use the same segmented control as Research. */
+.feedback-sort {
+    display: inline-flex;
+    gap: 4px;
+    padding: 4px;
+    margin-bottom: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+}
+
+.sort-btn {
+    padding: 7px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.sort-btn.sort-active {
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15);
 }

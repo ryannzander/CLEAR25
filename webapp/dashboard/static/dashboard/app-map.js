@@ -11,7 +11,9 @@ function initMap() {
     // Defer so map-container has valid dimensions after tab becomes visible
     requestAnimationFrame(() => {
         if (map) return;
-        map = L.map("map-container", { zoomControl: false, attributionControl: true, maxZoom: 18 }).setView([52, -96], 4);
+        // zoomSnap 0.25 lets fitBounds frame the network instead of rounding
+        // down a whole zoom level (which left the frame mostly empty).
+        map = L.map("map-container", { zoomControl: false, attributionControl: true, maxZoom: 18, zoomSnap: 0.25 }).setView([52, -96], 4);
         L.control.zoom({ position: "bottomright" }).addTo(map);
         addDarkBasemap(map);
         updateMapMarkers(lastResults);
@@ -27,17 +29,17 @@ function createCircleIcon(color, size, pulse, variant) {
     // approximate (derived position, rare) = dashed diamond.
     let shape;
     if (variant === "epa") {
-        shape = `border-radius:2px;transform:rotate(45deg);border:2px solid rgba(255,255,255,0.6);`;
+        shape = `border-radius:2px;transform:rotate(45deg);border:1.5px solid rgba(255,255,255,0.55);`;
     } else if (variant === "derived") {
         shape = `border-radius:2px;transform:rotate(45deg);border:2px dashed rgba(255,255,255,0.7);`;
     } else {
-        shape = `border-radius:50%;border:2px solid rgba(255,255,255,0.4);`;
+        shape = `border-radius:50%;border:1.5px solid rgba(10,10,10,0.55);`;
     }
     return L.divIcon({
         className: "marker-icon",
         html: `<div style="position:relative;width:${size}px;height:${size}px;">
             ${pulseRing}
-            <div style="width:${size}px;height:${size}px;${shape}background:${color};box-shadow:0 0 10px ${color}88;transition:all 0.3s;"></div>
+            <div style="width:${size}px;height:${size}px;${shape}background:${color};box-sizing:border-box;transition:all 0.3s;"></div>
         </div>`,
         iconSize: [size, size],
         iconAnchor: [size / 2, size / 2],
@@ -100,7 +102,7 @@ function updateMapMarkers(results) {
                 className: "marker-icon",
                 html: `<div style="position:relative;width:22px;height:22px;">
                     <div class="marker-pulse" style="position:absolute;inset:-8px;border-radius:50%;border:2px solid ${dotColor};opacity:0.4;animation:markerPulse 3s ease-out infinite;"></div>
-                    <div style="width:22px;height:22px;border-radius:50%;background:${dotColor};border:3px solid white;box-shadow:0 0 16px ${dotColor}88;transition:all 0.4s;"></div>
+                    <div style="width:22px;height:22px;border-radius:50%;background:${dotColor};border:3px solid white;box-shadow:0 0 0 1px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.6);transition:all 0.4s;"></div>
                 </div>`,
                 iconSize: [22, 22],
                 iconAnchor: [11, 11],
@@ -133,13 +135,13 @@ function updateMapMarkers(results) {
         const city = st.target_city || "";
         const r = resultMap[(st.id || st.station) + city] || resultMap[st.id + city];
         let color = "#52525b";
-        let size = 8;
+        let size = 7;
         let popupExtra = "";
         let shouldPulse = false;
 
         if (r) {
             color = alertColor(r.level_name);
-            size = 12;
+            size = 9;
             shouldPulse = r.level_name === "EXTREME" || r.level_name === "VERY HIGH";
             popupExtra = `
                 <div class="popup-divider"></div>
@@ -187,7 +189,7 @@ function updateMapMarkers(results) {
             map.fitBounds([
                 [Math.min(...lats) - 1, Math.min(...lons) - 1],
                 [Math.max(...lats) + 1, Math.max(...lons) + 1],
-            ], { padding: [20, 20] });
+            ], { padding: [32, 32] });
         }
     }
 }

@@ -231,7 +231,14 @@
         if (fitted || !manifest) return;
         var v = manifest.view || manifest.extent;
         if (!v) return;
-        map.fitBounds([[v.selat, v.nwlng], [v.nwlat, v.selng]], { padding: [24, 24], maxZoom: 7 });
+        // Keep the sensors clear of the floating header (top) and playback
+        // panel (bottom) so the data lands in the visible part of the map.
+        var phone = map.getSize().x < 640;
+        map.fitBounds([[v.selat, v.nwlng], [v.nwlat, v.selng]], {
+            paddingTopLeft: phone ? [8, 130] : [24, 80],
+            paddingBottomRight: phone ? [8, 190] : [24, 150],
+            maxZoom: 7
+        });
         fitted = true;
     }
 

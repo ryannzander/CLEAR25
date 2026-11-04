@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'dashboard/style.css' %}?v=47">
+    <link rel="stylesheet" href="{% static 'dashboard/style.css' %}?v=51">
     <style>
         .billing-page {
             min-height: 100vh;
@@ -26,7 +26,7 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            color: #71717a;
+            color: #8b8b93;
             text-decoration: none;
             font-size: 14px;
             font-weight: 500;
@@ -51,7 +51,7 @@
         }
 
         .billing-header p {
-            color: #71717a;
+            color: #8b8b93;
             font-size: 15px;
         }
 
@@ -95,8 +95,8 @@
         }
 
         .badge-business {
-            background: rgba(168, 85, 247, 0.15);
-            color: #c084fc;
+            background: rgba(246, 130, 31, 0.15);
+            color: #fdba74;
         }
 
         .current-plan-label {
@@ -110,7 +110,7 @@
 
         .plan-expiry {
             font-size: 13px;
-            color: #71717a;
+            color: #a1a1aa;
         }
 
         /* Pricing grid */
@@ -136,11 +136,11 @@
         }
 
         .pricing-card.active {
-            border-color: rgba(246, 130, 31, 0.4);
+            border-color: rgba(255, 255, 255, 0.22);
         }
 
         .pricing-card.popular {
-            border-color: rgba(168, 85, 247, 0.3);
+            border-color: rgba(246, 130, 31, 0.45);
             position: relative;
         }
 
@@ -149,8 +149,8 @@
             top: -10px;
             left: 50%;
             transform: translateX(-50%);
-            background: #a855f7;
-            color: #fff;
+            background: var(--brand, #f6821f);
+            color: #1a1a1a;
             font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
@@ -168,7 +168,7 @@
 
         .pricing-desc {
             font-size: 13px;
-            color: #71717a;
+            color: #8b8b93;
             margin-bottom: 20px;
         }
 
@@ -188,7 +188,7 @@
 
         .pricing-period {
             font-size: 14px;
-            color: #71717a;
+            color: #8b8b93;
         }
 
         .pricing-features {
@@ -229,17 +229,20 @@
 
         .pricing-btn-current {
             background: rgba(255,255,255,0.06);
-            color: #71717a;
+            color: #8b8b93;
             cursor: default;
         }
 
+        /* Pro upgrade is the secondary action; the highlighted Business card
+           carries the one brand-orange button on the page. */
         .pricing-btn-upgrade {
-            background: var(--brand, #f6821f);
-            color: var(--brand-text, #fff);
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
         }
 
         .pricing-btn-upgrade:hover {
-            background: var(--brand-hover, #ff8c2e);
+            background: rgba(255, 255, 255, 0.14);
         }
 
         .pricing-btn-upgrade:disabled {
@@ -248,12 +251,12 @@
         }
 
         .pricing-btn-business {
-            background: #a855f7;
-            color: #fff;
+            background: var(--brand, #f6821f);
+            color: var(--brand-text, #fff);
         }
 
         .pricing-btn-business:hover {
-            background: #9333ea;
+            background: var(--brand-hover, #ff8c2e);
         }
 
         .pricing-btn-business:disabled {
@@ -359,7 +362,7 @@
         }
 
         .compare-table th {
-            color: #71717a;
+            color: #8b8b93;
             font-weight: 600;
             font-size: 12px;
             text-transform: uppercase;
@@ -404,12 +407,7 @@
 <body>
     <div class="billing-page">
         <div class="billing-container">
-            <a href="/dashboard/" class="billing-back">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="15 18 9 12 15 6"/>
-                </svg>
-                Back to Dashboard
-            </a>
+            {% include "dashboard/_doc_topbar.html" with back_href="/dashboard/" back_label="dashboard" %}
 
             <div class="billing-header">
                 <h1>Billing & Plans</h1>

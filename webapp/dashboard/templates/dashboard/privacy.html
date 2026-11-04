@@ -23,7 +23,10 @@
             margin: 0 auto;
         }
         h1 {
-            font-size: 2rem;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
             margin-bottom: 8px;
             background: linear-gradient(135deg, #ffffff, #ffffff);
             -webkit-background-clip: text;
@@ -31,7 +34,7 @@
             background-clip: text;
         }
         .updated {
-            color: #71717a;
+            color: #8b8b93;
             font-size: 14px;
             margin-bottom: 32px;
         }
@@ -43,6 +46,13 @@
         p, li {
             color: #a1a1aa;
             margin-bottom: 12px;
+        }
+        li {
+            margin-bottom: 6px;
+        }
+        strong {
+            color: #e4e4e7;
+            font-weight: 600;
         }
         ul {
             padding-left: 24px;
@@ -75,6 +85,7 @@
 </head>
 <body>
     <div class="container">
+        {% include "dashboard/_doc_topbar.html" with back_href="/" back_label="home" %}
         <h1>Privacy Policy</h1>
         <p class="updated">Last updated: February 2025</p>
 
