@@ -82,6 +82,9 @@
             border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 12px; }
         @keyframes spin { to { transform:rotate(360deg); } }
         .hidden { display:none !important; }
+        /* Hour and year are already shown by the slider counter and the year
+           tabs; keep the elements (app-plan.js writes them) but don't repeat. */
+        .meta .dup { display:none; }
         /* Dark map credits (Leaflet's default is a white bar). */
         .leaflet-container .leaflet-control-attribution.leaflet-control {
             background:rgba(18,18,18,0.9); color:#aaa; border-top-left-radius:6px; }
@@ -146,9 +149,9 @@
             </div>
         </div>
         <div class="meta">
-            <span>Hour <b id="frame-idx">0</b>/<b id="frame-total">0</b></span>
+            <span class="dup">Hour <b id="frame-idx">0</b>/<b id="frame-total">0</b></span>
             <span><b id="sensor-count">0</b> sensors reporting</span>
-            <span>Year <b id="age">—</b></span>
+            <span class="dup">Year <b id="age">—</b></span>
         </div>
     </div>
 

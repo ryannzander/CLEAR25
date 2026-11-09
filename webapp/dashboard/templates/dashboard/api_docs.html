@@ -30,8 +30,10 @@
             min-height: 100vh;
         }
 
+        /* 900px content track (+24px side padding) so the H1 starts at the
+           same x as the shared top bar and the other document pages. */
         .container {
-            max-width: 900px;
+            max-width: 948px;
             margin: 0 auto;
             padding: 40px 24px 80px;
         }
@@ -119,7 +121,19 @@
             color: #d4d4d8;
             white-space: pre;
             overflow-x: auto;
+            /* A visible scrollbar, so long values read as "scrolls" not "cut". */
+            scrollbar-width: thin;
+            scrollbar-color: #3f3f46 transparent;
             margin-bottom: 16px;
+        }
+
+        .code-block::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .code-block::-webkit-scrollbar-thumb {
+            background: #3f3f46;
+            border-radius: 3px;
         }
 
         .code-inline,

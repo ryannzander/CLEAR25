@@ -18,9 +18,14 @@
             line-height: 1.7;
             padding: 40px 20px;
         }
+        /* Same 900px track as the other document pages (title starts under
+           the logo); the text itself keeps a 720px reading measure. */
         .container {
-            max-width: 720px;
+            max-width: 900px;
             margin: 0 auto;
+        }
+        .container > :not(.doc-topbar):not(style) {
+            max-width: 720px;
         }
         h1 {
             font-size: 28px;
@@ -64,22 +69,6 @@
         }
         a:hover {
             text-decoration: underline;
-        }
-        .back {
-            display: inline-block;
-            margin-top: 40px;
-            padding: 12px 24px;
-            background: #1e1e1e;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 10px;
-            color: #fafafa;
-            text-decoration: none;
-            transition: border-color 0.2s, background 0.2s;
-        }
-        .back:hover {
-            background: rgba(255, 255, 255, 0.06);
-            border-color: rgba(255, 255, 255, 0.16);
-            text-decoration: none;
         }
     </style>
 </head>
@@ -157,7 +146,6 @@
         <h2>Contact Us</h2>
         <p>If you have questions about this Privacy Policy, please contact us through our <a href="/feedback/">feedback board</a>.</p>
 
-        <a href="/" class="back">Back to CLEAR25</a>
     </div>
 </body>
 </html>

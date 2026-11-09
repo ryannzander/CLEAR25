@@ -4217,3 +4217,34 @@ button.google-btn {
     background: rgba(255, 255, 255, 0.08);
     box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15);
 }
+
+/* Station table: on desktop it scrolls in its own box, so fade the last
+   rows to say "more below"; on phones a scroller inside the page scroll
+   traps the thumb, so let the page do the scrolling. */
+.table-body {
+    -webkit-mask-image: linear-gradient(#000 calc(100% - 56px), rgba(0, 0, 0, 0.15));
+    mask-image: linear-gradient(#000 calc(100% - 56px), rgba(0, 0, 0, 0.15));
+    padding-bottom: 40px;
+}
+
+@media (max-width: 768px) {
+    .table-body {
+        max-height: none;
+        overflow: visible;
+        -webkit-mask-image: none;
+        mask-image: none;
+        padding-bottom: 0;
+    }
+}
+
+/* Phone stat tiles: two up, the lead-time tile spans the row, so labels
+   and sub-lines stop wrapping. */
+@media (max-width: 480px) {
+    .stats-row {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .stats-row .stat-card:last-child {
+        grid-column: 1 / -1;
+    }
+}

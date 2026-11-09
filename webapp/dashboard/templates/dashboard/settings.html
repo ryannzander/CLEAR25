@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'dashboard/style.css' %}?v=51">
+    <link rel="stylesheet" href="{% static 'dashboard/style.css' %}?v=53">
     <style>
         .settings-page {
             min-height: 100vh;
@@ -17,9 +17,15 @@
             padding: 40px 24px;
         }
 
+        /* Same 900px track as the other document pages (title starts under
+           the logo); the form keeps its 560px column. */
         .settings-container {
-            max-width: 560px;
+            max-width: 900px;
             margin: 0 auto;
+        }
+
+        .settings-container > :not(.doc-topbar):not(style) {
+            max-width: 560px;
         }
 
         .settings-back {
