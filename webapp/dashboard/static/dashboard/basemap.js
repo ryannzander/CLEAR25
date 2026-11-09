@@ -29,7 +29,10 @@ function dimBasemapLabels(glMap) {
             glMap.setPaintProperty(layer.id, "text-opacity", opacity);
             glMap.setPaintProperty(layer.id, "icon-opacity", opacity);
             if (isPlace) {
-                // A dark halo keeps place names legible over data dots.
+                // The style's own place colour is a dark grey; lift it so
+                // cities can be found at a glance. A dark halo keeps place
+                // names legible over data dots.
+                glMap.setPaintProperty(layer.id, "text-color", "#a1a1aa");
                 glMap.setPaintProperty(layer.id, "text-halo-color", "rgba(10,10,12,0.9)");
                 glMap.setPaintProperty(layer.id, "text-halo-width", 1.4);
             }

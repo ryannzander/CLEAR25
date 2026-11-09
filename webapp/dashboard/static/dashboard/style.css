@@ -3956,17 +3956,19 @@ button.google-btn {
 
     .th-pm,
     .td-pm {
-        width: 62px;
+        width: 56px;
     }
 
     .th-pred,
     .td-pred {
-        width: 72px;
+        width: 64px;
     }
 
+    /* Wide enough for the longest badge (MODERATE / VERY HIGH) with a
+       clear gap after the predicted value. */
     .th-level,
     .td-level {
-        width: 72px;
+        width: 96px;
         text-align: right;
     }
 
