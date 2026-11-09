@@ -32,7 +32,10 @@ function dimBasemapLabels(glMap) {
                 // The style's own place colour is a dark grey; lift it so
                 // cities can be found at a glance. A dark halo keeps place
                 // names legible over data dots.
-                glMap.setPaintProperty(layer.id, "text-color", "#a1a1aa");
+                // State/province names are wide, spaced capitals that compete
+                // with the markers: keep them as a faint backdrop.
+                var isRegion = /state|province/.test(layer.id);
+                glMap.setPaintProperty(layer.id, "text-color", isRegion ? "#5c5c64" : "#a1a1aa");
                 glMap.setPaintProperty(layer.id, "text-halo-color", "rgba(10,10,12,0.9)");
                 glMap.setPaintProperty(layer.id, "text-halo-width", 1.4);
             }

@@ -6,6 +6,16 @@
 const CITY_DISPLAY = { Montreal: "Montréal" };
 function displayCity(city) { return CITY_DISPLAY[city] || city; }
 
+// US EPA station names arrive in ALL CAPS ("PROCTOR MAINE"); show them in
+// title case like the Canadian names. Display only: the data is unchanged.
+function displayStation(name) {
+    const s = String(name || "");
+    if (!/[A-Z]/.test(s) || s !== s.toUpperCase()) return s;
+    const titled = s.toLowerCase().replace(/(^|[\s\-\/(.'])([a-z])/g, (m, p, c) => p + c.toUpperCase());
+    // French particles stay lowercase inside a name (Notre-Dame-du-Rosaire).
+    return titled.replace(/([\s-])(Du|De|Des|La|Le|Les|Aux|Sur|En)(?=[\s-])/g, (m, p, w) => p + w.toLowerCase());
+}
+
 // Predicted values arrive as int or float; show one decimal everywhere.
 function fmtPm(v) {
     const n = Number(v);
@@ -38,7 +48,7 @@ function renderTable(results) {
 
         html += `<div class="row${hasData ? "" : " no-data"}">
             <span class="td-id">${st.id}</span>
-            <span class="td-station"><span class="td-station-name">${st.city_name}</span><span class="td-station-sub">${st.id}</span></span>
+            <span class="td-station"><span class="td-station-name">${displayStation(st.city_name)}</span><span class="td-station-sub">${st.id}</span></span>
             <span class="td-dist">${st.distance.toFixed(0)} km</span>
             <span class="td-dir">${st.direction}</span>
             <span class="td-tier">T${st.tier}</span>
@@ -52,6 +62,7 @@ function renderTable(results) {
     tableBody.innerHTML = html || `<div class="empty-state">
         <div class="empty-text">No stations loaded</div>
     </div>`;
+    syncTableEnd();
 }
 
 // City card headline: the predicted PM2.5 as the card's big number.
@@ -66,6 +77,16 @@ function cardPm(value) {
 // Lead-time ranges arrive as "8-24 hrs"; typeset the range with an en dash.
 function fmtLead(lead) {
     return lead ? String(lead).replace(/(\d)\s*-\s*(\d)/, "$1–$2") : lead;
+}
+
+// Desktop table: the bottom fade means "more below"; drop it at the end.
+function syncTableEnd() {
+    if (!tableBody) return;
+    const atEnd = tableBody.scrollTop + tableBody.clientHeight >= tableBody.scrollHeight - 1;
+    tableBody.classList.toggle("is-at-end", atEnd);
+}
+if (typeof tableBody !== "undefined" && tableBody) {
+    tableBody.addEventListener("scroll", syncTableEnd, { passive: true });
 }
 
 function updateCityCards(results, cityAlerts) {

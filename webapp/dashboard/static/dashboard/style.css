@@ -4302,3 +4302,104 @@ button.google-btn {
 .suggestions-empty .action-btn {
     margin-top: 14px;
 }
+
+/* ---- Round 5 (council) ---- */
+
+/* Table badges were 9px; the level colours are the product's identity. */
+.alert-badge--sm {
+    font-size: 10.5px;
+    padding: 3px 8px;
+    gap: 5px;
+}
+
+.alert-badge--sm .alert-badge__icon {
+    width: 10px;
+    height: 10px;
+}
+
+/* Desktop table: drop the "more below" fade once scrolled to the end
+   (app-render.js toggles .is-at-end). */
+.table-body.is-at-end {
+    -webkit-mask-image: none;
+    mask-image: none;
+}
+
+/* Research header: title, subtitle, tagline step down clearly. */
+.research-card .research-period {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-secondary);
+}
+
+/* Feedback empty state: its action is a text link, so the header's
+   New Suggestion stays the one button on screen. */
+.suggestions-empty__link {
+    margin-top: 12px;
+    padding: 4px 2px;
+    background: none;
+    border: none;
+    color: var(--brand);
+    font: 600 13px 'Inter', sans-serif;
+    cursor: pointer;
+}
+
+.suggestions-empty__link:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    /* The page (not the table) scrolls on phones. overflow:hidden on these
+       ancestors made them scroll containers that never scroll, which
+       stopped the city group header and column header from sticking. clip
+       keeps the same clipping without creating a scroll container. */
+    .main-content {
+        overflow-x: clip;
+    }
+
+    .table-card {
+        overflow: clip;
+    }
+
+    .table-head {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+
+    .tier-sep {
+        top: var(--table-head-h, 33px);
+    }
+}
+
+@media (max-width: 640px) {
+    /* CURRENT and PREDICTED read as one phrase without a gap. */
+    .th-pm,
+    .td-pm {
+        width: 52px;
+    }
+
+    .th-pred,
+    .td-pred {
+        padding-left: 12px;
+        width: 76px;
+    }
+
+    .th-level,
+    .td-level {
+        width: 90px;
+    }
+
+    .th-pm,
+    .th-pred {
+        letter-spacing: 0.02em;
+    }
+
+    /* Long station names wrap to two lines instead of truncating hard. */
+    .td-station-name {
+        white-space: normal;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        line-height: 1.3;
+    }
+}

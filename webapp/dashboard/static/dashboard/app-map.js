@@ -127,7 +127,7 @@ function updateMapMarkers(results) {
         // names on the map to read.
         const tagName = typeof displayCity === "function" ? displayCity(info.label || name) : (info.label || name);
         m.bindTooltip(escapeHtml(tagName), {
-            permanent: true, direction: "right", offset: [14, 0], className: "city-label",
+            permanent: true, direction: "right", offset: [16, -2], className: "city-label",
         });
         mapMarkers.push(m);
     }
@@ -161,7 +161,7 @@ function updateMapMarkers(results) {
 
         const variant = st.coord_source === "epa" ? "epa" : (st.coord_source === "derived" ? "derived" : "circle");
         const marker = L.marker([st.lat, st.lon], { icon: createCircleIcon(color, size, shouldPulse, variant) }).addTo(map);
-        const name = st.city_name || st.station || "Station";
+        const name = displayStation(st.city_name || st.station || "Station");
         const dist = st.distance ?? st.dist ?? 0;
         const dir = st.direction ?? st.dir ?? "";
         let sourceNote = "";

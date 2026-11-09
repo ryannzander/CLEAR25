@@ -127,6 +127,16 @@
             margin-bottom: 16px;
         }
 
+        /* The one long JSON line wraps with a hanging indent instead of
+           running off the block's edge (6ch = its nesting, +2ch for the
+           continuation). */
+        .json-hang {
+            display: block;
+            white-space: pre-wrap;
+            padding-left: 8ch;
+            text-indent: -2ch;
+        }
+
         .code-block::-webkit-scrollbar {
             height: 6px;
         }
@@ -519,8 +529,7 @@
       <span class="json-key">"predicted"</span>: <span class="json-number">52.1</span>,
       <span class="json-key">"level"</span>: <span class="json-number">2</span>,
       <span class="json-key">"level_name"</span>: <span class="json-string">"MODERATE"</span>,
-      <span class="json-key">"health_advisory"</span>: <span class="json-string">"Sensitive groups (children, elderly, respiratory conditions) should reduce outdoor activity."</span>
-    }
+<span class="json-hang"><span class="json-key">"health_advisory"</span>: <span class="json-string">"Sensitive groups (children, elderly, respiratory conditions) should reduce outdoor activity."</span></span>    }
   ],
   <span class="json-key">"count"</span>: <span class="json-number">50</span>,
   <span class="json-key">"total_available"</span>: <span class="json-number">88</span>,
@@ -606,12 +615,14 @@
   <span class="json-key">"error"</span>: <span class="json-string">"Invalid API key"</span>
 }</div>
             <p style="margin-top: 12px;">Common HTTP status codes:</p>
-            <ul style="color: var(--muted); padding-left: 20px; margin-top: 8px;">
-                <li><code class="code-inline">401</code> — Missing or invalid API key</li>
-                <li><code class="code-inline">400</code> — Invalid request parameters</li>
-                <li><code class="code-inline">429</code> — Rate limit exceeded</li>
-                <li><code class="code-inline">500</code> — Server error</li>
-            </ul>
+            <div class="card">
+                <ul style="color: var(--muted); padding-left: 20px;">
+                    <li><code class="code-inline">401</code> — Missing or invalid API key</li>
+                    <li><code class="code-inline">400</code> — Invalid request parameters</li>
+                    <li><code class="code-inline">429</code> — Rate limit exceeded</li>
+                    <li><code class="code-inline">500</code> — Server error</li>
+                </ul>
+            </div>
         </div>
         {% include "dashboard/_doc_footer.html" %}
     </div>
