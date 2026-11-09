@@ -18,12 +18,20 @@
             line-height: 1.7;
             padding: 40px 20px;
         }
+        /* Same 900px track as the other document pages (title starts under
+           the logo); the text itself keeps a 720px reading measure. */
         .container {
-            max-width: 720px;
+            max-width: 900px;
             margin: 0 auto;
         }
+        .container > :not(.doc-topbar):not(.doc-footer):not(style) {
+            max-width: 720px;
+        }
         h1 {
-            font-size: 2rem;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
             margin-bottom: 8px;
             background: linear-gradient(135deg, #ffffff, #ffffff);
             -webkit-background-clip: text;
@@ -31,18 +39,28 @@
             background-clip: text;
         }
         .updated {
-            color: #71717a;
+            color: #8b8b93;
             font-size: 14px;
             margin-bottom: 32px;
         }
+        /* Same doc heading as the API/settings pages. */
         h2 {
-            font-size: 1.25rem;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
             margin: 32px 0 12px;
-            color: #e4e4e7;
+            color: #fafafa;
         }
         p, li {
             color: #a1a1aa;
             margin-bottom: 12px;
+        }
+        li {
+            margin-bottom: 6px;
+        }
+        strong {
+            color: #e4e4e7;
+            font-weight: 600;
         }
         ul {
             padding-left: 24px;
@@ -55,26 +73,11 @@
         a:hover {
             text-decoration: underline;
         }
-        .back {
-            display: inline-block;
-            margin-top: 40px;
-            padding: 12px 24px;
-            background: #1e1e1e;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 10px;
-            color: #fafafa;
-            text-decoration: none;
-            transition: border-color 0.2s, background 0.2s;
-        }
-        .back:hover {
-            background: rgba(255, 255, 255, 0.06);
-            border-color: rgba(255, 255, 255, 0.16);
-            text-decoration: none;
-        }
     </style>
 </head>
 <body>
     <div class="container">
+        {% include "dashboard/_doc_topbar.html" with back_href="/" back_label="home" %}
         <h1>Privacy Policy</h1>
         <p class="updated">Last updated: February 2025</p>
 
@@ -146,7 +149,7 @@
         <h2>Contact Us</h2>
         <p>If you have questions about this Privacy Policy, please contact us through our <a href="/feedback/">feedback board</a>.</p>
 
-        <a href="/" class="back">Back to CLEAR25</a>
+        {% include "dashboard/_doc_footer.html" %}
     </div>
 </body>
 </html>

@@ -17,7 +17,8 @@
             --card: #1e1e1e;
             --border: rgba(255, 255, 255, 0.08);
             --text: #fafafa;
-            --muted: #71717a;
+            --muted: #a1a1aa;
+            --faint: #8b8b93;
             --accent: #f6821f;
         }
 
@@ -29,8 +30,10 @@
             min-height: 100vh;
         }
 
+        /* 900px content track (+24px side padding) so the H1 starts at the
+           same x as the shared top bar and the other document pages. */
         .container {
-            max-width: 900px;
+            max-width: 948px;
             margin: 0 auto;
             padding: 40px 24px 80px;
         }
@@ -108,22 +111,66 @@
 
         /* Code blocks */
         .code-block {
-            background: #000;
+            background: #0d0d0d;
             border: 1px solid var(--border);
             border-radius: 8px;
-            padding: 16px;
+            padding: 16px 18px;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 13px;
+            font-size: 12.5px;
+            line-height: 1.65;
+            color: #d4d4d8;
+            white-space: pre;
             overflow-x: auto;
+            /* A visible scrollbar, so long values read as "scrolls" not "cut". */
+            scrollbar-width: thin;
+            scrollbar-color: #3f3f46 transparent;
             margin-bottom: 16px;
         }
 
-        .code-inline {
-            background: rgba(255,255,255,0.1);
+        /* The one long JSON line wraps with a hanging indent instead of
+           running off the block's edge (6ch = its nesting, +2ch for the
+           continuation). */
+        .json-hang {
+            display: block;
+            white-space: pre-wrap;
+            padding-left: 8ch;
+            text-indent: -2ch;
+        }
+
+        .code-block::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .code-block::-webkit-scrollbar-thumb {
+            background: #3f3f46;
+            border-radius: 3px;
+        }
+
+        .code-inline,
+        .endpoint-desc code {
+            background: rgba(255,255,255,0.08);
             padding: 2px 6px;
             border-radius: 4px;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 13px;
+            font-size: 0.86em;
+            color: #e4e4e7;
+        }
+
+        .docs-head {
+            margin-bottom: 44px;
+        }
+
+        .docs-head h1 {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+            margin-bottom: 8px;
+        }
+
+        .docs-head p {
+            color: var(--muted);
+            font-size: 15px;
         }
 
         /* Endpoint */
@@ -197,11 +244,35 @@
         }
 
         .level-badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
             font-size: 12px;
+            font-weight: 700;
+        }
+
+        .level-table td {
+            vertical-align: middle;
+        }
+
+        .level-name {
             font-weight: 600;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .level-range {
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .level-advice {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.5;
         }
 
         /* API Keys section */
@@ -252,7 +323,7 @@
 
         .btn-primary {
             background: var(--accent);
-            color: #fff;
+            color: #1a1a1a;
         }
 
         .btn-primary:hover {
@@ -282,7 +353,20 @@
 
         .login-prompt {
             text-align: center;
-            padding: 32px;
+            padding: 4px 0;
+            color: var(--muted);
+        }
+
+        .section .login-prompt p {
+            margin: 0;
+        }
+
+        /* Phones: wrap long JSON values rather than scroll sideways. */
+        @media (max-width: 640px) {
+            .code-block {
+                white-space: pre-wrap;
+                overflow-wrap: anywhere;
+            }
         }
 
         .login-prompt a {
@@ -311,17 +395,11 @@
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <div class="header-left">
-                <img src="{% static 'dashboard/favicon.svg' %}" alt="CLEAR25" class="logo">
-                <h1>API Documentation</h1>
-            </div>
-            <a href="/" class="back-link">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-                Back to Home
-            </a>
-        </div>
+        {% include "dashboard/_doc_topbar.html" with back_href="/" back_label="home" %}
+        <header class="docs-head">
+            <h1>API Documentation</h1>
+            <p>Programmatic access to CLEAR25&rsquo;s live PM2.5 readings and predictions.</p>
+        </header>
 
         <!-- Overview -->
         <div class="section">
@@ -377,7 +455,7 @@
         <!-- Level Reference -->
         <div class="section">
             <h2>Air Quality Levels</h2>
-            <p>The API returns air quality as an integer <code class="code-inline">level</code> (1-5). Here's what each level means:</p>
+            <p>The API returns air quality as an integer <code class="code-inline">level</code> (1&ndash;5) with its <code class="code-inline">level_name</code> and <code class="code-inline">health_advisory</code>. Bands follow the published paper (Table 2); advisory text is what the alert engine returns.</p>
 
             <div class="card" style="padding: 0; overflow: hidden;">
                 <table class="level-table">
@@ -391,34 +469,34 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td><span class="level-badge" style="background: #A8D5A0; color: #000;">1</span></td>
-                            <td>NONE</td>
-                            <td>0 - 31 &micro;g/m&sup3;</td>
-                            <td style="color: var(--muted);">No safety precautions needed.</td>
+                            <td><span class="level-badge" style="background: #22c55e; color: #000;">1</span></td>
+                            <td class="level-name">LOW</td>
+                            <td class="level-range">&lt;20 &micro;g/m&sup3;</td>
+                            <td class="level-advice">No significant risk. No action required.</td>
                         </tr>
                         <tr>
-                            <td><span class="level-badge" style="background: #D2CC9A; color: #000;">2</span></td>
-                            <td>MODERATE</td>
-                            <td>31 - 60 &micro;g/m&sup3;</td>
-                            <td style="color: var(--muted);">Sensitive groups avoid strenuous activities.</td>
+                            <td><span class="level-badge" style="background: #eab308; color: #000;">2</span></td>
+                            <td class="level-name">MODERATE</td>
+                            <td class="level-range">20–60 &micro;g/m&sup3;</td>
+                            <td class="level-advice">Sensitive groups (children, elderly, respiratory conditions) should reduce outdoor activity.</td>
                         </tr>
                         <tr>
-                            <td><span class="level-badge" style="background: #F0BFA0; color: #000;">3</span></td>
-                            <td>HIGH</td>
-                            <td>60 - 80 &micro;g/m&sup3;</td>
-                            <td style="color: var(--muted);">Everyone reduce physical exertion. Use N95 mask.</td>
+                            <td><span class="level-badge" style="background: #f97316; color: #000;">3</span></td>
+                            <td class="level-name">HIGH</td>
+                            <td class="level-range">61–80 &micro;g/m&sup3;</td>
+                            <td class="level-advice">General population affected. Reduce prolonged outdoor exertion. Use N95/KN95 mask outdoors.</td>
                         </tr>
                         <tr>
-                            <td><span class="level-badge" style="background: #E8988A; color: #fff;">4</span></td>
-                            <td>VERY HIGH</td>
-                            <td>80 - 120 &micro;g/m&sup3;</td>
-                            <td style="color: var(--muted);">Avoid all outdoor activity. Keep hydrated.</td>
+                            <td><span class="level-badge" style="background: #dc2626; color: #fff;">4</span></td>
+                            <td class="level-name">VERY HIGH</td>
+                            <td class="level-range">81–120 &micro;g/m&sup3;</td>
+                            <td class="level-advice">Significant risk for all. Avoid outdoor exertion. Keep doors and windows closed.</td>
                         </tr>
                         <tr>
-                            <td><span class="level-badge" style="background: #E65C50; color: #fff;">5</span></td>
-                            <td>EXTREME</td>
-                            <td>&gt;120 &micro;g/m&sup3;</td>
-                            <td style="color: var(--muted);">Halt all indoor pollution sources.</td>
+                            <td><span class="level-badge" style="background: #7f1d1d; color: #fff;">5</span></td>
+                            <td class="level-name">EXTREME</td>
+                            <td class="level-range">&gt;120 &micro;g/m&sup3;</td>
+                            <td class="level-advice">Emergency conditions. Stay indoors. Close windows. Run HEPA filter. No indoor pollution sources.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -439,7 +517,7 @@
                     <p class="endpoint-desc">Get current PM2.5 readings and predictions. Query: <code>limit</code> (default 50, max 200), <code>station</code> (filter by id). If the live cache is empty, responses use demo preview values (<code>data_source: demo_preview</code>).</p>
 
                     <div class="response-label">Response</div>
-                    <div class="code-block"><span class="json-key">{</span>
+                    <div class="code-block">{
   <span class="json-key">"stations"</span>: [
     {
       <span class="json-key">"id"</span>: <span class="json-string">"61502"</span>,
@@ -451,15 +529,14 @@
       <span class="json-key">"predicted"</span>: <span class="json-number">52.1</span>,
       <span class="json-key">"level"</span>: <span class="json-number">2</span>,
       <span class="json-key">"level_name"</span>: <span class="json-string">"MODERATE"</span>,
-      <span class="json-key">"health_advisory"</span>: <span class="json-string">"Sensitive groups avoid strenuous activities."</span>
-    }
+<span class="json-hang"><span class="json-key">"health_advisory"</span>: <span class="json-string">"Sensitive groups (children, elderly, respiratory conditions) should reduce outdoor activity."</span></span>    }
   ],
   <span class="json-key">"count"</span>: <span class="json-number">50</span>,
   <span class="json-key">"total_available"</span>: <span class="json-number">88</span>,
   <span class="json-key">"timestamp"</span>: <span class="json-string">"2025-02-07T10:30:00Z"</span>,
   <span class="json-key">"age_seconds"</span>: <span class="json-number">120</span>,
   <span class="json-key">"data_source"</span>: <span class="json-string">"live"</span>
-<span class="json-key">}</span></div>
+}</div>
                 </div>
             </div>
 
@@ -476,7 +553,7 @@
                     <div class="code-block"><span class="json-key">city</span> (optional): Filter by city. Options: {{ cities|join:", " }}</div>
 
                     <div class="response-label">Response</div>
-                    <div class="code-block"><span class="json-key">{</span>
+                    <div class="code-block">{
   <span class="json-key">"stations"</span>: [
     {
       <span class="json-key">"id"</span>: <span class="json-string">"61502"</span>,
@@ -489,7 +566,7 @@
   ],
   <span class="json-key">"count"</span>: <span class="json-number">50</span>,
   <span class="json-key">"cities"</span>: [<span class="json-string">"Toronto"</span>, <span class="json-string">"Montreal"</span>, ...]
-<span class="json-key">}</span></div>
+}</div>
                 </div>
             </div>
 
@@ -503,7 +580,7 @@
                     <p class="endpoint-desc">Get list of supported cities with coordinates.</p>
 
                     <div class="response-label">Response</div>
-                    <div class="code-block"><span class="json-key">{</span>
+                    <div class="code-block">{
   <span class="json-key">"cities"</span>: [
     {
       <span class="json-key">"id"</span>: <span class="json-string">"Toronto"</span>,
@@ -513,7 +590,7 @@
     }
   ],
   <span class="json-key">"count"</span>: <span class="json-number">4</span>
-<span class="json-key">}</span></div>
+}</div>
                 </div>
             </div>
         </div>
@@ -534,17 +611,20 @@
         <!-- Errors -->
         <div class="section">
             <h2>Error Responses</h2>
-            <div class="code-block"><span class="json-key">{</span>
+            <div class="code-block">{
   <span class="json-key">"error"</span>: <span class="json-string">"Invalid API key"</span>
-<span class="json-key">}</span></div>
+}</div>
             <p style="margin-top: 12px;">Common HTTP status codes:</p>
-            <ul style="color: var(--muted); padding-left: 20px; margin-top: 8px;">
-                <li><code class="code-inline">401</code> — Missing or invalid API key</li>
-                <li><code class="code-inline">400</code> — Invalid request parameters</li>
-                <li><code class="code-inline">429</code> — Rate limit exceeded</li>
-                <li><code class="code-inline">500</code> — Server error</li>
-            </ul>
+            <div class="card">
+                <ul style="color: var(--muted); padding-left: 20px;">
+                    <li><code class="code-inline">401</code> — Missing or invalid API key</li>
+                    <li><code class="code-inline">400</code> — Invalid request parameters</li>
+                    <li><code class="code-inline">429</code> — Rate limit exceeded</li>
+                    <li><code class="code-inline">500</code> — Server error</li>
+                </ul>
+            </div>
         </div>
+        {% include "dashboard/_doc_footer.html" %}
     </div>
 
     <script src="{% static 'dashboard/app-csrf.js' %}?v=1"></script>

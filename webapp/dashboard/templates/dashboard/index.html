@@ -10,22 +10,32 @@
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css" integrity="sha384-uTttxo/aOKbdE5RlD/SPzSDoDmNvGlUYPjONi2MN/b7c9HPSvW07OIuyP7uL6jxK" crossorigin="anonymous" />
 {% endblock %} {% block main %}
 <div id="tab-dashboard" class="tab-content tab-visible">
-  <!-- Alert Banner -->
+  <header class="page-head">
+    <div class="page-head-text">
+      <h1 class="page-title">Smoke outlook</h1>
+      <p class="page-sub">Predicted PM2.5 for each target city, from upstream monitoring stations.</p>
+    </div>
+    <div class="page-head-actions">
+      <div id="station-count" class="station-count"></div>
+      <button id="btn-demo" class="action-btn action-ghost" onclick="runDemo()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <polygon points="5 3 19 12 5 21 5 3" />
+        </svg>
+        Run Demo
+      </button>
+    </div>
+  </header>
   <!-- City Alert Cards -->
   <div class="city-cards" id="city-cards">
     {% for city in cities %}
     <div class="city-card" id="card-{{ city }}">
       <div class="city-card-glow"></div>
       <div class="city-card-content">
-        <div class="city-card-name">{{ city }}</div>
+        <div class="city-card-name">{% if city == "Montreal" %}Montréal{% else %}{{ city }}{% endif %}</div>
         <div class="city-card-level">Waiting for data</div>
         <div class="city-card-pm"></div>
         <div class="city-card-detail"></div>
-        <div
-          class="city-card-fusion"
-          id="fusion-{{ city }}"
-          style="margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap"
-        ></div>
+        <div class="city-card-fusion" id="fusion-{{ city }}"></div>
       </div>
     </div>
     {% endfor %}
@@ -35,30 +45,12 @@
                      Populated by app-forecast.js from /api/forecast/; hidden until data. -->
   <div id="smoke-forecast" class="forecast-card" style="display: none"></div>
 
-  <!-- Action Bar -->
-  <div class="actions">
-    <button id="btn-demo" class="action-btn action-ghost" onclick="runDemo()">
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-      >
-        <polygon points="5 3 19 12 5 21 5 3" />
-      </svg>
-      Run Demo
-    </button>
-    <div id="station-count" class="station-count"></div>
-  </div>
-
   <!-- Stats Cards -->
   <div class="stats-row" id="stats-row" style="display: none">
     <div class="stat-card">
       <div class="stat-label">Worst Predicted</div>
       <div class="stat-value" id="stat-worst">—</div>
-      <div class="stat-unit">µg/m³</div>
+      <div class="stat-unit">µg/m³ · single station</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Stations Reporting</div>
@@ -75,7 +67,6 @@
   <!-- Table -->
   <div class="table-card">
     <div class="table-head">
-      <span class="th th-city">City</span>
       <span class="th th-id">ID</span>
       <span class="th th-station">Station</span>
       <span class="th th-dist">Distance</span>
@@ -88,9 +79,8 @@
     </div>
     <div id="table-body" class="table-body">
       <div class="empty-state">
-        <div class="empty-icon">📡</div>
         <div class="empty-text">
-          Loading live data... or click <strong>Run Demo</strong>
+          Loading live data&hellip; or click <strong>Run Demo</strong>
         </div>
       </div>
     </div>
@@ -103,24 +93,23 @@
 </div>
 
 <div id="tab-map" class="tab-content">
-  <div class="map-controls">
-    <button class="action-btn action-ghost" onclick="mapRunDemo()">
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-      >
-        <polygon points="5 3 19 12 5 21 5 3" />
-      </svg>
-      Run Demo
-    </button>
-    <div id="map-status" class="station-count">
-      Live data updates automatically every 30 minutes
+  <header class="page-head">
+    <div class="page-head-text">
+      <h1 class="page-title">Live map</h1>
+      <p class="page-sub">Upstream monitoring stations and the four target cities, coloured by alert level.</p>
     </div>
-  </div>
+    <div class="page-head-actions">
+      <div id="map-status" class="station-count">
+        Live data updates automatically every 30 minutes
+      </div>
+      <button class="action-btn action-ghost" onclick="mapRunDemo()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <polygon points="5 3 19 12 5 21 5 3" />
+        </svg>
+        Run Demo
+      </button>
+    </div>
+  </header>
   <div id="map-container" class="map-container"></div>
   <div class="map-legend">
     <span class="legend-title">Alert Levels:</span>
@@ -165,15 +154,14 @@
       ><span
         class="legend-dot"
         style="
-          background: transparent;
-          border: 2px solid #e65c50;
-          box-shadow: inset 0 0 4px #e65c5044;
+          background: rgba(255, 255, 255, 0.08);
+          border: 2px solid rgba(255, 255, 255, 0.55);
         "
       ></span
-      >City Bubble</span
+      >City area (level colour)</span
     >
     <span class="legend-item"
-      ><span class="legend-dot legend-dot-empty"></span>No Data</span
+      ><span class="legend-dot legend-dot-empty"></span>No data</span
     >
   </div>
 </div>
@@ -182,9 +170,9 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js" integrity="sha384-5+cfbwT0iiub6VsQAdn6yz16nr6sDiQoHx6tm4O8OVYXHYOxcffFmCJBL0dgdvGp" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js" integrity="sha384-tXYNKOHx4T02jMP7YYCtBxPIv1B5gaA5mcVPBzqMp6d7VzWzxJgI2aWF/nJLrQdS" crossorigin="anonymous"></script>
-<script src="{% static 'dashboard/basemap.js' %}?v=1"></script>
-<script src="{% static 'dashboard/app-render.js' %}?v=39"></script>
+<script src="{% static 'dashboard/basemap.js' %}?v=6"></script>
+<script src="{% static 'dashboard/app-render.js' %}?v=45"></script>
 <script src="{% static 'dashboard/app-fusion.js' %}?v=2"></script>
 <script src="{% static 'dashboard/app-forecast.js' %}?v=2"></script>
-<script src="{% static 'dashboard/app-map.js' %}?v=41"></script>
+<script src="{% static 'dashboard/app-map.js' %}?v=46"></script>
 {% endblock %}

@@ -62,7 +62,12 @@ function showDashView(view) {
     }
 }
 if (document.getElementById("tab-dashboard")) {
-    showDashView(location.hash === "#map" ? "map" : "dashboard");
+    // Wait for DOMContentLoaded: app.js loads in the base template, BEFORE
+    // the page's app-map.js (which defines initMap). Opening /dashboard/#map
+    // directly used to call initMap before it existed and leave a blank map.
+    document.addEventListener("DOMContentLoaded", () => {
+        showDashView(location.hash === "#map" ? "map" : "dashboard");
+    });
     window.addEventListener("hashchange", () => {
         showDashView(location.hash === "#map" ? "map" : "dashboard");
     });

@@ -78,7 +78,12 @@ async function loadSuggestions() {
         const data = await resp.json();
 
         if (!data.suggestions || data.suggestions.length === 0) {
-            list.innerHTML = `<div class="suggestions-empty">No suggestions yet. Be the first to share an idea!</div>`;
+            list.innerHTML = `<div class="suggestions-empty">
+                <svg class="suggestions-empty__icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <p class="suggestions-empty__title">No suggestions yet</p>
+                <p class="suggestions-empty__sub">Be the first to share an idea or report a bug.</p>
+                <button type="button" class="suggestions-empty__link" onclick="document.getElementById('btn-new-suggestion')?.click()">Share the first idea &rarr;</button>
+            </div>`;
             return;
         }
 

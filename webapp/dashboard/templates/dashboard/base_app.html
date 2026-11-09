@@ -12,7 +12,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
         rel="stylesheet" media="print" onload="this.media='all'">
-    <link rel="stylesheet" href="{% static 'dashboard/style.css' %}?v=47">
+    <link rel="stylesheet" href="{% static 'dashboard/style.css' %}?v=58">
     {% block extra_head %}{% endblock %}
 </head>
 
@@ -55,7 +55,8 @@
                             <line x1="8" y1="2" x2="8" y2="18" />
                             <line x1="16" y1="6" x2="16" y2="22" />
                         </svg>
-                        <span>Live Map</span>
+                        <span class="tab-long">Live map</span>
+                        <span class="tab-short" aria-hidden="true">Map</span>
                     </a>
                     <a href="/plan/" class="sidebar-tab sidebar-link{% if active_nav == 'plan' %} tab-active{% endif %}"
                         {% if active_nav == 'plan' %}aria-current="page"{% endif %}>
@@ -65,7 +66,8 @@
                             <path d="M3 12h15a3 3 0 1 1-3 3" />
                             <path d="M3 16h9a2.5 2.5 0 1 1-2.5 2.5" />
                         </svg>
-                        <span>Plume Tracker</span>
+                        <span class="tab-long">Plume tracker</span>
+                        <span class="tab-short" aria-hidden="true">Plume</span>
                     </a>
                     <a href="/research/" class="sidebar-tab{% if active_nav == 'research' %} tab-active{% endif %}"
                         {% if active_nav == 'research' %}aria-current="page"{% endif %}>
@@ -131,7 +133,12 @@
                         <path
                             d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                     </svg>
-                    Sign In
+                    <svg class="signin-person" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" aria-hidden="true">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    <span class="signin-label">Sign In</span>
                 </a>
                 {% endif %}
             </div>
@@ -147,7 +154,7 @@
 
     <script src="{% static 'dashboard/app-csrf.js' %}?v=1"></script>
     <script src="{% static 'dashboard/alert-tokens.js' %}?v=1"></script>
-    <script src="{% static 'dashboard/app.js' %}?v=38"></script>
+    <script src="{% static 'dashboard/app.js' %}?v=39"></script>
     {% block scripts %}{% endblock %}
     <script defer src="/_vercel/speed-insights/script.js"></script>
 </body>

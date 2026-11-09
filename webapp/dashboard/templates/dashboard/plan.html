@@ -19,9 +19,15 @@
         #plan-map { position:absolute; inset:0; z-index:1; background:#0a0a0b; }
         .leaflet-container { background:#0a0a0b; }
 
-        .topbar { position:absolute; top:0; left:0; right:0; z-index:1000; display:flex;
-            align-items:center; gap:14px; padding:12px 18px;
-            background:linear-gradient(180deg, rgba(10,10,11,0.92), rgba(10,10,11,0)); }
+        /* Floating header card, same material as the playback panel, so the
+           title never sits directly on the map's city labels. */
+        .topbar { position:absolute; top:12px; left:12px; z-index:1000; display:flex;
+            align-items:center; gap:14px; padding:10px 14px; max-width:calc(100% - 24px);
+            background:rgba(20,20,23,0.86); border:1px solid var(--line); border-radius:12px;
+            backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+            box-shadow:0 10px 30px rgba(0,0,0,0.35); }
+        .topbar a.back { display:inline-flex; align-items:center; gap:6px; padding-right:14px;
+            border-right:1px solid var(--line); align-self:stretch; }
         .topbar a.back { color:var(--muted); text-decoration:none; font-size:13px; font-weight:600; }
         .topbar a.back:hover { color:var(--text); }
         .topbar h1 { font-size:15px; font-weight:800; margin:0; letter-spacing:0.2px; }
@@ -76,13 +82,47 @@
             border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 12px; }
         @keyframes spin { to { transform:rotate(360deg); } }
         .hidden { display:none !important; }
+        /* Hour and year are already shown by the slider counter and the year
+           tabs; keep the elements (app-plan.js writes them) but don't repeat. */
+        .meta .dup { display:none; }
+        /* Dark map credits (Leaflet's default is a white bar). */
+        .leaflet-container .leaflet-control-attribution.leaflet-control {
+            background:rgba(18,18,18,0.9); color:#aaa; border-top-left-radius:6px; }
+        .leaflet-container .leaflet-control-attribution.leaflet-control a { color:#ccc; }
+        /* Dark zoom buttons (Leaflet ships white). */
+        .leaflet-container.leaflet-touch .leaflet-bar, .leaflet-container .leaflet-bar { border:1px solid var(--line); box-shadow:none; }
+        .leaflet-container .leaflet-bar a, .leaflet-container.leaflet-touch .leaflet-bar a { background:#1c1c21; color:#d4d4d8; border-bottom-color:var(--line); }
+        .leaflet-container .leaflet-bar a:hover, .leaflet-container.leaflet-touch .leaflet-bar a:hover { background:#26262d; color:#fff; }
+        /* Units must never be uppercased (µg/m³ would render as "MG/M³"). */
+        .unit { text-transform:none; letter-spacing:0; }
+        @media (max-width: 640px) {
+            .topbar { flex-wrap:wrap; gap:6px 10px; padding:10px 12px; top:10px; left:10px; right:10px; }
+            .topbar a.back { border-right:none; padding-right:0; width:100%; }
+            .topbar h1 { font-size:14px; }
+            .topbar .sub { display:none; }
+            .pill { font-size:10.5px; }
+            .legend { top:128px; bottom:auto; left:10px; right:auto; padding:6px 8px; font-size:10px; }
+            /* Pinch-zoom covers phones; the +/- buttons sat under the panel. */
+            .leaflet-control-zoom { display:none; }
+            .legend .bar { width:118px; }
+            /* Sit above the (required) map credits instead of covering them. */
+            .panel { bottom:34px; padding:12px 12px 10px; }
+            .leaflet-control-attribution { font-size:9px; line-height:1.35; }
+            .meta { gap:10px; }
+            /* Touch targets: 40px year chips, 44px play, and a 36px-tall hit
+               area on the slider (its visible track stays thin). */
+            .layerseg { width:100%; }
+            .seg { flex:1; min-height:40px; padding:0 6px; font-size:13px; }
+            .play { width:44px; height:44px; }
+            input[type=range] { height:36px; margin:0; }
+        }
     </style>
 </head>
 <body>
     <div id="plan-map"></div>
 
     <div class="topbar">
-        <a class="back" href="/dashboard/">← Dashboard</a>
+        <a class="back" href="/dashboard/"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Dashboard</a>
         <div>
             <h1>CLEAR · <span>2021–2025 Smoke-Plume Replay</span></h1>
             <div class="sub">PurpleAir PM2.5 · EPA-corrected · hourly · Great Lakes, Northeast &amp; ON/QC</div>
@@ -91,7 +131,7 @@
     </div>
 
     <div class="legend">
-        <div class="lt">PM2.5 µg/m³ · EPA-corrected</div>
+        <div class="lt">PM2.5 <span class="unit">µg/m³</span> · EPA-corrected</div>
         <div class="bar"></div>
         <div class="ticks"><span>0</span><span>12</span><span>35</span><span>55</span><span>150</span><span>250+</span></div>
     </div>
@@ -109,9 +149,9 @@
             </div>
         </div>
         <div class="meta">
-            <span>Hour <b id="frame-idx">0</b>/<b id="frame-total">0</b></span>
+            <span class="dup">Hour <b id="frame-idx">0</b>/<b id="frame-total">0</b></span>
             <span><b id="sensor-count">0</b> sensors reporting</span>
-            <span>Year <b id="age">—</b></span>
+            <span class="dup">Year <b id="age">—</b></span>
         </div>
     </div>
 
@@ -126,8 +166,8 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js" integrity="sha384-5+cfbwT0iiub6VsQAdn6yz16nr6sDiQoHx6tm4O8OVYXHYOxcffFmCJBL0dgdvGp" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js" integrity="sha384-tXYNKOHx4T02jMP7YYCtBxPIv1B5gaA5mcVPBzqMp6d7VzWzxJgI2aWF/nJLrQdS" crossorigin="anonymous"></script>
-    <script src="{% static 'dashboard/basemap.js' %}?v=1"></script>
+    <script src="{% static 'dashboard/basemap.js' %}?v=6"></script>
     <script src="{% static 'dashboard/provinces-boundary.js' %}?v=1"></script>
-    <script src="{% static 'dashboard/app-plan.js' %}?v=14"></script>
+    <script src="{% static 'dashboard/app-plan.js' %}?v=16"></script>
 </body>
 </html>
