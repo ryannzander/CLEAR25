@@ -19,14 +19,24 @@ var BASEMAP_ATTRIBUTION =
 var BASEMAP_PLACE_LABEL_OPACITY = 0.85;
 var BASEMAP_MINOR_LABEL_OPACITY = 0.5;
 
-function dimBasemapLabels(glMap) {
+function dimBasemapLabels(glMap, hideNames) {
+    // Place names to suppress (the live map draws its own tags for its four
+    // target cities; the basemap's copy showed through underneath them).
+    var hideList = ["literal", hideNames || []];
+    function isHidden() {
+        return ["any",
+            ["in", ["to-string", ["get", "name"]], hideList],
+            ["in", ["to-string", ["get", "name:en"]], hideList],
+            ["in", ["to-string", ["get", "name:latin"]], hideList]];
+    }
     var layers = (glMap.getStyle() && glMap.getStyle().layers) || [];
     layers.forEach(function (layer) {
         if (layer.type !== "symbol") return;
         var isPlace = layer["source-layer"] === "place";
         var opacity = isPlace ? BASEMAP_PLACE_LABEL_OPACITY : BASEMAP_MINOR_LABEL_OPACITY;
         try {
-            glMap.setPaintProperty(layer.id, "text-opacity", opacity);
+            glMap.setPaintProperty(layer.id, "text-opacity",
+                isPlace && hideNames && hideNames.length ? ["case", isHidden(), 0, opacity] : opacity);
             glMap.setPaintProperty(layer.id, "icon-opacity", opacity);
             if (isPlace) {
                 // The style's own place colour is a dark grey; lift it so
@@ -43,7 +53,8 @@ function dimBasemapLabels(glMap) {
     });
 }
 
-function addDarkBasemap(map, extraAttribution) {
+function addDarkBasemap(map, extraAttribution, opts) {
+    var hideNames = (opts && opts.hidePlaceNames) || null;
     var attribution = BASEMAP_ATTRIBUTION + (extraAttribution ? " · " + extraAttribution : "");
     var layer = L.maplibreGL({
         style: BASEMAP_STYLE_URL,
@@ -53,8 +64,8 @@ function addDarkBasemap(map, extraAttribution) {
     }).addTo(map);
     var glMap = layer.getMaplibreMap && layer.getMaplibreMap();
     if (glMap) {
-        if (glMap.isStyleLoaded()) dimBasemapLabels(glMap);
-        else glMap.once("style.load", function () { dimBasemapLabels(glMap); });
+        if (glMap.isStyleLoaded()) dimBasemapLabels(glMap, hideNames);
+        else glMap.once("style.load", function () { dimBasemapLabels(glMap, hideNames); });
     }
     return layer;
 }

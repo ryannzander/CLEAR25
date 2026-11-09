@@ -4305,6 +4305,15 @@ button.google-btn {
 
 /* ---- Round 5 (council) ---- */
 
+@media (max-width: 768px) {
+    /* The account slot is icon-only on purpose: set it apart from the six
+       labelled page tabs. */
+    .sidebar-bottom {
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+        padding-left: 4px;
+    }
+}
+
 /* Table badges were 9px; the level colours are the product's identity. */
 .alert-badge--sm {
     font-size: 10.5px;
@@ -4381,12 +4390,18 @@ button.google-btn {
     .th-pred,
     .td-pred {
         padding-left: 12px;
-        width: 76px;
+        width: 64px;
     }
 
+    /* Fits the widest 10.5px badge (VERY HIGH) with a gap after the value. */
     .th-level,
     .td-level {
-        width: 90px;
+        width: 108px;
+    }
+
+    .td-level .alert-badge--sm {
+        white-space: nowrap;
+        padding: 3px 7px;
     }
 
     .th-pm,

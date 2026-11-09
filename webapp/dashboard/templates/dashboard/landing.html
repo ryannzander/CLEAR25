@@ -369,6 +369,14 @@
             margin-bottom: 18px;
         }
 
+        /* No orphaned last words ("June / 2023", "public- / health action"). */
+        .section-title,
+        .section-subtitle,
+        .hero-title,
+        .cta-title {
+            text-wrap: balance;
+        }
+
         .section-subtitle {
             font-size: 17px;
             color: var(--text-dim);

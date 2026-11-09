@@ -10,8 +10,11 @@ function displayCity(city) { return CITY_DISPLAY[city] || city; }
 // title case like the Canadian names. Display only: the data is unchanged.
 function displayStation(name) {
     const s = String(name || "");
-    if (!/[A-Z]/.test(s) || s !== s.toUpperCase()) return s;
-    const titled = s.toLowerCase().replace(/(^|[\s\-\/(.'])([a-z])/g, (m, p, c) => p + c.toUpperCase());
+    // Judge case on the part outside parentheses: "PROCTOR MAPLE RESEARCH
+    // CTR (Ve)" is still an all-caps name.
+    const core = s.replace(/\([^)]*\)/g, "");
+    if (!/[A-Z]/.test(core) || core !== core.toUpperCase()) return s;
+    const titled = s.replace(/[^()]+(?=\(|$)/g, part => part.toLowerCase()).replace(/(^|[\s\-\/(.'])([a-z])/g, (m, p, c) => p + c.toUpperCase());
     // French particles stay lowercase inside a name (Notre-Dame-du-Rosaire).
     return titled.replace(/([\s-])(Du|De|Des|La|Le|Les|Aux|Sur|En)(?=[\s-])/g, (m, p, w) => p + w.toLowerCase());
 }

@@ -15,7 +15,9 @@ function initMap() {
         // down a whole zoom level (which left the frame mostly empty).
         map = L.map("map-container", { zoomControl: false, attributionControl: true, maxZoom: 18, zoomSnap: 0.25 }).setView([52, -96], 4);
         L.control.zoom({ position: "bottomright" }).addTo(map);
-        addDarkBasemap(map);
+        addDarkBasemap(map, undefined, {
+            hidePlaceNames: ["Toronto", "Montréal", "Montreal", "Edmonton", "Vancouver"],
+        });
         updateMapMarkers(lastResults);
         map.invalidateSize();
     });
