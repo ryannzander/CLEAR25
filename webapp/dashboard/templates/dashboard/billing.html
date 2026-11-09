@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'dashboard/style.css' %}?v=53">
+    <link rel="stylesheet" href="{% static 'dashboard/style.css' %}?v=54">
     <style>
         .billing-page {
             min-height: 100vh;
@@ -62,9 +62,13 @@
             border-radius: 16px;
             padding: 20px 24px;
             margin-bottom: 32px;
-            display: flex;
+            /* Sized to its content: a full-width bar holding one badge read
+               as an empty strip. */
+            display: inline-flex;
             align-items: center;
-            justify-content: space-between;
+            gap: 24px;
+            padding: 12px 18px;
+            border-radius: 12px;
         }
 
         .current-plan-info {
@@ -208,8 +212,10 @@
         }
 
         .pricing-features li svg {
+            /* Brand, not the LOW-alert green: these are plan features, not
+               air-quality levels. */
             flex-shrink: 0;
-            color: #22c55e;
+            color: #f8a35a;
         }
 
         .pricing-btn {
@@ -580,7 +586,7 @@
                             </tr>
                             <tr>
                                 <td>Priority Support</td>
-                                <td>-</td>
+                                <td style="color:#71717a" aria-label="Not included">—</td>
                                 <td>Yes</td>
                                 <td>Yes</td>
                             </tr>
@@ -603,6 +609,7 @@
                     <span class="crypto-chip">+ 100 more</span>
                 </div>
             </div>
+            {% include "dashboard/_doc_footer.html" %}
         </div>
     </div>
 

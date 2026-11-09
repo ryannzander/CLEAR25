@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'dashboard/style.css' %}?v=53">
+    <link rel="stylesheet" href="{% static 'dashboard/style.css' %}?v=54">
     <style>
         .settings-page {
             min-height: 100vh;
@@ -24,7 +24,7 @@
             margin: 0 auto;
         }
 
-        .settings-container > :not(.doc-topbar):not(style) {
+        .settings-container > :not(.doc-topbar):not(.doc-footer):not(style) {
             max-width: 560px;
         }
 
@@ -372,6 +372,7 @@
                     Delete Account
                 </button>
             </div>
+            {% include "dashboard/_doc_footer.html" %}
         </div>
     </div>
 

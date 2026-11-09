@@ -122,6 +122,13 @@ function updateMapMarkers(results) {
             popupContent += `<div style="color:#71717a;font-size:12px;margin-top:4px;">No data available yet</div>`;
         }
         m.bindPopup(popupContent);
+        // Permanent name tag: the marker sits on top of the basemap's own
+        // label for its city, so the four target cities were the hardest
+        // names on the map to read.
+        const tagName = typeof displayCity === "function" ? displayCity(info.label || name) : (info.label || name);
+        m.bindTooltip(escapeHtml(tagName), {
+            permanent: true, direction: "right", offset: [14, 0], className: "city-label",
+        });
         mapMarkers.push(m);
     }
 

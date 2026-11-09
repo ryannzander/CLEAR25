@@ -1,0 +1,36 @@
+{% comment %}
+Shared closing footer for the standalone document pages (settings, billing,
+API docs, privacy): same links as the landing footer, centred like it, on
+the same 900px track as the shared top bar.
+{% endcomment %}
+<style>
+    .doc-footer {
+        box-sizing: border-box;
+        width: min(900px, calc(100vw - 48px));
+        margin: 64px 0 0 50%;
+        transform: translateX(-50%);
+        padding: 28px 0 8px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px 22px;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-size: 13px;
+    }
+    .doc-footer a {
+        color: #a1a1aa;
+        text-decoration: none;
+    }
+    .doc-footer a:hover {
+        color: #fafafa;
+        text-decoration: none;
+    }
+</style>
+<footer class="doc-footer">
+    <a href="/">Home</a>
+    <a href="/dashboard/">Dashboard</a>
+    <a href="/research/">Research</a>
+    <a href="/feedback/">Feedback</a>
+    <a href="/privacy/">Privacy</a>
+</footer>

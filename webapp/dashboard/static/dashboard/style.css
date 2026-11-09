@@ -4248,3 +4248,55 @@ button.google-btn {
         grid-column: 1 / -1;
     }
 }
+
+/* Live map: permanent name tags on the four target cities. */
+.leaflet-tooltip.city-label {
+    padding: 2px 7px;
+    background: rgba(10, 10, 12, 0.88);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    box-shadow: none;
+    color: var(--text-primary);
+    font: 600 12px/1.4 'Inter', sans-serif;
+}
+
+.leaflet-tooltip.city-label::before {
+    display: none;
+}
+
+/* Touch screens: :hover sticks to the last tapped row, leaving a random
+   highlighted row on every screen. Only show row hover with a real pointer. */
+@media (hover: none) {
+    .row:hover {
+        background: transparent;
+        border-left-color: transparent;
+    }
+}
+
+/* Phone bottom bar: Sign In becomes an icon-only slot (it keeps its
+   aria-label) so the six page tabs get room for their labels. */
+@media (max-width: 768px) {
+    .sidebar-signin .signin-label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+
+    .sidebar-signin {
+        padding: 9px 12px;
+    }
+}
+
+/* Feedback empty state: a quiet card rather than a dashed outline. */
+.suggestions-empty {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding: 64px 24px;
+}
+
+.suggestions-empty .action-btn {
+    margin-top: 14px;
+}

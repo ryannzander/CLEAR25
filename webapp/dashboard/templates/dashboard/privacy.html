@@ -24,7 +24,7 @@
             max-width: 900px;
             margin: 0 auto;
         }
-        .container > :not(.doc-topbar):not(style) {
+        .container > :not(.doc-topbar):not(.doc-footer):not(style) {
             max-width: 720px;
         }
         h1 {
@@ -43,10 +43,13 @@
             font-size: 14px;
             margin-bottom: 32px;
         }
+        /* Same doc heading as the API/settings pages. */
         h2 {
-            font-size: 1.25rem;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
             margin: 32px 0 12px;
-            color: #e4e4e7;
+            color: #fafafa;
         }
         p, li {
             color: #a1a1aa;
@@ -146,6 +149,7 @@
         <h2>Contact Us</h2>
         <p>If you have questions about this Privacy Policy, please contact us through our <a href="/feedback/">feedback board</a>.</p>
 
+        {% include "dashboard/_doc_footer.html" %}
     </div>
 </body>
 </html>
